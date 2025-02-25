@@ -1,209 +1,109 @@
-type Board {
+type User {
     id: ID!
-    name: String!
-    description: String
-    owner: String!
-    members: [String!]!
+    firstName: String!
+    lastName: String!
+    username: String!
+    email: String!
+    phoneNumber: String
+    avatar: String
+    role: String!
+    enabled: Boolean!
+    emailVerified: Boolean!
     createdAt: String!
     updatedAt: String!
-    background: String
-    isPublic: Boolean!
-    starred: Boolean!
-    labels: [Label!]!
-    lists: [List!]!
 }
 
-type Label {
+type Category {
     id: ID!
     name: String!
-    color: String!
-}
-
-type List {
-    id: ID!
-    name: String!
-    boardId: String!
-    cards: [Card!]!
-    position: Int!
-    archived: Boolean!
+    slug: String!
     description: String
-    color: String
-    subscribed: Boolean!
-    lastModifiedBy: String!
-    createdAt: String!
-    updatedAt: String!
-    archivedAt: String
-    watcherCount: Int!
-    subscribedUsers: [String!]!
+    parentId: String
+    image: String
+    level: Int!
+    isActive: Boolean!
 }
 
-type Card {
+enum ProductCondition {
+    NEW
+    LIKE_NEW
+    GOOD
+    FAIR
+    POOR
+}
+
+type Product {
     id: ID!
     title: String!
-    description: String
-    listId: String!
-    position: Int!
-    labels: [Label!]!
-    dueDate: String
-    completed: Boolean!
-    watcherCount: Int!
-    coverImage: String
-    priority: Priority
-    assignedMembers: [String!]!
-    checklistItems: [ChecklistItem!]!
+    description: String!
+    price: Float!
+    categoryId: String!
+    condition: ProductCondition!
+    images: [String!]!
+    location: String!
+    sellerUsername: String!
+    negotiable: Boolean!
+    status: String!
     createdAt: String!
     updatedAt: String!
-    createdBy: String!    # Explicitly marked as required
-    lastModifiedBy: String!
-    comments: [Comment!]!
-    attachments: [Attachment!]!
-}
-
-type ChecklistItem {
-    id: ID!
-    content: String!
-    completed: Boolean!
-    position: Int!
-}
-
-enum Priority {
-    LOW
-    MEDIUM
-    HIGH
-    URGENT
-}
-
-type Comment {
-    id: ID!
-    content: String!
-    username: String!
-    createdAt: String!
-}
-
-type Attachment {
-    id: ID!
-    fileName: String!
-    fileUrl: String!
-    username: String!
-    createdAt: String!
-}
-
-input CreateBoardInput {
-    name: String!
-    description: String
-    background: String
-    isPublic: Boolean
-}
-
-input UpdateBoardInput {
-    name: String
-    description: String
-    background: String
-    isPublic: Boolean
-    starred: Boolean
-}
-
-input CreateListInput {
-    name: String!
-    boardId: String!
-    position: Int
-    description: String
-    color: String
-}
-
-input UpdateListInput {
-    name: String
-    position: Int
-    archived: Boolean
-    description: String
-    color: String
-}
-
-input CreateCardInput {
-    title: String!
-    description: String
-    listId: String!
-    position: Int!
-    dueDate: String
-    coverImage: String
-    priority: Priority
-    assignedMembers: [String!]
-    labels: [ID!]
-}
-
-input UpdateCardInput {
-    title: String
-    description: String
-    listId: String
-    position: Int
-    dueDate: String
-    completed: Boolean
-    coverImage: String
-    priority: Priority
-    assignedMembers: [String!]
-}
-
-input ChecklistItemInput {
-    content: String!
-    position: Int!
-}
-
-input CommentInput {
-    content: String!
-}
-
-input AttachmentInput {
-    fileName: String!
-    fileUrl: String!
-}
-
-input LabelInput {
-    name: String!
-    color: String!
+    views: Int!
+    favorites: Int!
+    category: Category
+    seller: User
 }
 
 type Query {
-    board(id: ID!): Board
-    userBoards: [Board!]!
-    listsByBoard(boardId: ID!): [List!]!
-    cardsByList(listId: ID!): [Card!]!
-    archivedLists(boardId: ID!): [List!]!
+    # User queries
+    users: [User!]!
+    user(id: ID!): User
+    
+    # Category queries
+    categories: [Category!]!
+    category(id: ID!): Category
+    categoryBySlug(slug: String!): Category
+    availableCategories: [CategoryOption!]!
+    
+    # Product queries
+    products(page: Int!, size: Int!): [Product!]!
+    product(id: ID!): Product
+    productsByCategory(categoryId: ID!, page: Int!, size: Int!): [Product!]!
+    productsBySeller(username: String!, page: Int!, size: Int!): [Product!]!
+    sellerProducts(username: String!, status: String!): [Product!]!
+    searchProducts(keyword: String!, page: Int!, size: Int!): [Product!]!
+}
+
+type CategoryOption {
+    id: ID!
+    name: String!
+    level: Int!
+    parentName: String
 }
 
 type Mutation {
-    # Board mutations
-    createBoard(input: CreateBoardInput!): Board!
-    updateBoard(id: ID!, input: UpdateBoardInput!): Board!
-    deleteBoard(id: ID!): Boolean!
-    addBoardMember(boardId: ID!, username: String!): Board!
-    removeBoardMember(boardId: ID!, username: String!): Board!
-    addLabel(boardId: ID!, input: LabelInput!): Board!
-    removeLabel(boardId: ID!, labelId: ID!): Board!
-    toggleStarred(boardId: ID!): Board!
-    
-    # List mutations
-    createList(input: CreateListInput!): List!
-    updateList(id: ID!, input: UpdateListInput!): List!
-    deleteList(id: ID!): Boolean!
-    toggleListArchived(id: ID!): List!
-    toggleListSubscription(id: ID!): List!
-    
-    # Card mutations
-    createCard(input: CreateCardInput!): Card!
-    updateCard(id: ID!, input: UpdateCardInput!): Card!
-    deleteCard(id: ID!): Boolean!
-    addComment(cardId: ID!, input: CommentInput!): Card!
-    removeComment(cardId: ID!, commentId: ID!): Card!
-    addAttachment(cardId: ID!, input: AttachmentInput!): Card!
-    removeAttachment(cardId: ID!, attachmentId: ID!): Card!
+    # Product mutations only
+    createProduct(input: ProductInput!): Product!
+    updateProduct(id: ID!, input: ProductInput!): Product!
+    deleteProduct(id: ID!): Boolean!
+    toggleProductStatus(id: ID!, status: String!): Product!
+}
 
-    # Card member mutations
-    addCardMember(cardId: ID!, username: String!): Card!
-    removeCardMember(cardId: ID!, username: String!): Card!
+input CategoryInput {
+    name: String!
+    slug: String!
+    description: String
+    parentId: String
+    image: String
+    level: Int!
+    isActive: Boolean
+}
 
-    # Card completion mutation
-    toggleCardComplete(cardId: ID!): Card!
-
-    # Card label mutations
-    addCardLabel(cardId: ID!, labelColor: String!): Card!
+input ProductInput {
+    title: String!
+    description: String!
+    price: Float!
+    categoryId: String!
+    condition: ProductCondition!
+    images: [String!]!
+    location: String!
+    negotiable: Boolean!
 }

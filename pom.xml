@@ -111,28 +111,23 @@
         </dependency>
         -->
 		
-		<!-- GraphQL Dependencies -->
+		<!-- GraphQL Dependencies - Replace all existing GraphQL dependencies with these -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-graphql</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-            <version>20.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java-extended-scalars</artifactId>
-            <version>20.0</version>
-        </dependency>
-
-        <!-- Test dependencies for GraphQL -->
-        <dependency>
             <groupId>org.springframework.graphql</groupId>
             <artifactId>spring-graphql-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- GraphiQL -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -168,6 +163,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					 <mainClass>com.example.demo.DemoApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

@@ -3,7 +3,7 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: trellodb
+      database: e-commerce
   security:
     jwt:
       secret: "YourVerySecureSecretKeyHereItMustBeAtLeast32CharactersLong"
