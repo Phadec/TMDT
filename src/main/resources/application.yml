@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: trellodb
+  security:
+    jwt:
+      secret: "YourVerySecureSecretKeyHereItMustBeAtLeast32CharactersLong"
+      expiration: 86400000
+
+server:
+  port: 8080
