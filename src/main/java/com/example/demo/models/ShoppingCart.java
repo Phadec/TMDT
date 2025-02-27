@@ -1,7 +1,6 @@
 package com.example.demo.models;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
@@ -12,7 +11,7 @@ public class ShoppingCart {
     @Id
     String id;
     String userId;
-    List<String> productInfo; // Thay vì lưu toàn bộ thông tin, hoặc trỏ bảng thì lưu thông tin cần thiết bằng json.
+    List<ProductForShoppingCart> productInfo; // Thay vì lưu toàn bộ thông tin, hoặc trỏ bảng thì lưu thông tin cần thiết.
     Date dateCreated;
 
     /**
