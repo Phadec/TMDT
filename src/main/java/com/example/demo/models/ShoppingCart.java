@@ -10,7 +10,7 @@ import java.util.List;
 public class ShoppingCart {
     @Id
     String id;
-    String userId;
+    String username;
     List<ProductForShoppingCart> productInfo; // Thay vì lưu toàn bộ thông tin, hoặc trỏ bảng thì lưu thông tin cần thiết.
     Date dateCreated;
 

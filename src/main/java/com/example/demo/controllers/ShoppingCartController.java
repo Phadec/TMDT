@@ -19,13 +19,14 @@ public class ShoppingCartController {
     // Lấy ra số lượng sản phẩm đang có trong giỏ hàng
     @PostMapping("/count/{idUser}")
     public ResponseEntity<Long> getCountOfProductsInCart(@PathVariable String idUser) {
+        // Hàm này cần kiểm tra lại vì đang đếm không đúng
         return ResponseEntity.ok(shoppingCartService.getCountOfProducts(idUser));
     }
 
     // Lấy ra danh sách sản phẩm
 
-
     // Thêm các sản phẩm vào giỏ hàng
+    @PostMapping("/add/{username}")
 
     // Xóa các sản phẩm khỏi giỏ hàng
 
