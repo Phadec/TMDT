@@ -4,12 +4,11 @@ public class ProductForShoppingCart {
     String id;
     String title;
     String description;
-    double price;
     String mainImage;
     String condition; // NEW, USED
-    private String status; // ACTIVE, SOLD, DELETED
 
     /**
+     * !!! Không có giá vì giá và status thay đổi thường xuyên, nên phải cập nhật lại liên tục
      * Dùng cho việc tối ưu tốc độ và truy xuất.
      * + Lưu id: Phải truy xuất sau gọi
      * + Lưu toàn bộ: Thừa thải, phí bộ nhớ
