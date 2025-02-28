@@ -1,6 +1,10 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dtos.ItemShoppingCartDTO;
+import com.example.demo.models.ProductForShoppingCart;
 import com.example.demo.services.ShoppingCartService;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +14,8 @@ import java.util.List;
 @RequestMapping("/api/v1/shopping-cart")
 public class ShoppingCartController {
     final ShoppingCartService shoppingCartService;
+    @Autowired
+    ModelMapper modelMapper;
 
     public ShoppingCartController(ShoppingCartService shoppingCartService) {
         this.shoppingCartService = shoppingCartService;
@@ -26,8 +32,12 @@ public class ShoppingCartController {
 
     // Thêm các sản phẩm vào giỏ hàng
     @PostMapping("/add/{username}")
-    public void addProducts(@PathVariable String username, @RequestBody List<String> isProducts) {
-        shoppingCartService.saveProducts(username, isProducts);
+    public void addProducts(@PathVariable String username, @RequestBody List<ItemShoppingCartDTO> products) {
+        // Chuyển đổi cho service xử lý
+        List<ProductForShoppingCart> productsForService = products.stream()
+                .map(product -> modelMapper.map(product, ProductForShoppingCart.class))
+                .toList();
+        shoppingCartService.saveProducts(username, productsForService);
     }
 
     // Xóa các sản phẩm khỏi giỏ hàng

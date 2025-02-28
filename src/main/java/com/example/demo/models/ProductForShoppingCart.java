@@ -5,7 +5,6 @@ public class ProductForShoppingCart {
     String title;
     String description;
     String mainImage;
-    String condition; // NEW, USED
 
     /**
      * !!! Không có giá vì giá và status thay đổi thường xuyên, nên phải cập nhật lại liên tục
