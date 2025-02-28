@@ -14,7 +14,8 @@ public class AccountSeeder {
         if (userRepository.count() == 0) {
             // Seed accounts
             User admin = createAccount("Admin", "pro", "admin", "admin@gmail.com", "0123456789", "admin", "ADMIN");
-            User u1 = createAccount("User", "no1", "user", "user@gmail.com", "0123456788", "user", "USER");
+            User u1 = createAccount("User", "no1", "user1", "user1@gmail.com", "0123456788", "user", "USER");
+            User u2 = createAccount("User", "no2", "user2", "user2@gmail.com", "0123456888", "user", "USER");
         }
     }
 
