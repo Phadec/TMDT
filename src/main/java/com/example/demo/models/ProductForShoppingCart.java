@@ -1,5 +1,8 @@
 package com.example.demo.models;
 
+import lombok.Data;
+
+@Data
 public class ProductForShoppingCart {
     String id;
     String title;

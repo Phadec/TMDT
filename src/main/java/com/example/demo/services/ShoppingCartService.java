@@ -4,6 +4,9 @@ import com.example.demo.models.ProductForShoppingCart;
 import com.example.demo.models.ShoppingCart;
 import com.example.demo.repositories.ShoppingCartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -57,4 +60,30 @@ public class ShoppingCartService {
         }
     }
 
+    // Lấy danh sách sản phẩm có phân trang
+    public Page<ProductForShoppingCart> getProducts(String username, Pageable pageable) {
+        Query query = new Query(Criteria.where("username").is(username));
+        ShoppingCart cart = mongoTemplate.findOne(query, ShoppingCart.class);
+
+        if (cart == null || cart.getProducts().isEmpty()) {
+            return Page.empty(); // Trả về trang rỗng nếu không có sản phẩm
+        }
+
+        // Gộp toàn bộ sản phẩm từ các ngày vào 1 danh sách
+        List<ProductForShoppingCart> allProducts = new ArrayList<>();
+        cart.getProducts().values().forEach(allProducts::addAll);
+
+        // Sắp xếp theo Pageable
+        allProducts.sort(Comparator.comparing(ProductForShoppingCart::getTitle)); // Mặc định sắp xếp theo tên
+
+        // Tính toán phân trang
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), allProducts.size());
+        if (start > allProducts.size()) {
+            return Page.empty();
+        }
+
+        List<ProductForShoppingCart> pagedProducts = allProducts.subList(start, end);
+        return new PageImpl<>(pagedProducts, pageable, allProducts.size());
+    }
 }

@@ -5,10 +5,15 @@ import com.example.demo.models.ProductForShoppingCart;
 import com.example.demo.services.ShoppingCartService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/shopping-cart")
@@ -29,6 +34,29 @@ public class ShoppingCartController {
     }
 
     // Lấy ra danh sách sản phẩm
+    @GetMapping("/{username}/products")
+    public ResponseEntity<Page<ItemShoppingCartDTO>> getProductsByUser(
+            @PathVariable String username,
+            Pageable pageable
+    ) {
+        Page<ProductForShoppingCart> products = shoppingCartService.getProducts(username, pageable);
+
+        if (products.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 No Content nếu không có sản phẩm
+        }
+
+        // Chuyển đổi từng ProductForShoppingCart sang ItemShoppingCartDTO
+        List<ItemShoppingCartDTO> itemsList = products.getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
+                .collect(Collectors.toList());
+
+        // Tạo Page từ danh sách đã chuyển đổi
+        Page<ItemShoppingCartDTO> items = new PageImpl<>(itemsList, pageable, products.getTotalElements());
+
+        return ResponseEntity.ok(items);
+    }
+
 
     // Thêm các sản phẩm vào giỏ hàng
     @PostMapping("/add/{username}")
