@@ -7,13 +7,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/shopping-cart")
@@ -34,25 +32,24 @@ public class ShoppingCartController {
     }
 
     // Lấy ra danh sách sản phẩm
-    @GetMapping("/{username}/products")
+    @GetMapping("/get/{username}")
     public ResponseEntity<Page<ItemShoppingCartDTO>> getProductsByUser(
             @PathVariable String username,
             Pageable pageable
     ) {
-        Page<ProductForShoppingCart> products = shoppingCartService.getProducts(username, pageable);
+        List<ProductForShoppingCart> products = shoppingCartService.getProducts(username, pageable);
 
-        if (products.isEmpty()) {
+        if (products == null) {
             return ResponseEntity.noContent().build(); // 204 No Content nếu không có sản phẩm
         }
 
         // Chuyển đổi từng ProductForShoppingCart sang ItemShoppingCartDTO
-        List<ItemShoppingCartDTO> itemsList = products.getContent()
-                .stream()
+        List<ItemShoppingCartDTO> itemsList = products.stream()
                 .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
-                .collect(Collectors.toList());
+                .toList();
 
         // Tạo Page từ danh sách đã chuyển đổi
-        Page<ItemShoppingCartDTO> items = new PageImpl<>(itemsList, pageable, products.getTotalElements());
+        Page<ItemShoppingCartDTO> items = new PageImpl<>(itemsList, pageable, itemsList.size());
 
         return ResponseEntity.ok(items);
     }
@@ -69,6 +66,9 @@ public class ShoppingCartController {
     }
 
     // Xóa các sản phẩm khỏi giỏ hàng
-
-    // Sửa thông tin sản phẩm trong giỏ hàng
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<Boolean> deleteProducts(@PathVariable String username, @RequestBody List<String> idProducts) {
+        boolean deleted = shoppingCartService.removeProducts(username, idProducts);
+        return ResponseEntity.ok(deleted);
+    }
 }

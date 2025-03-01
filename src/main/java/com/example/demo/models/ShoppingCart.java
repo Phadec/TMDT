@@ -1,11 +1,9 @@
 package com.example.demo.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -16,10 +14,9 @@ public class ShoppingCart {
     String id = "shopping_cart"; // Cố định ID để lưu toàn bộ users vào 1 document
     String username;
     // Thay vì lưu toàn bộ thông tin, hoặc trỏ bảng thì lưu thông tin cần thiết.
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    Map<Date, List<ProductForShoppingCart>> products;
+    Map<String, List<ProductForShoppingCart>> products;
 
-    public ShoppingCart(String username, Map<Date, List<ProductForShoppingCart>> products) {
+    public ShoppingCart(String username, Map<String, List<ProductForShoppingCart>> products) {
         this.username = username;
         this.products = products;
     }
