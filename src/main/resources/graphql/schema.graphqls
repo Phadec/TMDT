@@ -52,6 +52,14 @@ type Product {
     seller: User
 }
 
+type ItemProductShoppingCart {
+    id: ID!
+    title: String!
+    description: String!
+    mainImage: String!
+    dateCreated: String!
+}
+
 type Query {
     # User queries
     users: [User!]!
@@ -70,6 +78,10 @@ type Query {
     productsBySeller(username: String!, page: Int!, size: Int!): [Product!]!
     sellerProducts(username: String!, status: String!): [Product!]!
     searchProducts(keyword: String!, page: Int!, size: Int!): [Product!]!
+
+    # Shopping Cart queries
+    countProductsInCart(username: String!): Int!
+    getProductsByUser(username: String!, page: Int = 0, size: Int = 3): [ItemProductShoppingCart!]!
 }
 
 type CategoryOption {
@@ -85,6 +97,10 @@ type Mutation {
     updateProduct(id: ID!, input: ProductInput!): Product!
     deleteProduct(id: ID!): Boolean!
     toggleProductStatus(id: ID!, status: String!): Product!
+
+    # Shopping Cart mutations only
+    addProducts(username: String!, products: [ItemProductShoppingCartInput!]!): Boolean
+    deleteProducts(username: String!, idProducts: [String]!): Boolean
 }
 
 input CategoryInput {
@@ -106,4 +122,12 @@ input ProductInput {
     images: [String!]!
     location: String!
     negotiable: Boolean!
+}
+
+input ItemProductShoppingCartInput {
+    id: ID!
+    title: String!
+    description: String!
+    mainImage: String!
+    dateCreated: String!
 }
