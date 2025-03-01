@@ -11,23 +11,14 @@ import java.util.Map;
 @Data
 public class ShoppingCart {
     @Id
-    String id = "shopping_cart"; // Cố định ID để lưu toàn bộ users vào 1 document
     String username;
-    // Thay vì lưu toàn bộ thông tin, hoặc trỏ bảng thì lưu thông tin cần thiết.
+    long count;
     Map<String, List<ProductForShoppingCart>> products;
 
-    public ShoppingCart(String username, Map<String, List<ProductForShoppingCart>> products) {
-        this.username = username;
-        this.products = products;
-    }
-
     /**
-     * Mỗi người dùng có nhiều giỏ hàng.
-     * Mỗi giỏ hàng được phân theo thời gian tạo ra. => Tính năng mua hàng toàn bộ theo ngày, sắp xếp
-     * Mỗi giỏ hàng có thể chứa nhiều sản phẩm.
-     * Lấy ý tưởng chính từ việc đi siêu thị.
-     * Khi bước vào siêu thị,
-     * người dùng có thể tùy ý lựa giỏ, có thể lấy nhiều,
-     * mỗi giỏ phục vụ 1 tính năng cá nhân người dùng quy định.
+     * Lấy ý tưởng từ việc đi siêu thị.
+     * Mỗi người dùng có nhiều giỏ hàng (quản lý ngăn cách bằng ngày). Into Map String - Date, List - Products
+     * Người dùng biết mình đã mua bao nhiêu sản phẩm => Value Long in Pair
+     * Cửa hàng quản lý người dùng thông qua username => Key String in Pair
      */
 }

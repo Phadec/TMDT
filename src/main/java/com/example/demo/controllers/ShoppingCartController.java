@@ -7,11 +7,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/shopping-cart")
@@ -31,25 +34,33 @@ public class ShoppingCartController {
         return ResponseEntity.ok(shoppingCartService.getCountOfProducts(username));
     }
 
-    // Lấy ra danh sách sản phẩm
     @GetMapping("/get/{username}")
-    public ResponseEntity<Page<ItemShoppingCartDTO>> getProductsByUser(
+    public ResponseEntity<Page<Map<String, List<ItemShoppingCartDTO>>>> getProductsByUser(
             @PathVariable String username,
-            Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size // Mặc định lấy 3 ngày gần nhất
     ) {
-        List<ProductForShoppingCart> products = shoppingCartService.getProducts(username, pageable);
+        Pageable pageable = PageRequest.of(page, size);
 
-        if (products == null) {
+        // Lấy danh sách sản phẩm theo ngày từ MongoDB
+        Map<String, List<ProductForShoppingCart>> productsByDate = shoppingCartService.getProducts(username, pageable);
+
+        if (productsByDate.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content nếu không có sản phẩm
         }
 
-        // Chuyển đổi từng ProductForShoppingCart sang ItemShoppingCartDTO
-        List<ItemShoppingCartDTO> itemsList = products.stream()
-                .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
-                .toList();
+        // Chuyển đổi từ ProductForShoppingCart -> ItemShoppingCartDTO
+        List<Map<String, List<ItemShoppingCartDTO>>> itemsList = productsByDate.entrySet().stream()
+                .map(entry -> Map.of(
+                        entry.getKey(), // Ngày
+                        entry.getValue().stream()
+                                .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
+                                .collect(Collectors.toList()) // Danh sách sản phẩm
+                ))
+                .collect(Collectors.toList());
 
         // Tạo Page từ danh sách đã chuyển đổi
-        Page<ItemShoppingCartDTO> items = new PageImpl<>(itemsList, pageable, itemsList.size());
+        Page<Map<String, List<ItemShoppingCartDTO>>> items = new PageImpl<>(itemsList, pageable, itemsList.size());
 
         return ResponseEntity.ok(items);
     }
