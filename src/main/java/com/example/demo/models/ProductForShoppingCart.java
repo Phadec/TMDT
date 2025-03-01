@@ -2,6 +2,8 @@ package com.example.demo.models;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class ProductForShoppingCart {
     String id;
@@ -9,6 +11,7 @@ public class ProductForShoppingCart {
     String description;
     String mainImage;
     long count;
+    Date dateCreated;
 
     /**
      * !!! Không có giá vì giá và status thay đổi thường xuyên, nên phải cập nhật lại liên tục

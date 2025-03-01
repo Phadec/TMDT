@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,34 +34,26 @@ public class ShoppingCartController {
     }
 
     @GetMapping("/get/{username}")
-    public ResponseEntity<Page<Map<String, List<ItemShoppingCartDTO>>>> getProductsByUser(
+    public ResponseEntity<Page<ItemShoppingCartDTO>> getProductsByUser(
             @PathVariable String username,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "3") int size // Mặc định lấy 3 ngày gần nhất
     ) {
         Pageable pageable = PageRequest.of(page, size);
 
-        // Lấy danh sách sản phẩm theo ngày từ MongoDB
-        Map<String, List<ProductForShoppingCart>> productsByDate = shoppingCartService.getProducts(username, pageable);
+        // Lấy danh sách sản phẩm từ MongoDB có phân trang
+        List<ProductForShoppingCart> productPage = shoppingCartService.getProducts(username, pageable);
 
-        if (productsByDate.isEmpty()) {
-            return ResponseEntity.noContent().build(); // 204 No Content nếu không có sản phẩm
-        }
-
-        // Chuyển đổi từ ProductForShoppingCart -> ItemShoppingCartDTO
-        List<Map<String, List<ItemShoppingCartDTO>>> itemsList = productsByDate.entrySet().stream()
-                .map(entry -> Map.of(
-                        entry.getKey(), // Ngày
-                        entry.getValue().stream()
-                                .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
-                                .collect(Collectors.toList()) // Danh sách sản phẩm
-                ))
+        // Chuyển đổi danh sách bằng ModelMapper
+        List<ItemShoppingCartDTO> dtoList = productPage
+                .stream()
+                .map(product -> modelMapper.map(product, ItemShoppingCartDTO.class))
                 .collect(Collectors.toList());
 
-        // Tạo Page từ danh sách đã chuyển đổi
-        Page<Map<String, List<ItemShoppingCartDTO>>> items = new PageImpl<>(itemsList, pageable, itemsList.size());
+        // Tạo Page<ItemShoppingCartDTO> từ danh sách đã chuyển đổi
+        Page<ItemShoppingCartDTO> dtoPage = new PageImpl<>(dtoList, pageable, productPage.size());
 
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(dtoPage);
     }
 
 
@@ -79,6 +70,9 @@ public class ShoppingCartController {
     // Xóa các sản phẩm khỏi giỏ hàng
     @DeleteMapping("/delete/{username}")
     public ResponseEntity<Boolean> deleteProducts(@PathVariable String username, @RequestBody List<String> idProducts) {
+        if (idProducts == null || idProducts.isEmpty()) {
+            return ResponseEntity.badRequest().body(false);
+        }
         boolean deleted = shoppingCartService.removeProducts(username, idProducts);
         return ResponseEntity.ok(deleted);
     }

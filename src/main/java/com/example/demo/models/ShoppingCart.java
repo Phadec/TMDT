@@ -5,7 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
-import java.util.Map;
 
 @Document(collection = "shopping_cart")
 @Data
@@ -13,7 +12,7 @@ public class ShoppingCart {
     @Id
     String username;
     long count;
-    Map<String, List<ProductForShoppingCart>> products;
+    List<ProductForShoppingCart> products;
 
     /**
      * Lấy ý tưởng từ việc đi siêu thị.
