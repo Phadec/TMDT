@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-import com.example.demo.security.JwtUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 
@@ -26,9 +25,6 @@ public class ProductService {
     @Autowired
     private CategoryService categoryService;
     
-    
-    @Autowired
-    private JwtUtils jwtUtils;
     
     private String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

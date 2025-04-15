@@ -1,97 +1,123 @@
 package com.example.demo.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.demo.services.FileStorageService;
-import com.example.demo.services.UserService;
-import com.example.demo.dtos.ApiResponse;
-import com.example.demo.models.User;
-import com.example.demo.utils.SecurityUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/files")
+@CrossOrigin
 public class FileController {
-    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
 
-    @Autowired
-    private FileStorageService fileStorageService;
+    @Value("${file.upload-dir:uploads}")
+    private String uploadDir;
     
-    @Autowired
-    private UserService userService;
-    
-    @PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+    @Value("${server.port:8080}")
+    private String serverPort;
+
+    @GetMapping("/{fileName:.+}")
+    public ResponseEntity<Resource> serveFile(@PathVariable String fileName) {
         try {
-            logger.info("Avatar upload request received");
-            
-            // Get current user from security context
-            String username = SecurityUtils.getCurrentUsername();
-            logger.info("Current username: {}", username);
-            
-            if (username == null) {
-                logger.error("User not authenticated");
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "User not authenticated"));
+            System.out.println("Serving file: " + fileName);
+            File uploadDirFile = new File(uploadDir);
+            if (!uploadDirFile.exists()) {
+                uploadDirFile.mkdirs();
             }
             
-            // Check if file is empty
-            if (file.isEmpty()) {
-                logger.error("File is empty");
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "Please select a file to upload"));
+            Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+            System.out.println("Looking for file at: " + filePath.toAbsolutePath());
+            
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists()) {
+                String contentType = getContentType(filePath);
+                System.out.println("File found with content type: " + contentType);
+                
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .body(resource);
+            } else {
+                System.out.println("File not found: " + filePath.toAbsolutePath());
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IOException e) {
+            System.out.println("Error serving file: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            // Create directory if it doesn't exist
+            File dirFile = new File(uploadDir);
+            if (!dirFile.exists()) {
+                dirFile.mkdirs();
+                System.out.println("Created directory: " + dirFile.getAbsolutePath());
             }
             
-            // Log file details
-            logger.info("File details - Name: {}, Size: {}, ContentType: {}", 
-                    file.getOriginalFilename(), file.getSize(), file.getContentType());
-            
-            // Check file type
-            String contentType = file.getContentType();
-            if (contentType == null || !(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/jpg"))) {
-                logger.error("Invalid file type: {}", contentType);
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "Only JPEG, JPG and PNG files are allowed"));
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
+            String newFilename = UUID.randomUUID().toString() + fileExtension;
             
-            // Check file size (max 2MB)
-            if (file.getSize() > 2 * 1024 * 1024) {
-                logger.error("File size too large: {}", file.getSize());
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "File size cannot exceed 2MB"));
-            }
+            // Save file to uploads directory
+            Path targetLocation = Paths.get(uploadDir).resolve(newFilename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             
-            // Upload file
-            logger.info("Storing file...");
-            String fileName = fileStorageService.storeFile(file, "avatars");
-            logger.info("File stored with name: {}", fileName);
+            System.out.println("File saved to: " + targetLocation.toAbsolutePath());
             
-            // Get complete file path/URL
-            String fileUrl = fileStorageService.getFileUrl(fileName, "avatars");
-            logger.info("File URL generated: {}", fileUrl);
-            
-            // Update user avatar in database
-            logger.info("Updating user avatar in database");
-            User user = userService.findByUsername(username);
-            user.setAvatar(fileUrl);
-            userService.updateAvatar(user);
-            logger.info("User avatar updated successfully");
-            
-            // Return response - match the format the frontend expects
+            // Create response with both relative and absolute URLs
             Map<String, String> response = new HashMap<>();
-            response.put("avatar", fileUrl);
+            String relativePath = "/api/files/" + newFilename;
+            String fullUrl = "http://localhost:" + serverPort + relativePath;
+            
+            response.put("url", relativePath);
+            response.put("fullUrl", fullUrl);
+            response.put("filename", newFilename);
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("Error uploading avatar", e);
-            return ResponseEntity.status(500).body(new ApiResponse(false, "Failed to upload avatar: " + e.getMessage()));
+            System.out.println("Error uploading file: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Could not upload file: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    private String getContentType(Path filePath) {
+        try {
+            return Files.probeContentType(filePath);
+        } catch (IOException e) {
+            System.out.println("Could not determine content type: " + e.getMessage());
+            return "application/octet-stream";
         }
     }
 }

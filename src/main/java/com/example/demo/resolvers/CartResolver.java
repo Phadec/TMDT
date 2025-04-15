@@ -2,7 +2,6 @@ package com.example.demo.resolvers;
 
 import com.example.demo.models.CartItem;
 import com.example.demo.services.CartService;
-import com.example.demo.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -18,9 +17,6 @@ public class CartResolver {
 
     @Autowired
     private CartService cartService;
-
-    @Autowired
-    private UserService userService;
 
     // Helper method to get current username
     private String getCurrentUsername() {

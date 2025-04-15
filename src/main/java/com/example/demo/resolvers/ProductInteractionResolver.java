@@ -1,8 +1,9 @@
 package com.example.demo.resolvers;
 
-import com.example.demo.config.SecurityUtils;
 import com.example.demo.models.Product;
 import com.example.demo.services.ProductInteractionService;
+import com.example.demo.utils.SecurityUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;

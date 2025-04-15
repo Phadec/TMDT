@@ -16,7 +16,7 @@ import com.example.demo.models.User;
 import com.example.demo.services.ProductService;
 import com.example.demo.services.CategoryService;
 import com.example.demo.services.UserService;
-import com.example.demo.config.SecurityUtils;
+import com.example.demo.utils.SecurityUtils;
 import com.example.demo.dtos.ProductInput;
 import com.example.demo.repositories.ProductRepository;
 

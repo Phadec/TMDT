@@ -61,9 +61,6 @@ public class ProductInteractionService {
             
             // Increment favorites count - Fix null comparison
             Integer favorites = product.getFavorites();
-            if (favorites == null) {
-                favorites = 0;
-            }
             product.setFavorites(favorites + 1);
         }
         

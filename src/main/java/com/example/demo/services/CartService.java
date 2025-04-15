@@ -20,8 +20,6 @@ public class CartService {
     @Autowired
     private ProductRepository productRepository;
     
-    @Autowired
-    private UserService userService;
     
     public List<CartItem> getCartItems(String username) {
         try {

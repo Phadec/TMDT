@@ -4,7 +4,7 @@ import com.example.demo.models.Review;
 import com.example.demo.dtos.ReviewInput;
 import com.example.demo.dtos.ReviewUpdateInput;
 import com.example.demo.services.ReviewService;
-import com.example.demo.config.SecurityUtils;
+import com.example.demo.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.graphql.data.method.annotation.Argument;

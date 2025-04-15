@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,10 +128,7 @@ public class ReviewService {
             throw new RuntimeException("You have already reviewed this product");
         }
         
-        // Validate the product exists
-        Product product = productRepository.findById(input.getProductId())
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-        
+    
         // Get user information
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found"));

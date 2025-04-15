@@ -154,6 +154,35 @@ type ReviewSummary {
     oneStarCount: Int!
 }
 
+type Chat {
+    id: ID!
+    participants: [User!]!
+    lastMessage: Message
+    unreadCount: Int
+    product: Product
+    productId: String
+    createdAt: String!
+    updatedAt: String
+}
+
+type Message {
+    id: ID!
+    chatId: String!
+    senderId: String!
+    sender: User
+    content: String!
+    imageUrl: String
+    messageType: MessageType!
+    read: Boolean!
+    createdAt: String!
+}
+
+enum MessageType {
+    TEXT
+    IMAGE
+    FILE
+}
+
 type Query {
     # User queries
     users: [User!]!
@@ -192,6 +221,12 @@ type Query {
     userReviews(username: String!): [Review!]!
     reviewSummary(productId: ID!): ReviewSummary!
     canReviewProduct(productId: ID!): Boolean!
+
+    # Chat queries
+    userChats: [Chat!]!
+    chatMessages(chatId: ID!, page: Int!, size: Int!): [Message!]!
+    chat(id: ID!): Chat
+    chatWithSeller(sellerId: ID!, productId: ID): Chat
 }
 
 type Mutation {
@@ -221,6 +256,14 @@ type Mutation {
     # Product interaction mutations
     incrementProductViews(id: ID!): Product!
     toggleProductFavorite(id: ID!): Product!
+
+    # Chat mutations
+    sendMessage(chatId: ID!, content: String!, messageType: MessageType! = TEXT, imageUrl: String): Message!
+    createChat(sellerId: ID!, productId: ID): Chat!
+    markMessagesAsRead(chatId: ID!): Boolean!
+    
+    # For file uploads, use REST endpoint /api/files/upload instead
+    # No longer using the Upload scalar
 }
 
 input CategoryInput {
