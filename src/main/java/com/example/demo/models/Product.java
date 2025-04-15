@@ -32,6 +32,7 @@ public class Product {
     private int views = 0;
     private int favorites = 0;
     private Integer quantity; // Make sure the quantity field exists and is initialized properly
+    private Integer soldQuantity = 0; // Track how many units of this product have been sold
 
     // This field is not stored in database, it's calculated on-the-fly
     private Boolean isFavorited;
@@ -48,6 +49,15 @@ public class Product {
 
     public void setQuantity(Integer quantity) {
         this.quantity = quantity;
+    }
+
+    // Custom getter for soldQuantity to ensure it is never null
+    public Integer getSoldQuantity() {
+        return soldQuantity == null ? 0 : soldQuantity;
+    }
+
+    public void setSoldQuantity(Integer soldQuantity) {
+        this.soldQuantity = soldQuantity;
     }
 
     // Add getter and setter for isFavorited

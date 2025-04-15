@@ -49,9 +49,10 @@ type Product {
     updatedAt: String!
     views: Int!
     favorites: Int!
+    quantity: Int
+    soldQuantity: Int
     category: Category
     seller: User
-    quantity: Int
     reviews: [Review!]
     reviewSummary: ReviewSummary
     isFavorited: Boolean

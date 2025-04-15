@@ -190,6 +190,12 @@ public class OrderService {
             product.setQuantity(oldQuantity - itemInput.getQuantity());
             System.out.println("Updated product quantity from " + oldQuantity + " to " + product.getQuantity());
             
+            // Increment soldQuantity
+            int oldSoldQuantity = product.getSoldQuantity() != null ? product.getSoldQuantity() : 0;
+            product.setSoldQuantity(oldSoldQuantity + itemInput.getQuantity());
+            System.out.println("Updated product soldQuantity from " + oldSoldQuantity + 
+                " to " + product.getSoldQuantity());
+            
             productsToUpdate.add(product);
             
             OrderItem orderItem = new OrderItem();
@@ -215,7 +221,8 @@ public class OrderService {
             List<Product> updatedProducts = productRepository.saveAll(productsToUpdate);
             System.out.println("Successfully updated quantities for " + updatedProducts.size() + " products:");
             for (Product product : updatedProducts) {
-                System.out.println("- " + product.getTitle() + ": quantity now " + product.getQuantity());
+                System.out.println("- " + product.getTitle() + ": quantity now " + product.getQuantity() + 
+                    ", soldQuantity now " + product.getSoldQuantity());
             }
         } catch (Exception e) {
             System.err.println("ERROR updating product quantities: " + e.getMessage());
@@ -299,6 +306,14 @@ public class OrderService {
                 System.out.println("Updated quantity from " + product.getQuantity() + 
                     " to " + newQuantity);
                 
+                // Also decrement the soldQuantity
+                int oldSoldQuantity = product.getSoldQuantity() != null ? product.getSoldQuantity() : 0;
+                if (oldSoldQuantity >= item.getQuantity()) {
+                    product.setSoldQuantity(oldSoldQuantity - item.getQuantity());
+                    System.out.println("Updated soldQuantity from " + oldSoldQuantity + 
+                        " to " + product.getSoldQuantity());
+                }
+                
                 productsToUpdate.add(product);
             }
         }
@@ -341,6 +356,14 @@ public class OrderService {
                 
                 System.out.println("Updated quantity from " + product.getQuantity() + 
                     " to " + newQuantity);
+                
+                // Also decrement the soldQuantity
+                int oldSoldQuantity = product.getSoldQuantity() != null ? product.getSoldQuantity() : 0;
+                if (oldSoldQuantity >= item.getQuantity()) {
+                    product.setSoldQuantity(oldSoldQuantity - item.getQuantity());
+                    System.out.println("Updated soldQuantity from " + oldSoldQuantity + 
+                        " to " + product.getSoldQuantity());
+                }
                 
                 productsToUpdate.add(product);
             }

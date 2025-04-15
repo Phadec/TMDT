@@ -109,8 +109,11 @@ public class ChatService {
         chat.setUpdatedAt(new Date());
         chatRepository.save(chat);
         
-        // Broadcast the message through WebSocket
-        webSocketService.sendMessageToChat(chatId, savedMessage);
+        // Generate a unique message ID for the WebSocket message to prevent duplicates
+        String messageId = UUID.randomUUID().toString();
+        
+        // Broadcast the message through WebSocket with the unique message ID
+        webSocketService.sendMessageToChat(chatId, savedMessage, messageId);
         
         return savedMessage;
     }
