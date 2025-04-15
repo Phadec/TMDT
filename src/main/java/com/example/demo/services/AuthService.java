@@ -94,7 +94,36 @@ public class AuthService {
     );
 }
 
- public Map<String, Object> login(LoginDTO loginDTO) {
+ public Map<String, Object> refreshToken(String token) {
+    try {
+        String username = jwtUtil.getUserNameFromJwtToken(token);
+        String newToken = jwtUtil.generateJwtToken(username);
+        Optional<User> user = userRepository.findByUsername(username);
+        
+        if (user.isPresent()) {
+            UserDTO userDTO = UserDTO.builder()
+                .id(user.get().getId())
+                .username(user.get().getUsername())
+                .email(user.get().getEmail())
+                .firstName(user.get().getFirstName())
+                .lastName(user.get().getLastName())
+                .phoneNumber(user.get().getPhoneNumber())
+                .avatar(user.get().getAvatar())
+                .role(user.get().getRole())
+                .build();
+
+            return Map.of(
+                "token", newToken,
+                "user", userDTO
+            );
+        }
+        throw new BadRequestException("User not found");
+    } catch (Exception e) {
+        throw new BadRequestException("Invalid token");
+    }
+}
+
+public Map<String, Object> login(LoginDTO loginDTO) {
     // Convert username to lowercase before checking
     String lowercaseUsername = loginDTO.getUsername().toLowerCase();
     logger.debug("Attempting login for username: {}", lowercaseUsername);
@@ -165,17 +194,56 @@ public class AuthService {
     }
 
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
-        User user = userRepository.findByResetPasswordToken(resetPasswordDTO.getToken())
-            .orElseThrow(() -> new BadRequestException("Invalid or expired token"));
+        logger.debug("Processing reset password with token: {}", 
+            resetPasswordDTO.getToken() != null ? 
+            resetPasswordDTO.getToken().substring(0, Math.min(resetPasswordDTO.getToken().length(), 10)) + "..." : 
+            "null");
+        
+        try {
+            // Validate token exists
+            if (resetPasswordDTO.getToken() == null || resetPasswordDTO.getToken().trim().isEmpty()) {
+                throw new BadRequestException("Token is required");
+            }
+            
+            // Validate password fields
+            if (resetPasswordDTO.getPassword() == null || resetPasswordDTO.getPassword().trim().isEmpty()) {
+                throw new BadRequestException("Password is required");
+            }
+            
+            // Validate password and confirmPassword match
+            if (!resetPasswordDTO.getPassword().equals(resetPasswordDTO.getConfirmPassword())) {
+                throw new BadRequestException("Passwords do not match");
+            }
+            
+            // Find user by token
+            User user = userRepository.findByResetPasswordToken(resetPasswordDTO.getToken())
+                .orElseThrow(() -> {
+                    logger.error("No user found with reset token: {}", 
+                        resetPasswordDTO.getToken().substring(0, Math.min(resetPasswordDTO.getToken().length(), 10)) + "...");
+                    return new BadRequestException("Invalid or expired token");
+                });
 
-        if (user.getResetPasswordExpires().before(new Date())) {
-            throw new BadRequestException("Reset token has expired");
+            // Check if token is expired
+            if (user.getResetPasswordExpires() == null || user.getResetPasswordExpires().before(new Date())) {
+                logger.error("Reset token has expired for user: {}", user.getUsername());
+                throw new BadRequestException("Reset token has expired");
+            }
+
+            // Update password using the password field from DTO
+            user.setPassword(passwordEncoder.encode(resetPasswordDTO.getPassword()));
+            user.setResetPasswordToken(null);
+            user.setResetPasswordExpires(null);
+            user.setUpdatedAt(new Date());
+            userRepository.save(user);
+            
+            logger.info("Password reset successful for user: {}", user.getUsername());
+        } catch (BadRequestException e) {
+            logger.error("Bad request during password reset: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error during password reset: {}", e.getMessage(), e);
+            throw new RuntimeException("Error resetting password: " + e.getMessage(), e);
         }
-
-        user.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));
-        user.setResetPasswordToken(null);
-        user.setResetPasswordExpires(null);
-        userRepository.save(user);
     }
 
     public void verifyEmail(String token) {

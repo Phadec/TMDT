@@ -31,4 +31,31 @@ public class Product {
     private Date updatedAt = new Date();
     private int views = 0;
     private int favorites = 0;
+    private Integer quantity; // Make sure the quantity field exists and is initialized properly
+
+    // This field is not stored in database, it's calculated on-the-fly
+    private Boolean isFavorited;
+
+    // Custom getter for createdAt to ensure it is never null
+    public Date getCreatedAt() {
+        return createdAt != null ? createdAt : new Date();
+    }
+
+    // Custom getter for quantity to ensure it is never null
+    public Integer getQuantity() {
+        return quantity == null ? 0 : quantity;  // Ensure no null pointer exceptions
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    // Add getter and setter for isFavorited
+    public Boolean getIsFavorited() {
+        return isFavorited;
+    }
+
+    public void setIsFavorited(Boolean isFavorited) {
+        this.isFavorited = isFavorited;
+    }
 }

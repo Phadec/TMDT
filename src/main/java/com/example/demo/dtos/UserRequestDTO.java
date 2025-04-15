@@ -1,20 +1,23 @@
 package com.example.demo.dtos;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserRequestDTO {
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    private String email;
-
-    @NotBlank(message = "First name is required")
+    
     private String firstName;
     
-    @NotBlank(message = "Last name is required")
     private String lastName;
     
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
+    @Pattern(regexp = "^$|^[0-9]{10,11}$", message = "Số điện thoại không hợp lệ")
     private String phoneNumber;
+    
+    private String avatar;
 }

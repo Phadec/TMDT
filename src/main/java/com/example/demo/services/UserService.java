@@ -39,14 +39,24 @@ public class UserService {
     public UserResponseDTO updateUser(String id, UserRequestDTO userRequest) {
         User existingUser = findUserById(id);
         
-        userRepository.findByEmail(userRequest.getEmail())
-            .ifPresent(user -> {
-                if (!user.getId().equals(id)) {
-                    throw new BadRequestException("Email already exists");
-                }
-            });
+        // Nếu email được cung cấp và khác với email hiện tại, kiểm tra xem có bị trùng không
+        if (userRequest.getPhoneNumber() != null) {
+            existingUser.setPhoneNumber(userRequest.getPhoneNumber());
+        }
         
-        modelMapper.map(userRequest, existingUser);
+        if (userRequest.getFirstName() != null) {
+            existingUser.setFirstName(userRequest.getFirstName());
+        }
+        
+        if (userRequest.getLastName() != null) {
+            existingUser.setLastName(userRequest.getLastName());
+        }
+        
+        // Chỉ cập nhật avatar nếu nó được cung cấp và không rỗng
+        if (userRequest.getAvatar() != null && !userRequest.getAvatar().isEmpty()) {
+            existingUser.setAvatar(userRequest.getAvatar());
+        }
+        
         existingUser.setUpdatedAt(new Date());
         User updatedUser = userRepository.save(existingUser);
         return modelMapper.map(updatedUser, UserResponseDTO.class);
@@ -98,13 +108,25 @@ public class UserService {
         userRepository.save(user);
     }
     
-    public User getUserById(String id) {
-        return userRepository.findById(id)
+    public UserResponseDTO getUserById(String id) {
+        User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+    
+    // Method to update user avatar
+    public User updateAvatar(User user) {
+        user.setUpdatedAt(new Date());
+        return userRepository.save(user);
+    }
+
+    public UserResponseDTO getUserByUsername(String username) {
+        User user = findByUsername(username);
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 }

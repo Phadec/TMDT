@@ -16,6 +16,7 @@ import com.example.demo.models.User;
 import com.example.demo.services.ProductService;
 import com.example.demo.services.CategoryService;
 import com.example.demo.services.UserService;
+import com.example.demo.config.SecurityUtils;
 import com.example.demo.dtos.ProductInput;
 import com.example.demo.repositories.ProductRepository;
 
@@ -44,7 +45,12 @@ public class ProductResolver {
     
     @QueryMapping
     public Product product(@Argument String id) {
-        return productService.getProductById(id);
+        Product product = productService.getProductById(id);
+        
+        // Debug log for product dates
+        System.out.println("Product " + id + " creation date: " + product.getCreatedAt());
+        
+        return product;
     }
     
     @QueryMapping
@@ -71,13 +77,31 @@ public class ProductResolver {
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public Product createProduct(@Argument ProductInput input) {
-        return productService.createProduct(input);
+        String username = SecurityUtils.getCurrentUsername();
+        if (username == null) {
+            throw new RuntimeException("User must be authenticated to create a product");
+        }
+        
+        // Log the input for debugging
+        System.out.println("Creating product with input: " + input);
+        System.out.println("Quantity received: " + input.getQuantity());
+        
+        return productService.createProduct(input, username);
     }
     
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public Product updateProduct(@Argument String id, @Argument ProductInput input) {
-        return productService.updateProduct(id, input);
+        String username = SecurityUtils.getCurrentUsername();
+        if (username == null) {
+            throw new RuntimeException("User must be authenticated to update a product");
+        }
+        
+        // Log the input for debugging
+        System.out.println("Updating product with id: " + id);
+        System.out.println("Quantity received: " + input.getQuantity());
+        
+        return productService.updateProduct(id, input, username);
     }
     
     @MutationMapping
@@ -94,7 +118,18 @@ public class ProductResolver {
     // Field Resolvers
     @SchemaMapping
     public Category category(Product product) {
-        return categoryService.getCategoryById(product.getCategoryId());
+        try {
+            return categoryService.getCategoryById(product.getCategoryId());
+        } catch (Exception e) {
+            // Trả về danh mục mặc định khi không tìm thấy danh mục thực
+            Category defaultCategory = new Category();
+            defaultCategory.setId(product.getCategoryId());
+            defaultCategory.setName("Unknown Category");
+            defaultCategory.setSlug("unknown-category");
+            defaultCategory.setLevel(0);
+            defaultCategory.setActive(true);
+            return defaultCategory;
+        }
     }
     
     @SchemaMapping

@@ -14,8 +14,8 @@ public class ProductSeeder {
 
     public void seed() {
         if (productRepository.count() == 0) {
-            Product p1 = createProduct("Product 1", "Description 1", 100.0, "Category 1", "New", List.of("image1.jpg", "image2.jpg"), "user1", "ACTIVE");
-            Product p2 = createProduct("Product 2", "Description 2", 200.0, "Category 2", "Used", List.of("image3.jpg", "image4.jpg"), "user2", "INACTIVE");
+            Product p1 = createProduct("Product 1", "Description 1", 100.0, "Category 1", "NEW", List.of("image1.jpg", "image2.jpg"), "user1", "ACTIVE");
+            Product p2 = createProduct("Product 2", "Description 2", 200.0, "Category 2", "GOOD", List.of("image3.jpg", "image4.jpg"), "user2", "INACTIVE");
         }
     }
 

@@ -3,6 +3,7 @@ package com.example.demo.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import com.example.demo.security.JwtUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
@@ -38,7 +39,14 @@ public class ProductService {
     }
     
     public List<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable).getContent();
+        try {
+            Page<Product> products = productRepository.findByStatusNotIn(List.of("SOLD", "DELETED"), pageable);
+            return products.getContent();
+        } catch (Exception e) {
+            System.err.println("Error in getAllProducts: " + e.getMessage());
+            // Trả về danh sách rỗng thay vì ném ngoại lệ để tránh ảnh hưởng đến giao diện người dùng
+            return List.of();
+        }
     }
     
     public Product getProductById(String id) {
@@ -58,11 +66,9 @@ public class ProductService {
         return productRepository.searchByTitle(keyword, pageable).getContent();
     }
     
-    public Product createProduct(ProductInput input) {
+    public Product createProduct(ProductInput input, String username) {
         validateCondition(input.getCondition());
         validateCategoryId(input.getCategoryId());
-        
-        String currentUsername = getCurrentUsername();
         
         Product product = new Product();
         product.setTitle(input.getTitle());
@@ -73,22 +79,27 @@ public class ProductService {
         product.setImages(input.getImages());
         product.setLocation(input.getLocation());
         product.setNegotiable(input.getNegotiable());
-        product.setSellerUsername(currentUsername);
+        product.setSellerUsername(username);
         product.setStatus("ACTIVE");
-        product.setCreatedAt(new Date());
-        product.setUpdatedAt(new Date());
+        
+        // Make sure we explicitly set the dates
+        Date now = new Date();
+        product.setCreatedAt(now);
+        product.setUpdatedAt(now);
+        
+        product.setQuantity(input.getQuantity() != null ? input.getQuantity() : 1);
         
         return productRepository.save(product);
     }
     
-    public Product updateProduct(String id, ProductInput input) {
+    public Product updateProduct(String id, ProductInput input, String username) {
         validateCondition(input.getCondition());
         validateCategoryId(input.getCategoryId());
         
         Product product = getProductById(id);
         
         // Check if current user is the seller
-        if (!product.getSellerUsername().equals(getCurrentUsername())) {
+        if (!product.getSellerUsername().equals(username)) {
             throw new InvalidInputException("You can only update your own products");
         }
         
@@ -100,6 +111,12 @@ public class ProductService {
         product.setImages(input.getImages());
         product.setLocation(input.getLocation());
         product.setNegotiable(input.getNegotiable());
+        
+        // Update quantity only if provided in the input
+        if (input.getQuantity() != null) {
+            product.setQuantity(input.getQuantity());
+        }
+        
         product.setUpdatedAt(new Date());
         
         return productRepository.save(product);

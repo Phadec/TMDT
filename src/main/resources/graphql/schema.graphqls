@@ -22,6 +22,7 @@ type Category {
     image: String
     level: Int!
     isActive: Boolean!
+    productCount: Int
 }
 
 enum ProductCondition {
@@ -50,14 +51,107 @@ type Product {
     favorites: Int!
     category: Category
     seller: User
+    quantity: Int
+    reviews: [Review!]
+    reviewSummary: ReviewSummary
+    isFavorited: Boolean
 }
 
-type ItemProductShoppingCart {
+type CartItem {
     id: ID!
-    title: String!
-    description: String!
-    mainImage: String!
-    dateCreated: String!
+    username: String!
+    product: Product!
+    productId: String!
+    quantity: Int!
+    dateAdded: String!
+}
+
+type FavoriteProduct {
+    id: ID!
+    username: String!
+    productId: String!
+    product: Product
+    dateAdded: String!
+}
+
+type CategoryOption {
+    id: ID!
+    name: String!
+    level: Int!
+    parentName: String
+}
+
+type CategoryProductCount {
+    id: ID!
+    count: Int!
+}
+
+enum OrderStatus {
+    PENDING
+    PROCESSING
+    SHIPPED
+    DELIVERED
+    CANCELLED
+}
+
+enum PaymentMethod {
+    COD
+    BANK_TRANSFER
+    CREDIT_CARD
+}
+
+type OrderItem {
+    id: ID
+    product: Product!
+    quantity: Int!
+    price: Float!
+}
+
+type CustomerInfo {
+    fullName: String!
+    email: String!
+    phone: String!
+    address: String!
+}
+
+type Order {
+    id: ID!
+    orderNumber: String!
+    username: String!
+    customerInfo: CustomerInfo!
+    items: [OrderItem!]!
+    totalAmount: Float!
+    status: OrderStatus!
+    paymentMethod: PaymentMethod!
+    notes: String
+    createdAt: String!
+    updatedAt: String
+}
+
+type Review {
+    id: ID!
+    productId: String!
+    username: String!
+    userFullName: String!
+    userAvatar: String
+    rating: Int!
+    comment: String
+    createdAt: String!
+    updatedAt: String
+    verified: Boolean!
+    approved: Boolean!
+    sellerReply: String
+    sellerReplyAt: String
+}
+
+type ReviewSummary {
+    averageRating: Float!
+    totalReviews: Int!
+    fiveStarCount: Int!
+    fourStarCount: Int!
+    threeStarCount: Int!
+    twoStarCount: Int!
+    oneStarCount: Int!
 }
 
 type Query {
@@ -70,6 +164,7 @@ type Query {
     category(id: ID!): Category
     categoryBySlug(slug: String!): Category
     availableCategories: [CategoryOption!]!
+    categoryProductCounts(excludeStatuses: [String!]): [CategoryProductCount!]!
     
     # Product queries
     products(page: Int!, size: Int!): [Product!]!
@@ -79,28 +174,53 @@ type Query {
     sellerProducts(username: String!, status: String!): [Product!]!
     searchProducts(keyword: String!, page: Int!, size: Int!): [Product!]!
 
-    # Shopping Cart queries
-    countProductsInCart(username: String!): Int!
-    getProductsByUser(username: String!, page: Int = 0, size: Int = 3): [ItemProductShoppingCart!]!
-}
+    # Favorite queries
+    userFavorites: [FavoriteProduct!]!
 
-type CategoryOption {
-    id: ID!
-    name: String!
-    level: Int!
-    parentName: String
+    # Cart queries
+    cartItems(username: String!, page: Int = 0, size: Int = 10): [CartItem!]!
+    cartItemCount(username: String!): Int!
+
+    # Order queries
+    orders(username: String!): [Order!]!
+    order(id: ID!): Order
+    sellerOrders: [Order!]!
+    sellerOrderDetail(id: ID!): Order
+
+    # Review queries
+    productReviews(productId: ID!, page: Int = 0, size: Int = 10): [Review!]!
+    userReviews(username: String!): [Review!]!
+    reviewSummary(productId: ID!): ReviewSummary!
+    canReviewProduct(productId: ID!): Boolean!
 }
 
 type Mutation {
-    # Product mutations only
+    # Product mutations
     createProduct(input: ProductInput!): Product!
     updateProduct(id: ID!, input: ProductInput!): Product!
     deleteProduct(id: ID!): Boolean!
     toggleProductStatus(id: ID!, status: String!): Product!
 
-    # Shopping Cart mutations only
-    addProducts(username: String!, products: [ItemProductShoppingCartInput!]!): Boolean
-    deleteProducts(username: String!, idProducts: [String]!): Boolean
+    # Cart mutations
+    addToCart(productId: ID!, quantity: Int = 1): CartItem
+    updateCartItemQuantity(productId: ID!, quantity: Int!): CartItem
+    removeFromCart(productId: ID!): Boolean!
+    clearCart: Boolean!
+
+    # Order mutations
+    createOrder(input: OrderInput!): Order!
+    updateOrderStatus(id: ID!, status: OrderStatus!): Order!
+    cancelOrder(id: ID!): Order!
+
+    # Review mutations
+    createReview(input: ReviewInput!): Review!
+    updateReview(id: ID!, input: ReviewUpdateInput!): Review!
+    deleteReview(id: ID!): Boolean!
+    respondToReview(id: ID!, response: String!): Review!
+
+    # Product interaction mutations
+    incrementProductViews(id: ID!): Product!
+    toggleProductFavorite(id: ID!): Product!
 }
 
 input CategoryInput {
@@ -122,12 +242,42 @@ input ProductInput {
     images: [String!]!
     location: String!
     negotiable: Boolean!
+    quantity: Int = 1
 }
 
-input ItemProductShoppingCartInput {
-    id: ID!
-    title: String!
-    description: String!
-    mainImage: String!
-    dateCreated: String!
+input CartItemInput {
+    productId: String!
+    quantity: Int!
+}
+
+input CustomerInfoInput {
+    fullName: String!
+    email: String!
+    phone: String!
+    address: String!
+}
+
+input OrderItemInput {
+    productId: ID!
+    quantity: Int!
+    price: Float!
+}
+
+input OrderInput {
+    customerInfo: CustomerInfoInput!
+    items: [OrderItemInput!]!
+    totalAmount: Float!
+    paymentMethod: PaymentMethod!
+    notes: String
+}
+
+input ReviewInput {
+    productId: ID!
+    rating: Int!
+    comment: String
+}
+
+input ReviewUpdateInput {
+    rating: Int
+    comment: String
 }

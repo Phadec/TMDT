@@ -7,6 +7,7 @@ import lombok.Setter;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Min;
 
 @Data
 @Getter
@@ -34,4 +35,7 @@ public class ProductInput {
     private String location;
     
     private Boolean negotiable = false;  // Changed to Boolean and added default value
+    
+    @Min(value = 1, message = "Quantity must be at least 1")
+    private Integer quantity = 1;  // Default value of 1
 }

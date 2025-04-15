@@ -25,6 +25,15 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @PostMapping("/refresh-token")
+    public ResponseEntity<Map<String, Object>> refreshToken(@RequestHeader("Authorization") String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            return ResponseEntity.ok(authService.refreshToken(token));
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterDTO registerDTO) {
         return ResponseEntity.ok(authService.register(registerDTO));
@@ -49,12 +58,23 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
-        authService.resetPassword(resetPasswordDTO);
-        return ResponseEntity.ok().build();
+        logger.debug("Received reset password request with token: {}", 
+            resetPasswordDTO.getToken() != null ? 
+            resetPasswordDTO.getToken().substring(0, Math.min(resetPasswordDTO.getToken().length(), 10)) + "..." : 
+            "null");
+        
+        try {
+            authService.resetPassword(resetPasswordDTO);
+            logger.debug("Password reset successful");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Error during password reset: {}", e.getMessage(), e);
+            throw e; // Let the global exception handler deal with it
+        }
     }
 
-    @GetMapping("/verify-email/{token}")
-    public ResponseEntity<Void> verifyEmail(@PathVariable String token) {
+    @GetMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
         authService.verifyEmail(token);
         return ResponseEntity.ok().build();
     }
