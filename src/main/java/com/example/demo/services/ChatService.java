@@ -100,20 +100,31 @@ public class ChatService {
                          ", imageUrl=" + message.getImageUrl() +
                          ", content=" + message.getContent());
         
-        chat.setUpdatedAt(new Date());
-        chatRepository.save(chat);
-        
+        // Save the message first to generate its ID
         Message savedMessage = messageRepository.save(message);
         
-        // Make sure to update the chat's lastMessage and send via WebSocket
+        // Then update chat's lastMessageId and lastMessage timestamp
         chat.setUpdatedAt(new Date());
         chatRepository.save(chat);
+        
+        System.out.println("Message saved with ID: " + savedMessage.getId());
         
         // Generate a unique message ID for the WebSocket message to prevent duplicates
         String messageId = UUID.randomUUID().toString();
         
         // Broadcast the message through WebSocket with the unique message ID
         webSocketService.sendMessageToChat(chatId, savedMessage, messageId);
+        
+        // Also notify all participants individually to ensure delivery
+        for (String participantId : chat.getParticipants()) {
+            if (!participantId.equals(sender.getId())) {
+                User recipient = userRepository.findById(participantId).orElse(null);
+                if (recipient != null) {
+                    System.out.println("Notifying user " + recipient.getUsername() + " about new message");
+                    webSocketService.notifyUser(recipient.getUsername(), savedMessage);
+                }
+            }
+        }
         
         return savedMessage;
     }

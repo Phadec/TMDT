@@ -2,16 +2,10 @@ package com.example.demo.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.messaging.simp.config.ChannelRegistration;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-import org.springframework.messaging.Message;
-
-import java.util.UUID;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -19,32 +13,30 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+        // Enable a simple in-memory message broker
         config.enableSimpleBroker("/topic", "/queue", "/user");
+        
+        // Set prefix for controller endpoint methods
         config.setApplicationDestinationPrefixes("/app");
+        
+        // Configure user destination prefix
         config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // Register the "/ws" endpoint, enabling SockJS fallback options
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
-                .withSockJS();
+                .withSockJS()
+                .setSuppressCors(true); // Fixed: Correct method name is setSuppressCors (with two 'p's)
     }
     
     @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, org.springframework.messaging.MessageChannel channel) {
-                StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                if (accessor != null && accessor.getCommand() != null) {
-                    // Add a unique ID to each message if not already present
-                    if (accessor.getMessageHeaders().get("messageId") == null) {
-                        accessor.setHeader("messageId", UUID.randomUUID().toString());
-                    }
-                }
-                return message;
-            }
-        });
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        // Configure larger message sizes if needed for image sharing
+        registration.setMessageSizeLimit(8192 * 8192);    // Message buffer size limit
+        registration.setSendBufferSizeLimit(8192 * 8192); // Client send buffer size
+        registration.setSendTimeLimit(20000);             // Send timeout in milliseconds
     }
 }

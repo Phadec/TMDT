@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data
@@ -23,6 +24,26 @@ public class UserResponseDTO {
     private String role;
     private boolean enabled;
     private boolean emailVerified;
-    private Date createdAt;
-    private Date updatedAt;
+    private String createdAt;
+    private String updatedAt;
+
+    /**
+     * Set the created date using a Date object
+     * @param date The date to set
+     */
+    public void setCreatedAtDate(Date date) {
+        if (date != null) {
+            this.createdAt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(date);
+        }
+    }
+    
+    /**
+     * Set the updated date using a Date object
+     * @param date The date to set
+     */
+    public void setUpdatedAtDate(Date date) {
+        if (date != null) {
+            this.updatedAt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(date);
+        }
+    }
 }

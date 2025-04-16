@@ -184,10 +184,30 @@ enum MessageType {
     FILE
 }
 
+type Report {
+    id: ID!
+    reportType: String!        # USER or PRODUCT
+    reportedItemId: String!
+    reportedBy: String!
+    reason: String!
+    details: String
+    status: String!            # PENDING, REVIEWED, RESOLVED, REJECTED
+    createdAt: String!
+    updatedAt: String
+    reviewedBy: String
+    resolution: String
+    reportedUser: User         # If reportType is USER
+    reportedProduct: Product   # If reportType is PRODUCT
+    reporter: User
+    reviewer: User
+}
+
 type Query {
     # User queries
     users: [User!]!
     user(id: ID!): User
+    userByUsername(username: String!): User
+    currentUser: User
     
     # Category queries
     categories: [Category!]!
@@ -228,6 +248,12 @@ type Query {
     chatMessages(chatId: ID!, page: Int!, size: Int!): [Message!]!
     chat(id: ID!): Chat
     chatWithSeller(sellerId: ID!, productId: ID): Chat
+
+    # Report queries
+    pendingReports: [Report!]!
+    userReports: [Report!]!
+    itemReports(type: String!, itemId: ID!): [Report!]!
+    pendingReportCount(type: String!, itemId: ID!): Int!
 }
 
 type Mutation {
@@ -262,6 +288,10 @@ type Mutation {
     sendMessage(chatId: ID!, content: String!, messageType: MessageType! = TEXT, imageUrl: String): Message!
     createChat(sellerId: ID!, productId: ID): Chat!
     markMessagesAsRead(chatId: ID!): Boolean!
+
+    # Report mutations
+    createReport(input: ReportInput!): Report!
+    reviewReport(id: ID!, status: String!, resolution: String): Report!
     
     # For file uploads, use REST endpoint /api/files/upload instead
     # No longer using the Upload scalar
@@ -324,4 +354,11 @@ input ReviewInput {
 input ReviewUpdateInput {
     rating: Int
     comment: String
+}
+
+input ReportInput {
+    reportType: String!        # USER or PRODUCT
+    reportedItemId: ID!
+    reason: String!
+    details: String
 }

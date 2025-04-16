@@ -34,4 +34,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     // Find reviews for products sold by a specific seller
     @Query("{'productId': {$in: ?0}}")
     List<Review> findByProductIds(List<String> productIds);
+    
+    // New method to replace findByProductSellerUsername
+    List<Review> findByProductIdIn(List<String> productIds);
 }

@@ -58,4 +58,12 @@ public class User {
     private Date lastLoginAt;
     private int loginAttempts = 0;
     private Date lastLoginAttemptAt;
+
+    public Date getCreatedAt() {
+        return createdAt != null ? createdAt : new Date();
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt != null ? updatedAt : new Date();
+    }
 }

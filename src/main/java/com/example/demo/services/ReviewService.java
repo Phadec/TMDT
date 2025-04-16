@@ -7,6 +7,7 @@ import com.example.demo.models.Product;
 import com.example.demo.models.Order;
 import com.example.demo.models.OrderItem;
 import com.example.demo.models.User;
+import com.example.demo.models.ReviewSummary;
 import com.example.demo.repositories.ReviewRepository;
 import com.example.demo.repositories.ProductRepository;
 import com.example.demo.repositories.OrderRepository;
@@ -83,7 +84,7 @@ public class ReviewService {
     /**
      * Get review statistics for a product
      */
-    public Map<String, Object> getReviewSummary(String productId) {
+    public Map<String, Object> getReviewSummaryAsMap(String productId) {
         Map<String, Object> summary = new HashMap<>();
         
         int totalReviews = reviewRepository.countByProductId(productId);
@@ -119,6 +120,44 @@ public class ReviewService {
         summary.put("oneStarCount", oneStarCount);
         
         return summary;
+    }
+    
+    /**
+     * Calculate a summary of product reviews
+     */
+    public ReviewSummary getReviewSummary(String productId) {
+        try {
+            // Use existing methods for counting reviews
+            int totalReviews = reviewRepository.countByProductId(productId);
+            
+            if (totalReviews == 0) {
+                return new ReviewSummary(0, 0, 0, 0, 0, 0, 0);
+            }
+            
+            int fiveStarCount = reviewRepository.countByProductIdAndRating(productId, 5);
+            int fourStarCount = reviewRepository.countByProductIdAndRating(productId, 4);
+            int threeStarCount = reviewRepository.countByProductIdAndRating(productId, 3);
+            int twoStarCount = reviewRepository.countByProductIdAndRating(productId, 2);
+            int oneStarCount = reviewRepository.countByProductIdAndRating(productId, 1);
+            
+            int totalStars = (5 * fiveStarCount) + (4 * fourStarCount) + (3 * threeStarCount) + 
+                             (2 * twoStarCount) + (1 * oneStarCount);
+            
+            float averageRating = (float) totalStars / totalReviews;
+            
+            return new ReviewSummary(
+                averageRating,
+                totalReviews,
+                fiveStarCount,
+                fourStarCount,
+                threeStarCount,
+                twoStarCount,
+                oneStarCount
+            );
+        } catch (Exception e) {
+            System.err.println("Error calculating review summary: " + e.getMessage());
+            return new ReviewSummary(0, 0, 0, 0, 0, 0, 0);
+        }
     }
     
     @Transactional
@@ -249,5 +288,39 @@ public class ReviewService {
         
         // Get all reviews for these products
         return reviewRepository.findByProductIds(productIds);
+    }
+    
+    /**
+     * Gets reviews for a seller by their username
+     */
+    public List<Review> getReviewsBySellerUsername(String username) {
+        try {
+            System.out.println("Getting reviews for seller: " + username);
+            
+            // Get all products from this seller
+            List<Product> sellerProducts = productRepository.findBySellerUsername(username);
+            
+            if (sellerProducts.isEmpty()) {
+                System.out.println("No products found for seller: " + username);
+                return List.of();
+            }
+            
+            // Get all product IDs
+            List<String> productIds = sellerProducts.stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+            
+            System.out.println("Found " + productIds.size() + " products for seller " + username);
+            
+            // Get all reviews for these products
+            List<Review> reviews = reviewRepository.findByProductIdIn(productIds);
+            System.out.println("Found " + reviews.size() + " reviews for seller " + username);
+            
+            return reviews;
+        } catch (Exception e) {
+            System.err.println("Error getting reviews for seller " + username + ": " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
     }
 }

@@ -2,9 +2,9 @@ package com.example.demo.resolvers;
 
 import com.example.demo.models.Order;
 import com.example.demo.models.OrderItem;  // Add this import
+import com.example.demo.security.SecurityUtils;
 import com.example.demo.dtos.OrderInput;
 import com.example.demo.services.OrderService;
-import com.example.demo.utils.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;

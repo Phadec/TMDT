@@ -40,17 +40,23 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/files/**").permitAll() // Thêm quyền truy cập cho file resources v1
-                .requestMatchers("/api/files/**").permitAll() // Thêm quyền truy cập cho file resources
+                .requestMatchers("/api/v1/files/**").permitAll()
+                .requestMatchers("/api/files/**").permitAll()
+                // Add WebSocket endpoints to permitted URLs
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/topic/**").permitAll()
+                .requestMatchers("/user/**").permitAll()
+                .requestMatchers("/queue/**").permitAll()
+                .requestMatchers("/app/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 .requestMatchers("/api-docs/**").permitAll()
                 .requestMatchers("/configuration/**").permitAll()
-                .requestMatchers("/graphiql", "/graphiql/**").permitAll()  // Updated pattern
-                .requestMatchers("/graphql", "/graphql/**").permitAll()    // Updated pattern
-                .requestMatchers("/vendor/**").permitAll()                 // Required for GraphiQL resources
+                .requestMatchers("/graphiql", "/graphiql/**").permitAll()
+                .requestMatchers("/graphql", "/graphql/**").permitAll()
+                .requestMatchers("/vendor/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> 

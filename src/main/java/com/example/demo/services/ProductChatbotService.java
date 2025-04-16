@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.models.Product;
 import com.example.demo.models.Category;
 import com.example.demo.models.Review;
+import com.example.demo.models.ReviewSummary;
 import com.example.demo.repositories.ProductRepository;
 import com.example.demo.dtos.ChatbotRequest;
 import com.example.demo.dtos.ChatbotResponse;
@@ -197,9 +198,9 @@ public class ProductChatbotService {
             }
             
             // Get review information
-            Map<String, Object> reviewSummary = reviewService.getReviewSummary(product.getId());
-            double averageRating = (Double) reviewSummary.getOrDefault("averageRating", 0.0);
-            int totalReviews = (Integer) reviewSummary.getOrDefault("totalReviews", 0);
+            ReviewSummary reviewSummary = reviewService.getReviewSummary(product.getId());
+            float averageRating = reviewSummary.getAverageRating();
+            int totalReviews = reviewSummary.getTotalReviews();
             
             StringBuilder info = new StringBuilder("SẢN PHẨM ĐANG XEM:\n\n");
             info.append("Tên: ").append(product.getTitle())
@@ -242,11 +243,11 @@ public class ProductChatbotService {
                 info.append("\nSố lượng đánh giá: ").append(totalReviews);
                 
                 // Add distribution of ratings
-                int fiveStarCount = (Integer) reviewSummary.getOrDefault("fiveStarCount", 0);
-                int fourStarCount = (Integer) reviewSummary.getOrDefault("fourStarCount", 0);
-                int threeStarCount = (Integer) reviewSummary.getOrDefault("threeStarCount", 0);
-                int twoStarCount = (Integer) reviewSummary.getOrDefault("twoStarCount", 0);
-                int oneStarCount = (Integer) reviewSummary.getOrDefault("oneStarCount", 0);
+                int fiveStarCount = reviewSummary.getFiveStarCount();
+                int fourStarCount = reviewSummary.getFourStarCount();
+                int threeStarCount = reviewSummary.getThreeStarCount();
+                int twoStarCount = reviewSummary.getTwoStarCount();
+                int oneStarCount = reviewSummary.getOneStarCount();
                 
                 info.append("\nPhân bố đánh giá:");
                 info.append("\n- 5 sao: ").append(fiveStarCount).append(" đánh giá");

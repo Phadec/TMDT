@@ -8,6 +8,7 @@ import com.example.demo.exceptions.BadRequestException;
 import com.example.demo.exceptions.ResourceNotFoundException;
 import com.example.demo.models.User;
 import com.example.demo.repositories.UserRepository;
+import com.example.demo.security.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -127,6 +128,26 @@ public class UserService {
 
     public UserResponseDTO getUserByUsername(String username) {
         User user = findByUsername(username);
+        UserResponseDTO userDTO = modelMapper.map(user, UserResponseDTO.class);
+        
+        // Ensure the dates are properly formatted
+        if (user.getCreatedAt() != null) {
+            userDTO.setCreatedAtDate(user.getCreatedAt());
+        }
+        if (user.getUpdatedAt() != null) {
+            userDTO.setUpdatedAtDate(user.getUpdatedAt());
+        }
+        
+        return userDTO;
+    }
+
+    public UserResponseDTO getCurrentUserProfile() {
+        String currentUsername = SecurityUtils.getCurrentUsername();
+        if (currentUsername == null) {
+            throw new BadRequestException("No authenticated user found");
+        }
+        
+        User user = findByUsername(currentUsername);
         return modelMapper.map(user, UserResponseDTO.class);
     }
 }

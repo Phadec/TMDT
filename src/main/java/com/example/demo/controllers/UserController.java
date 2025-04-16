@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.dtos.UserRequestDTO;
 import com.example.demo.dtos.UserResponseDTO;
+import com.example.demo.security.SecurityUtils;
 import com.example.demo.services.UserService;
-import com.example.demo.utils.SecurityUtils;
+
 
 import jakarta.validation.Valid;
 
