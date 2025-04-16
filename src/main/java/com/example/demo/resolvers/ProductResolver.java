@@ -22,6 +22,7 @@ import com.example.demo.repositories.ProductRepository;
 import com.example.demo.security.SecurityUtils;
 
 import java.util.List;
+import java.util.Date;
 
 @Controller
 public class ProductResolver {
@@ -50,6 +51,13 @@ public class ProductResolver {
         
         // Debug log for product dates
         System.out.println("Product " + id + " creation date: " + product.getCreatedAt());
+        System.out.println("Product creation date is null? " + (product.getCreatedAt() == null));
+        
+        // Ensure proper date format
+        if (product.getCreatedAt() == null) {
+            System.out.println("Setting a new date for product " + id);
+            product.setCreatedAt(new Date());
+        }
         
         return product;
     }

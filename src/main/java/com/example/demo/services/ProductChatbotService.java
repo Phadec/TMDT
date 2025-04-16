@@ -143,6 +143,68 @@ public class ProductChatbotService {
         }
     }
     
+    /**
+     * Get direct price comparison data for a product
+     * @param productId the ID of the product to compare
+     * @return Map containing price comparison data
+     */
+    public Map<String, Object> getDirectPriceComparison(String productId) {
+        try {
+            // Get the product from repository
+            Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + productId));
+            
+            // Get price comparison data
+            Map<String, Object> comparisonData = priceComparisonService.getProductPriceComparison(
+                product.getTitle(), 
+                product.getDescription()
+            );
+            
+            // Add current product price for easy comparison
+            comparisonData.put("currentPrice", product.getPrice());
+            comparisonData.put("productName", product.getTitle());
+            comparisonData.put("productId", product.getId());
+            
+            // Add price evaluation
+            if (comparisonData.containsKey("averagePrice")) {
+                try {
+                    String avgPriceStr = ((String) comparisonData.get("averagePrice"))
+                        .replaceAll("[^\\d.]", "");
+                    double avgPrice = Double.parseDouble(avgPriceStr);
+                    double currentPrice = product.getPrice();
+                    
+                    // Calculate percentage difference
+                    double priceDifference = ((currentPrice - avgPrice) / avgPrice) * 100;
+                    
+                    comparisonData.put("priceDifferencePercent", String.format("%.1f", priceDifference));
+                    
+                    // Make a judgment about the price
+                    if (priceDifference < -15) {
+                        comparisonData.put("priceEvaluation", "Giá rất tốt (thấp hơn thị trường)");
+                    } else if (priceDifference < -5) {
+                        comparisonData.put("priceEvaluation", "Giá tốt (thấp hơn thị trường)");
+                    } else if (priceDifference <= 5) {
+                        comparisonData.put("priceEvaluation", "Giá cạnh tranh (tương đương thị trường)");
+                    } else if (priceDifference <= 15) {
+                        comparisonData.put("priceEvaluation", "Giá cao hơn một chút so với thị trường");
+                    } else {
+                        comparisonData.put("priceEvaluation", "Giá cao hơn nhiều so với thị trường");
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not calculate price difference: {}", e.getMessage());
+                }
+            }
+            
+            return comparisonData;
+        } catch (Exception e) {
+            logger.error("Error in getDirectPriceComparison: {}", e.getMessage(), e);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("message", "Không thể lấy dữ liệu so sánh giá: " + e.getMessage());
+            return errorResult;
+        }
+    }
+    
     private List<Product> getRelevantProducts() {
         // Retrieve active products (not sold or deleted)
         return productRepository.findByStatusNotIn(List.of("SOLD", "DELETED"), null).getContent();
@@ -595,6 +657,11 @@ public class ProductChatbotService {
             return result.append(priceData.get("rawData")).toString();
         }
         
+        // Include price evaluation if available
+        if (priceData.containsKey("priceEvaluation")) {
+            result.append("Đánh giá: ").append(priceData.get("priceEvaluation")).append("\n\n");
+        }
+        
         // Format sources info
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> sources = (List<Map<String, Object>>) priceData.get("sources");
@@ -609,9 +676,9 @@ public class ProductChatbotService {
         
         // Format price ranges
         result.append("Khoảng giá trên thị trường:\n");
-        result.append("• Giá thấp nhất: ").append(priceData.getOrDefault("lowestPrice", "Không xác định")).append("\n");
-        result.append("• Giá trung bình: ").append(priceData.getOrDefault("averagePrice", "Không xác định")).append("\n");
-        result.append("• Giá cao nhất: ").append(priceData.getOrDefault("highestPrice", "Không xác định")).append("\n\n");
+        result.append("• Giá thấp nhất: ").append(priceData.getOrDefault("lowestPrice", "Không xác định")).append(" VND\n");
+        result.append("• Giá trung bình: ").append(priceData.getOrDefault("averagePrice", "Không xác định")).append(" VND\n");
+        result.append("• Giá cao nhất: ").append(priceData.getOrDefault("highestPrice", "Không xác định")).append(" VND\n\n");
         
         // Include recommendation
         String recommendation = (String) priceData.getOrDefault("recommendation", "");

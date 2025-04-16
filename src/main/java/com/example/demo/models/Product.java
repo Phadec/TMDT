@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -27,8 +29,13 @@ public class Product {
     private String sellerUsername;  // Changed from sellerId
     private boolean negotiable;
     private String status; // ACTIVE, SOLD, DELETED
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date createdAt = new Date();
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     private Date updatedAt = new Date();
+
     private int views = 0;
     private int favorites = 0;
     private Integer quantity; // Make sure the quantity field exists and is initialized properly
@@ -39,7 +46,10 @@ public class Product {
 
     // Custom getter for createdAt to ensure it is never null
     public Date getCreatedAt() {
-        return createdAt != null ? createdAt : new Date();
+        if (createdAt == null) {
+            this.createdAt = new Date();
+        }
+        return createdAt;
     }
 
     // Custom getter for quantity to ensure it is never null

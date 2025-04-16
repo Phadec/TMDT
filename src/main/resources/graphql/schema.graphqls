@@ -1,16 +1,31 @@
 type User {
     id: ID!
-    firstName: String!
-    lastName: String!
+    firstName: String
+    lastName: String
     username: String!
     email: String!
     phoneNumber: String
     avatar: String
-    role: String!
-    enabled: Boolean!
-    emailVerified: Boolean!
-    createdAt: String!
-    updatedAt: String!
+    role: String
+    emailVerified: Boolean
+    createdAt: String
+    updatedAt: String
+    totalSoldProducts: Int
+}
+
+type UserResponseDTO {
+    id: ID!
+    username: String!
+    email: String!
+    firstName: String
+    lastName: String
+    phoneNumber: String
+    avatar: String
+    role: String
+    emailVerified: Boolean
+    createdAt: String
+    updatedAt: String
+    totalSoldProducts: Int
 }
 
 type Category {
@@ -254,6 +269,9 @@ type Query {
     userReports: [Report!]!
     itemReports(type: String!, itemId: ID!): [Report!]!
     pendingReportCount(type: String!, itemId: ID!): Int!
+
+    # Total sold products query
+    totalSoldProductsByUsername(username: String!): Int!
 }
 
 type Mutation {

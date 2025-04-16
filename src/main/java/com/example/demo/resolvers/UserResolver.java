@@ -2,8 +2,10 @@ package com.example.demo.resolvers;
 
 import com.example.demo.dtos.UserRequestDTO;
 import com.example.demo.dtos.UserResponseDTO;
+import com.example.demo.models.User;
 import com.example.demo.security.SecurityUtils;
 import com.example.demo.services.UserService;
+import com.example.demo.services.ProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -22,7 +24,10 @@ public class UserResolver {
 
     @Autowired
     private UserService userService;
-
+    
+    @Autowired
+    private ProductService productService;
+    
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponseDTO> users() {
@@ -45,6 +50,53 @@ public class UserResolver {
             System.err.println("Error in userByUsername resolver: " + e.getMessage());
             e.printStackTrace();
             throw e; // re-throw to send the error to the client
+        }
+    }
+
+    @QueryMapping
+    public Integer totalSoldProductsByUsername(@Argument String username) {
+        try {
+            System.out.println("Direct query for total sold products by user: " + username);
+            if (username == null || username.isEmpty()) {
+                return 0;
+            }
+            int totalSold = productService.getTotalSoldProductsByUsername(username);
+            System.out.println("Total sold products for " + username + ": " + totalSold);
+            return totalSold;
+        } catch (Exception e) {
+            System.err.println("Error getting total sold products for user " + username + ": " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    // Field resolver for totalSoldProducts field in User type
+    @SchemaMapping(typeName = "User", field = "totalSoldProducts")
+    public Integer getTotalSoldProducts(User user) {
+        try {
+            if (user == null || user.getUsername() == null) {
+                return 0;
+            }
+            System.out.println("Calculating total sold products for User: " + user.getUsername());
+            return productService.getTotalSoldProductsByUsername(user.getUsername());
+        } catch (Exception e) {
+            System.err.println("Error getting total sold products for User: " + e.getMessage());
+            return 0; // Return 0 instead of throwing an exception
+        }
+    }
+
+    // Field resolver for totalSoldProducts field in UserResponseDTO type
+    @SchemaMapping(typeName = "UserResponseDTO", field = "totalSoldProducts")
+    public Integer getUserResponseDTOTotalSoldProducts(UserResponseDTO userDTO) {
+        try {
+            if (userDTO == null || userDTO.getUsername() == null) {
+                return 0;
+            }
+            System.out.println("Calculating total sold products for UserResponseDTO: " + userDTO.getUsername());
+            return productService.getTotalSoldProductsByUsername(userDTO.getUsername());
+        } catch (Exception e) {
+            System.err.println("Error getting total sold products for UserResponseDTO: " + e.getMessage());
+            return 0; // Return 0 instead of throwing an exception
         }
     }
 

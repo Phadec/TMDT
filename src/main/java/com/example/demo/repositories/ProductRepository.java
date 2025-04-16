@@ -32,4 +32,22 @@ public interface ProductRepository extends MongoRepository<Product, String> {
      * Count products in a category that don't have any of the specified statuses
      */
     int countByCategoryIdAndStatusNotIn(String categoryId, List<String> statuses);
+    
+    /**
+     * Count total sold products by seller username
+     */
+    @Query("{ 'sellerUsername': ?0, 'status': 'SOLD' }")
+    List<Product> findSoldProductsBySellerUsername(String username);
+    
+    /**
+     * Calculate the sum of soldQuantity for a seller
+     */
+    @Query(value = "{ 'sellerUsername': ?0 }", fields = "{ 'soldQuantity': 1, 'status': 1 }")
+    List<Product> findSoldQuantitiesBySellerUsername(String username);
+    
+    /**
+     * Get total sold quantity for a seller using aggregation
+     */
+    @Query(value = "{ 'sellerUsername': ?0, 'status': 'SOLD' }", count = true)
+    long countSoldProductsBySellerUsername(String username);
 }

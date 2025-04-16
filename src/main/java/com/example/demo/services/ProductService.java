@@ -137,6 +137,43 @@ public class ProductService {
         return productRepository.save(product);
     }
     
+    /**
+     * Calculate the total number of products sold by a seller
+     */
+    public int getTotalSoldProductsByUsername(String username) {
+        try {
+            System.out.println("======= CALCULATING TOTAL SOLD PRODUCTS FOR: " + username + " =======");
+            
+            // Get ALL products by this seller, not just SOLD status ones
+            List<Product> allProducts = productRepository.findBySellerUsername(username);
+            System.out.println("Found " + allProducts.size() + " total products for " + username);
+            
+            int totalSold = 0;
+            
+            // Sum all soldQuantity values across all products, regardless of status
+            for (Product p : allProducts) {
+                int soldQty = p.getSoldQuantity() != null ? p.getSoldQuantity() : 0;
+                totalSold += soldQty;
+                
+                // Debug info for each product
+                if (soldQty > 0) {
+                    System.out.println("Product ID: " + p.getId() + 
+                                      ", Title: " + p.getTitle() + 
+                                      ", Status: " + p.getStatus() +
+                                      ", SoldQuantity: " + soldQty);
+                }
+            }
+            
+            System.out.println("Final total sold quantity across ALL products: " + totalSold);
+            return totalSold;
+            
+        } catch (Exception e) {
+            System.err.println("Error calculating total sold products: " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+    }
+    
     private void validateCondition(String condition) {
         try {
             ProductCondition.valueOf(condition);

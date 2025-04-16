@@ -131,7 +131,16 @@ public class ReviewService {
             int totalReviews = reviewRepository.countByProductId(productId);
             
             if (totalReviews == 0) {
-                return new ReviewSummary(0, 0, 0, 0, 0, 0, 0);
+                return ReviewSummary.builder()
+                    .productId(productId)
+                    .averageRating(0)
+                    .totalReviews(0)
+                    .fiveStarCount(0)
+                    .fourStarCount(0)
+                    .threeStarCount(0)
+                    .twoStarCount(0)
+                    .oneStarCount(0)
+                    .build();
             }
             
             int fiveStarCount = reviewRepository.countByProductIdAndRating(productId, 5);
@@ -145,18 +154,28 @@ public class ReviewService {
             
             float averageRating = (float) totalStars / totalReviews;
             
-            return new ReviewSummary(
-                averageRating,
-                totalReviews,
-                fiveStarCount,
-                fourStarCount,
-                threeStarCount,
-                twoStarCount,
-                oneStarCount
-            );
+            return ReviewSummary.builder()
+                .productId(productId)
+                .averageRating(averageRating)
+                .totalReviews(totalReviews)
+                .fiveStarCount(fiveStarCount)
+                .fourStarCount(fourStarCount)
+                .threeStarCount(threeStarCount)
+                .twoStarCount(twoStarCount)
+                .oneStarCount(oneStarCount)
+                .build();
         } catch (Exception e) {
             System.err.println("Error calculating review summary: " + e.getMessage());
-            return new ReviewSummary(0, 0, 0, 0, 0, 0, 0);
+            return ReviewSummary.builder()
+                .productId(productId)
+                .averageRating(0)
+                .totalReviews(0)
+                .fiveStarCount(0)
+                .fourStarCount(0)
+                .threeStarCount(0)
+                .twoStarCount(0)
+                .oneStarCount(0)
+                .build();
         }
     }
     
