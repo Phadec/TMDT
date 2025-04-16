@@ -212,6 +212,11 @@ public class OrderService {
         order.setPaymentMethod(orderInput.getPaymentMethod());
         order.setNotes(orderInput.getNotes());
         
+        // Set the new fields
+        order.setSubtotal(orderInput.getSubtotal());
+        order.setPromoCode(orderInput.getPromoCode());
+        order.setDiscountAmount(orderInput.getDiscountAmount());
+        
         // Save the order
         Order savedOrder = orderRepository.save(order);
         System.out.println("Order created with ID: " + savedOrder.getId());

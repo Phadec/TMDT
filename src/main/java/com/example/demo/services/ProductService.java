@@ -83,7 +83,8 @@ public class ProductService {
         product.setCreatedAt(now);
         product.setUpdatedAt(now);
         
-        product.setQuantity(input.getQuantity() != null ? input.getQuantity() : 1);
+        // Ensure quantity is not null and defaults to 1 if not specified
+        product.setQuantity(input.getQuantity() != null && input.getQuantity() > 0 ? input.getQuantity() : 1);
         
         return productRepository.save(product);
     }

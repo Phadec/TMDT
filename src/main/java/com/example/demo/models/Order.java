@@ -14,6 +14,9 @@ public class Order {
     private CustomerInfo customerInfo;
     private List<OrderItem> items;
     private double totalAmount;
+    private double subtotal;         // Add this field for original price before discount
+    private double discountAmount;   // Add this field for discount amount
+    private String promoCode;        // Add this field for the applied promo code
     private String status;
     private String paymentMethod;
     private String notes;
@@ -72,6 +75,30 @@ public class Order {
 
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public double getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(double subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public void setDiscountAmount(double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    public String getPromoCode() {
+        return promoCode;
+    }
+
+    public void setPromoCode(String promoCode) {
+        this.promoCode = promoCode;
     }
 
     public String getStatus() {

@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.example.demo.dtos.ReviewSummary;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,8 @@ public class Product {
     // This field is not stored in database, it's calculated on-the-fly
     private Boolean isFavorited;
 
+    private ReviewSummary reviewSummary;
+
     // Custom getter for createdAt to ensure it is never null
     public Date getCreatedAt() {
         if (createdAt == null) {
@@ -54,7 +57,7 @@ public class Product {
 
     // Custom getter for quantity to ensure it is never null
     public Integer getQuantity() {
-        return quantity == null ? 0 : quantity;  // Ensure no null pointer exceptions
+        return quantity == null ? 1 : quantity;  // Default to 1 instead of 0 to ensure products are considered in stock
     }
 
     public void setQuantity(Integer quantity) {
@@ -77,5 +80,14 @@ public class Product {
 
     public void setIsFavorited(Boolean isFavorited) {
         this.isFavorited = isFavorited;
+    }
+
+    // Getter and setter for reviewSummary
+    public ReviewSummary getReviewSummary() {
+        return reviewSummary;
+    }
+
+    public void setReviewSummary(ReviewSummary reviewSummary) {
+        this.reviewSummary = reviewSummary;
     }
 }

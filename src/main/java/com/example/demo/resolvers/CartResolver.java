@@ -29,25 +29,25 @@ public class CartResolver {
 
     // Query Resolvers
     @QueryMapping
-    public List<CartItem> cartItems(@Argument String username, @Argument int page, @Argument int size) {
-        // Security check to ensure users can only access their own cart
+    public List<CartItem> cartItems(@Argument int page, @Argument int size) {
+        // Get username from security context directly instead of requiring it as parameter
         String currentUsername = getCurrentUsername();
-        if (currentUsername == null || !currentUsername.equals(username)) {
-            throw new RuntimeException("You can only access your own cart");
+        if (currentUsername == null) {
+            throw new RuntimeException("User must be authenticated to view cart");
         }
         
-        return cartService.getCartItems(username);
+        return cartService.getCartItems(currentUsername);
     }
 
     @QueryMapping
-    public int cartItemCount(@Argument String username) {
-        // Security check to ensure users can only access their own cart
+    public int cartItemCount() {
+        // Get username from security context
         String currentUsername = getCurrentUsername();
-        if (currentUsername == null || !currentUsername.equals(username)) {
-            throw new RuntimeException("You can only access your own cart");
+        if (currentUsername == null) {
+            throw new RuntimeException("User must be authenticated to view cart count");
         }
         
-        return (int) cartService.getCartItemCount(username);
+        return (int) cartService.getCartItemCount(currentUsername);
     }
 
     // Mutation Resolvers
@@ -57,6 +57,19 @@ public class CartResolver {
         if (username == null) {
             throw new RuntimeException("User must be authenticated to add items to cart");
         }
+        
+        // Validate input parameters
+        if (productId == null || productId.isEmpty()) {
+            throw new IllegalArgumentException("Product ID cannot be empty");
+        }
+        
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+        
+        System.out.println("Adding to cart - Username: " + username + 
+                          ", ProductID: " + productId + 
+                          ", Quantity: " + quantity);
         
         return cartService.addToCart(username, productId, quantity);
     }

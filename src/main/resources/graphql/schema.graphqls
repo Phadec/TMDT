@@ -51,35 +51,34 @@ enum ProductCondition {
 type Product {
     id: ID!
     title: String!
-    description: String!
+    description: String
     price: Float!
-    categoryId: String!
-    condition: ProductCondition!
-    images: [String!]!
-    location: String!
-    sellerUsername: String!
-    negotiable: Boolean!
-    status: String!
-    createdAt: String!
-    updatedAt: String!
-    views: Int!
-    favorites: Int!
+    categoryId: String
+    category: Category
+    condition: String
+    images: [String]
+    location: String
+    sellerUsername: String
+    seller: User
+    negotiable: Boolean
+    status: String
+    createdAt: String
+    updatedAt: String
+    views: Int
+    favorites: Int
     quantity: Int
     soldQuantity: Int
-    category: Category
-    seller: User
-    reviews: [Review!]
-    reviewSummary: ReviewSummary
     isFavorited: Boolean
+    reviewSummary: ReviewSummary
 }
 
 type CartItem {
     id: ID!
     username: String!
-    product: Product!
-    productId: String!
+    product: Product
+    productId: ID!
     quantity: Int!
-    dateAdded: String!
+    dateAdded: String
 }
 
 type FavoriteProduct {
@@ -133,14 +132,17 @@ type CustomerInfo {
 type Order {
     id: ID!
     orderNumber: String!
-    username: String!
+    username: String
     customerInfo: CustomerInfo!
     items: [OrderItem!]!
     totalAmount: Float!
-    status: OrderStatus!
-    paymentMethod: PaymentMethod!
+    subtotal: Float       # Add this field for original price before discount
+    discountAmount: Float # Add this field for discount amount
+    promoCode: String     # Add this field for the promo code
+    status: String!
+    paymentMethod: String!
     notes: String
-    createdAt: String!
+    createdAt: String
     updatedAt: String
 }
 
@@ -217,6 +219,28 @@ type Report {
     reviewer: User
 }
 
+type PromoCode {
+    id: ID!
+    code: String!
+    description: String
+    discountAmount: Float
+    discountPercent: Float
+    minimumPurchase: Float
+    validFrom: String
+    validTo: String
+    usageLimit: Int
+    usageCount: Int
+    isActive: Boolean
+}
+
+type PromoCodeValidation {
+    valid: Boolean!
+    code: String
+    discount: Float
+    description: String
+    message: String
+}
+
 type Query {
     # User queries
     users: [User!]!
@@ -243,8 +267,8 @@ type Query {
     userFavorites: [FavoriteProduct!]!
 
     # Cart queries
-    cartItems(username: String!, page: Int = 0, size: Int = 10): [CartItem!]!
-    cartItemCount(username: String!): Int!
+    cartItems(page: Int!, size: Int!): [CartItem]
+    cartItemCount: Int
 
     # Order queries
     orders(username: String!): [Order!]!
@@ -272,6 +296,11 @@ type Query {
 
     # Total sold products query
     totalSoldProductsByUsername(username: String!): Int!
+
+    # Promo code queries
+    allPromoCodes: [PromoCode]
+    validatePromoCode(code: String!, cartTotal: Float!): PromoCodeValidation
+    activePromoCodes: [PromoCode]
 }
 
 type Mutation {
@@ -311,6 +340,13 @@ type Mutation {
     createReport(input: ReportInput!): Report!
     reviewReport(id: ID!, status: String!, resolution: String): Report!
     
+    # Promo code mutations
+    createPromoCode(input: PromoCodeInput!): PromoCode
+    updatePromoCode(id: ID!, input: PromoCodeInput!): PromoCode
+    deletePromoCode(id: ID!): Boolean
+    applyPromoCode(code: String!, cartTotal: Float!): Float
+    createSamplePromoCodes: Boolean
+
     # For file uploads, use REST endpoint /api/files/upload instead
     # No longer using the Upload scalar
 }
@@ -359,7 +395,10 @@ input OrderInput {
     customerInfo: CustomerInfoInput!
     items: [OrderItemInput!]!
     totalAmount: Float!
-    paymentMethod: PaymentMethod!
+    subtotal: Float       # Add this field for original price before discount
+    discountAmount: Float # Add this field for discount amount
+    promoCode: String     # Add this field for the promo code
+    paymentMethod: String!
     notes: String
 }
 
@@ -379,4 +418,16 @@ input ReportInput {
     reportedItemId: ID!
     reason: String!
     details: String
+}
+
+input PromoCodeInput {
+    code: String!
+    description: String
+    discountAmount: Float
+    discountPercent: Float
+    minimumPurchase: Float
+    validFrom: String
+    validTo: String
+    usageLimit: Int
+    isActive: Boolean
 }
