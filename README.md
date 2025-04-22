@@ -14,4 +14,5 @@ ThreeJS
 react-router-dom   
 @heroicons/react
 @react-three/fiber @react-three/drei framer-motion
+valtio
 

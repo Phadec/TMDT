@@ -1,5 +1,7 @@
 import Carousel from "./Carousel";
+import DemoProducts from "./DemoProducts";
 import Introduce from "./Introduce";
+import Service from "./Service";
 
 function Home() {
   return (
@@ -11,9 +13,12 @@ function Home() {
       <Introduce />
 
       {/* Sản phẩm */}
+      <DemoProducts />
+
+      {/* Tin tức */}
 
       {/* Dịch vụ */}
-      <div>Dịch vụ</div>
+      <Service />
 
       {/* Đối tác */}
       <div>Đối tác</div>

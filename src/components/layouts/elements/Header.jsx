@@ -1,4 +1,3 @@
-import { cva } from "class-variance-authority";
 import { Link, useLocation } from "react-router-dom";
 import {
   HomeIcon,
@@ -9,21 +8,6 @@ import {
 } from "@heroicons/react/24/solid";
 
 import { PUBLIC_URL } from "~/path";
-
-const header = cva(
-  "fixed top-1/2 left-0 transform -translate-y-1/2 z-50 ml-3 px-2 py-4 rounded-full backdrop-blur-md shadow-lg",
-  {
-    variants: {
-      size: {
-        small: "w-10",
-        large: "w-14",
-      },
-    },
-    defaultVariants: {
-      size: "large",
-    },
-  }
-);
 
 const navItems = [
   {
@@ -58,10 +42,17 @@ function Header() {
 
   return (
     <header
-      className={`${header()} bg-gradient-to-b from-white/30 via-white/20 to-white/10 border border-white/20`}
+      className={`
+        fixed z-50 px-2 py-4 rounded-full backdrop-blur-md shadow-lg
+        bg-gradient-to-b from-white/30 via-white/20 to-white/10 border border-white/20
+        flex justify-center
+        w-fit sm:w-14
+        sm:top-1/2 sm:left-0 sm:transform sm:-translate-y-1/2 sm:ml-3
+        bottom-0 left-1/2 transform -translate-x-1/2 sm:translate-x-0 sm:bottom-auto
+      `}
     >
       <nav>
-        <ul className="flex flex-col items-center justify-center gap-4">
+        <ul className="flex flex-row sm:flex-col items-center justify-center gap-4">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.url;
             return (
@@ -77,7 +68,12 @@ function Header() {
                 >
                   <item.icon className="w-6 h-6" />
                 </Link>
-                <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 whitespace-nowrap bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md">
+                <span
+                  className="absolute sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 
+                                sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded 
+                                sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md
+                                hidden sm:inline"
+                >
                   {item.label}
                 </span>
               </li>
