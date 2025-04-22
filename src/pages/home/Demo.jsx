@@ -33,7 +33,7 @@ const products = [
   },
 ];
 
-function DemoProducts() {
+function Demo() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-16 px-6 font-sans flex flex-col">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center mb-12">
@@ -71,4 +71,4 @@ function DemoProducts() {
   );
 }
 
-export default DemoProducts;
+export default Demo;

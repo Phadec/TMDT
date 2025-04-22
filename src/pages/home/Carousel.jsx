@@ -102,7 +102,7 @@ function Cards({ radius = 1.4, count = 8 }) {
   return Array.from({ length: count }, (_, i) => (
     <Card
       key={i}
-      url={getImageFromAssets(`/img${Math.floor(i % 10) + 1}_.jpg`)}
+      url={getImageFromAssets(`/img${Math.floor(i % 10) + 1}_.jpg`, "home/carousel")}
       position={[
         Math.sin((i / count) * Math.PI * 2) * radius,
         0,
