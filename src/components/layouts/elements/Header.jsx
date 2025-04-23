@@ -43,7 +43,7 @@ function Header() {
   return (
     <header
       className={`
-        fixed z-50 px-2 py-4 rounded-full backdrop-blur-md shadow-lg
+        fixed z-50 px-2 py-4 mb-2 rounded-full backdrop-blur-md shadow-lg
         bg-gradient-to-b from-white/30 via-white/20 to-white/10 border border-white/20
         flex justify-center
         w-fit sm:w-14

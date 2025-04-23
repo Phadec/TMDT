@@ -2,6 +2,14 @@ import { useState } from "react";
 
 import { getImageFromAssets } from "~/utils/imageUtils";
 
+/**
+ * Sản phẩm theo mục:
+ * + Hành vi người dùng - no
+ * + Sản phẩm theo trend
+ * + Sản phẩm được đẩy
+ * + Sản phẩm đang giảm giá
+ * + Sản phẩm mới 
+ */
 const bestProduct = [
   {
     id: 1,
