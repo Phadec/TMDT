@@ -1,4 +1,7 @@
 import { Home } from "~/pages/Home";
+import { Products } from "~/pages/Products";
+import { Policy } from "~/pages/Policy";
+import { Connect } from "~/pages/Connect";
 import { PUBLIC_URL } from "../path";
 
 // Được phép xem dù không đăng nhập
@@ -6,6 +9,18 @@ const publicRoutes = [
   {
     path: PUBLIC_URL.HOME,
     element: Home,
+  },
+  {
+    path: PUBLIC_URL.PRODUCTS,
+    element: Products,
+  },
+  {
+    path: PUBLIC_URL.POLICY,
+    element: Policy,
+  },
+  {
+    path: PUBLIC_URL.CONNECT,
+    element: Connect,
   },
 ];
 

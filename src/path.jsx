@@ -2,7 +2,7 @@ const PUBLIC_URL = {
   HOME: "/",
   PRODUCTS: "/products",
   POLICY: "/policy",
-  CONTACT: "/contact",
+  CONNECT: "/connect",
   LOGIN: "/login",
   REGISTER: "/register",
 };

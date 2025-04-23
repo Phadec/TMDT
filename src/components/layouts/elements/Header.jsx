@@ -27,7 +27,7 @@ const navItems = [
   },
   {
     icon: ChatBubbleLeftEllipsisIcon,
-    url: PUBLIC_URL.CONTACT,
+    url: PUBLIC_URL.CONNECT,
     label: "Liên hệ",
   },
   {

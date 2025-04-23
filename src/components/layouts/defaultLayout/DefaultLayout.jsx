@@ -2,7 +2,7 @@ import { Header } from "../elements";
 
 function DefaultLayout({ children }) {
   return (
-    <div className="">
+    <div>
       <Header />
       <div>{children}</div>
     </div>
