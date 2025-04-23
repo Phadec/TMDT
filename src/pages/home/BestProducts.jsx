@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { getImageFromAssets } from "~/utils/imageUtils";
+import { Search } from "~/components/items";
 
 /**
  * Sản phẩm theo mục:
@@ -8,7 +9,7 @@ import { getImageFromAssets } from "~/utils/imageUtils";
  * + Sản phẩm theo trend
  * + Sản phẩm được đẩy
  * + Sản phẩm đang giảm giá
- * + Sản phẩm mới 
+ * + Sản phẩm mới
  */
 const bestProduct = [
   {
@@ -102,19 +103,9 @@ function BestProduct() {
   };
 
   return (
-    <section className="min-h-screen pb-16 lg:px-24 md:px-10 px-4 bg-surface-light text-content-primary">
+    <section className="min-h-screen pb-16 lg:px-32 md:px-10 px-4 bg-surface-light text-content-primary">
       {/* Thanh tìm kiếm bằng AI */}
-      <div className="w-90 mb-10">
-        <div className="relative">
-          <input
-            type="text"
-            value={query}
-            onChange={handleChange}
-            placeholder="Search with AI"
-            className="w-full p-4 pl-12 pr-4 rounded-xl text-black text-lg bg-transparent border-2 border-white focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-xl shadow-blue-500/50 transition-transform transform hover:scale-105 ease-in-out"
-          />
-        </div>
-      </div>
+      <Search />
 
       <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
         🔥 Gợi ý hôm nay

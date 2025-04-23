@@ -1,7 +1,8 @@
 import axios from 'axios';
+import meta from 'axios-metadata';
 
 // Set base URL from environment variables or default
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const API_BASE_URL = meta.env.VITE_API_URL || 'http://localhost:8080';
 const GRAPHQL_ENDPOINT = `${API_BASE_URL}/graphql`;
 
 // Create axios instance for REST API calls
