@@ -20,32 +20,16 @@
     @apply text-primary-light text-xs hover:text-primary-dark transition-colors;
   }
 
+  * {
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
+  }
+
   /* Tùy chỉnh thanh cuộn cho toàn bộ trang */
   ::-webkit-scrollbar {
-    width: 12px; /* Đặt độ rộng thanh cuộn */
-    height: 12px; /* Đặt độ cao thanh cuộn ngang */
-  }
-
-  /* Tùy chỉnh phần thanh cuộn (track) */
-  ::-webkit-scrollbar-track {
-    background: transparent; /* Màu nền thanh cuộn */
-    border-radius: 10px; /* Làm tròn góc */
-  }
-
-  /* Tùy chỉnh phần tay cầm của thanh cuộn (thumb) */
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1); /* Màu tay cầm */
-    border-radius: 10px; /* Làm tròn góc */
-  }
-
-  /* Thay đổi màu tay cầm khi hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: #888; /* Màu khi hover */
-  }
-
-  /* Tùy chỉnh thanh cuộn ngang */
-  ::-webkit-scrollbar-horizontal {
-    height: 12px;
+    display: none !important; /* Chrome, Safari */
+    width: 0 !important;
+    height: 0 !important;
   }
 }
 

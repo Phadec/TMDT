@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import { ChatWithAI, Search } from "~/components/items";
+import { Tool } from "~/components/items";
 
 const dummyProducts = Array.from({ length: 21 }).map((_, i) => ({
   id: i + 1,
@@ -33,8 +34,29 @@ export default function Products() {
   );
   const totalPages = Math.ceil(products.length / perPage);
 
+  // Xử lý lọc sản phẩm từ Tool component
+  const handleFilterProducts = (filters, viewMode, priceRange) => {
+    // Trong thực tế, bạn sẽ áp dụng các bộ lọc này vào dữ liệu sản phẩm
+    // Đây chỉ là ví dụ đơn giản
+    console.log("Filters:", filters);
+    console.log("View Mode:", viewMode);
+    console.log("Price Range:", priceRange);
+
+    // Giả lập việc lọc sản phẩm
+    let filtered = [...dummyProducts];
+
+    // Đặt lại trang về 1 khi lọc
+    setPage(1);
+
+    // Cập nhật danh sách sản phẩm
+    setProducts(filtered);
+  };
+
   return (
-    <div className="min-h-screen w-90 px-14 py-6 bg-gradient-to-br from-purple-100 via-white to-indigo-100">
+    <div className="min-h-screen w-90 pt-12 px-4 sm:px-8 lg:px-14 py-6 bg-gradient-to-br from-purple-100 via-white to-indigo-100">
+      {/* Thanh công cụ lọc */}
+      <Tool onFilterChange={handleFilterProducts} />
+
       <div>
         {/* Thanh tìm kiếm bằng AI */}
         <Search />
