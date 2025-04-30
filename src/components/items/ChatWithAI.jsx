@@ -170,7 +170,7 @@ function ChatWithAI({ title = "Trò chuyện với trợ lý" }) {
   return (
     <>
       {/* Nút mở chat trên màn hình nhỏ */}
-      <div className="fixed sm:bottom-14 bottom-20 left-3 md:hidden z-10">
+      <div className="fixed sm:bottom-14 bottom-20 right-2 md:hidden z-10">
         <button
           onClick={() => setIsOpen(true)}
           className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg flex items-center justify-center transform hover:scale-110 transition-all duration-300"
