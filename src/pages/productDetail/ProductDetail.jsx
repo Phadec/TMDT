@@ -1,9 +1,10 @@
 import ProductImages from "./ProductImages";
 import ProductArticle from "./ProductArticle";
+import ProductVote from "./ProductVote";
 
 function ProductDetail() {
   return (
-    <div>
+    <div className="mb-44">
       {/* Tóm tắt bằng AI */}
 
       {/* Nút nhanh */}
@@ -14,11 +15,15 @@ function ProductDetail() {
       </div>
 
       {/* Hiển thị chi tiết về sản phẩm và cơ bản về người bán */}
-      <div className="px-20 mt-5">
+      <div className="lg:px-20 px-2 mt-5">
         <ProductArticle />
       </div>
 
-      {/* Đánh giá của khách hàng hoặc đánh giá về người bán */}
+      {/* Đánh giá của khách hàng về hàng hóa hoặc đánh giá về người bán */}
+      <div className="px-3 lg:px-20 md:px-2 mt-5">
+        <ProductVote />
+      </div>
+
 
       {/* Các sản phẩm liên quan */}
     </div>

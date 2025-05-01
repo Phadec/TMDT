@@ -45,9 +45,8 @@ function Header() {
       className={`
         fixed z-50 px-2 py-4 mb-2 rounded-full backdrop-blur-md shadow-lg
         bg-gradient-to-b from-white/30 via-white/20 to-white/10 border border-white/20
-        flex justify-center
-        w-fit sm:w-14
-        sm:top-1/2 sm:left-0 sm:transform sm:-translate-y-1/2 sm:ml-3
+        flex justify-center w-fit 
+        sm:w-14 sm:top-1/2 sm:left-0 sm:transform sm:-translate-y-1/2 sm:ml-3
         bottom-0 left-1/2 transform -translate-x-1/2 sm:translate-x-0 sm:bottom-auto
       `}
     >

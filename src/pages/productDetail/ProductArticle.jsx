@@ -8,7 +8,7 @@ function ProductArticle() {
     <div className="p-4 bg-white shadow-md rounded-xl space-y-6 my-10">
       {/* Phần đầu: Tên sản phẩm + mô tả ngắn */}
       <div>
-        <h1 className="text-[50px] font-bold text-gray-900 mb-10 text-center">
+        <h1 className="text-[30px] lg:text-[50px] font-bold text-gray-900 mb-10 text-center">
           🎉 Tai nghe Bluetooth X100 🎉
         </h1>
         <p className="text-gray-700 mt-2">

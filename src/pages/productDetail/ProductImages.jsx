@@ -41,7 +41,7 @@ function ProductImages() {
 
   return (
     <Canvas
-      className="rounded-md"
+      className="rounded-md ml-8"
       gl={{ antialias: false }}
       dpr={[1, 1.5]} // Thiết lập độ phân giải canvas
       onPointerMissed={() => (state.clicked = null)} // Reset khi nhấp ngoài ảnh
@@ -81,6 +81,7 @@ function ImageSlider() {
       pages={pages} // Số trang trong slider
       distance={1} // Khoảng cách khi cuộn
     >
+      <Minimap /> {/* Hiển thị minimap */}
       <Scroll>
         {urls.map((url, i) => (
           <Item
@@ -92,7 +93,6 @@ function ImageSlider() {
           />
         ))}
       </Scroll>
-      <Minimap /> {/* Hiển thị minimap */}
     </ScrollControls>
   );
 }
@@ -117,13 +117,15 @@ function Minimap() {
   });
 
   return (
-    <group ref={ref}>
+    <group ref={ref} renderOrder={1}>
+      {/* Đảm bảo Minimap render trước */}
       {urls.map((_, i) => (
         <line
           key={i}
           geometry={geometry}
           material={material}
           position={[i * 0.06 - urls.length * 0.03, -height / 2 + 0.6, 0]} // Tạo các line chỉ dẫn trong minimap
+          renderOrder={1} // Đảm bảo line chỉ dẫn của Minimap luôn được render trước
         />
       ))}
     </group>
