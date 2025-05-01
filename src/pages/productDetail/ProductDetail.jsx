@@ -2,6 +2,7 @@ import ProductImages from "./ProductImages";
 import ProductArticle from "./ProductArticle";
 import ProductVote from "./ProductVote";
 import FastButton from "./FastButton";
+import SuggestProducts from "./SuggestProducts";
 
 function ProductDetail() {
   return (
@@ -24,8 +25,10 @@ function ProductDetail() {
         <ProductVote />
       </div>
 
-
       {/* Các sản phẩm liên quan */}
+      <div className="mx-20">
+        <SuggestProducts />
+      </div>
     </div>
   );
 }

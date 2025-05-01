@@ -1,21 +1,58 @@
-# Chợ Việt - Nhánh UI
+Dưới đây là phiên bản format lại phần thông tin của bạn để dễ đọc và rõ ràng hơn:
 
-Vite.
-Javascript + SWC.
-tailwindcss@^3.0 postcss autoprefixer
-Tailwind v3 dùng JIT Engine
-Đặt ~/ = src/ 
-class-variance-authority
-reset-css
-Dùng clsx + module scss cho tự viết css 
-Sử dụng cấu trúc layer tailwind 
-Ràng buộc chỉ sử dụng tailwind trong jsx và các file css
+Chợ Việt - Nhánh UI
+===================
 
-ThreeJS
-react-router-dom   
-@heroicons/react
-@react-three/fiber @react-three/drei framer-motion
-valtio
-axios
-react-markdown
-sweetalert2
+Công nghệ sử dụng:
+------------------
+
+*   **Vite**
+    
+*   **JavaScript + SWC**
+    
+*   **TailwindCSS @^3.0** (Sử dụng JIT Engine)
+    
+*   **PostCSS & Autoprefixer**
+    
+
+Cấu trúc:
+---------
+
+*   **Đặt `~/` = `src/`**
+    
+*   **Class Variance Authority**
+    
+*   **Reset CSS**
+    
+
+Cách thức viết CSS:
+-------------------
+
+*   **Sử dụng `clsx` + Module SCSS cho tự viết CSS**
+    
+*   **Sử dụng cấu trúc Layer trong TailwindCSS**
+    
+*   **Ràng buộc chỉ sử dụng TailwindCSS trong JSX và các file CSS**
+    
+
+Thư viện và công cụ:
+--------------------
+
+*   **Three.js**
+    
+*   **react-router-dom**
+    
+*   **@heroicons/react**
+    
+*   **@react-three/fiber, @react-three/drei, framer-motion**
+    
+*   **valtio**
+    
+*   **axios**
+    
+*   **react-markdown**
+    
+*   **sweetalert2**
+    
+
+Cấu trúc này giúp dễ theo dõi và dễ dàng quản lý trong quá trình phát triển!

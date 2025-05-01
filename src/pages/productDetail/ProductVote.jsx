@@ -84,7 +84,7 @@ function ProductVote() {
   return (
     <div className="flex flex-col md:flex-row">
       {/* Phần bên trái - Danh sách các đánh giá */}
-      <div className="w-full md:w-1/3 bg-gray-100 p-4 h-80 sm:h-auto transform transition-transform duration-500 ease-in-out">
+      <div className="w-full md:w-1/3 rounded-md bg-gray-100 p-4 h-80 sm:h-auto transform transition-transform duration-500 ease-in-out">
         <h2 className="font-bold text-xl mb-4">Đánh giá sản phẩm</h2>
 
         {/* Bộ lọc thể loại đánh giá */}
