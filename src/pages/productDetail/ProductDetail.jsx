@@ -1,13 +1,13 @@
 import ProductImages from "./ProductImages";
 import ProductArticle from "./ProductArticle";
 import ProductVote from "./ProductVote";
+import FastButton from "./FastButton";
 
 function ProductDetail() {
   return (
     <div className="mb-44">
-      {/* Tóm tắt bằng AI */}
-
       {/* Nút nhanh */}
+      <FastButton />
 
       {/* Hiển thị các hình ảnh về sản phẩm */}
       <div className="mt-5 h-[300px] rounded-md mx-5 shadow-[40px_0_30px_-10px_rgba(0,0,0,0.8),-40px_0_30px_-10px_rgba(0,0,0,0.8)]">

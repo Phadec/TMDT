@@ -41,7 +41,7 @@ function ProductImages() {
 
   return (
     <Canvas
-      className="rounded-md ml-8"
+      className="rounded-md lg:ml-8"
       gl={{ antialias: false }}
       dpr={[1, 1.5]} // Thiết lập độ phân giải canvas
       onPointerMissed={() => (state.clicked = null)} // Reset khi nhấp ngoài ảnh
