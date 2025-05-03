@@ -4,7 +4,7 @@ function DefaultLayout({ children }) {
   return (
     <div>
       <Header />
-      <div>{children}</div>
+      <div className="h-screen">{children}</div>
     </div>
   );
 }

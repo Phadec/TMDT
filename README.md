@@ -55,4 +55,5 @@ Thư viện và công cụ:
 *   **sweetalert2**
     
 
-Cấu trúc này giúp dễ theo dõi và dễ dàng quản lý trong quá trình phát triển!
+
+gsap

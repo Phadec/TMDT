@@ -3,7 +3,7 @@ import { Products } from "~/pages/Products";
 import { Policy } from "~/pages/Policy";
 import { Connect } from "~/pages/Connect";
 import { ProductDetail } from "~/pages/ProductDetail";
-
+import { Login, Register } from "~/pages/Auth";
 import { PUBLIC_URL } from "../path";
 
 // Được phép xem dù không đăng nhập
@@ -27,7 +27,15 @@ const publicRoutes = [
   {
     path: PUBLIC_URL.PRODUCT_DETIAL,
     element: ProductDetail,
-  }
+  },
+  {
+    path: PUBLIC_URL.LOGIN,
+    element: Login,
+  },
+  {
+    path: PUBLIC_URL.REGISTER,
+    element: Register,
+  },
 ];
 
 // Chỉ được xem khi đã đăng nhập
