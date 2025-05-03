@@ -3,8 +3,9 @@ import { Products } from "~/pages/Products";
 import { Policy } from "~/pages/Policy";
 import { Connect } from "~/pages/Connect";
 import { ProductDetail } from "~/pages/ProductDetail";
-import { Login, Register } from "~/pages/Auth";
+import { Login, Register, Forget } from "~/pages/Auth";
 import { PUBLIC_URL } from "../path";
+import { element } from "three/tsl";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
@@ -36,6 +37,10 @@ const publicRoutes = [
     path: PUBLIC_URL.REGISTER,
     element: Register,
   },
+  {
+    path: PUBLIC_URL.FORGET,
+    element: Forget,
+  }
 ];
 
 // Chỉ được xem khi đã đăng nhập

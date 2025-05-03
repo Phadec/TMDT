@@ -6,6 +6,7 @@ const PUBLIC_URL = {
   PRODUCT_DETIAL: "/product-detail/:id",
   LOGIN: "/login",
   REGISTER: "/register",
+  FORGET: "/forget"
 };
 
 export { PUBLIC_URL };
