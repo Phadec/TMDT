@@ -26,7 +26,7 @@ function ProductDetail() {
       </div>
 
       {/* Các sản phẩm liên quan */}
-      <div className="mx-20">
+      <div className=" lg:mx-20">
         <SuggestProducts />
       </div>
     </div>

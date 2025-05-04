@@ -26,9 +26,9 @@ function ProductArticle() {
           frameBorder="0"
           allow="autoplay; fullscreen; xr-spatial-tracking"
           xr-spatial-tracking="true"
-          webkitallowfullscreen
-          mozallowfullscreen
-          allowfullscreen
+          webkitallowfullscreen="true"
+          mozallowfullscreen="true"
+          allowFullScreen 
         >
           <p className="text-gray-500 italic">
             [Vùng hiển thị 3D – mô hình Concept Car 038]
