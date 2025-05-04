@@ -8,6 +8,7 @@ function FormForget() {
   return (
     <Form
       title="Bạn đang ở đăng nhập á"
+      isShow3LoginButton={false}
       formInput={
         <>
           <AnimatedInput
