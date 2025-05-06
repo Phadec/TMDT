@@ -4,8 +4,8 @@ import { Policy } from "~/pages/Policy";
 import { Connect } from "~/pages/Connect";
 import { ProductDetail } from "~/pages/ProductDetail";
 import { Login, Register, Forget } from "~/pages/Auth";
-import { PUBLIC_URL } from "../path";
-import { element } from "three/tsl";
+import { User } from "~/pages/User";
+import { PUBLIC_URL, PRIVATE_URL } from "~/path";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
@@ -40,11 +40,16 @@ const publicRoutes = [
   {
     path: PUBLIC_URL.FORGET,
     element: Forget,
-  }
+  },
 ];
 
 // Chỉ được xem khi đã đăng nhập
-const privaetRoutes = [];
+const privateRoutes = [
+  {
+    path: PRIVATE_URL.USER,
+    element: User,
+  },
+];
 
 // Chỉ admin mới được xem
 const adminRoute = [];
@@ -55,7 +60,7 @@ const userRole = [];
 // Chỉ người bán mới được xem
 const sellRoute = [];
 
-export { publicRoutes, privaetRoutes };
+export { publicRoutes, privateRoutes };
 
 /**
  * Sau này khi cần cấu hình dựa vào cấu trúc đã có

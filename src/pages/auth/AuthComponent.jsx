@@ -5,7 +5,7 @@ import { OrbitControls, Float } from "@react-three/drei";
 import { Link } from "react-router-dom";
 import * as THREE from "three";
 
-import singleURl from "~/routes/SingleURL";
+import { PUBLIC_URL } from "~/path";
 
 // Vietnam Flag 3D component
 function VietnamFlag() {
@@ -258,7 +258,7 @@ function Form({
           <div className="flex items-center justify-between mb-6">
             <div className="text-sm">
               <Link
-                to={singleURl.general.login}
+                to={PUBLIC_URL.LOGIN}
                 className="font-medium text-secondary hover:text-secondary-dark transition-duration-fast"
               >
                 Đăng nhập nhe 😗
@@ -267,7 +267,7 @@ function Form({
 
             <div className="text-sm">
               <Link
-                to={singleURl.general.forget}
+                to={PUBLIC_URL.FORGET}
                 className="font-medium text-secondary hover:text-secondary-dark transition-duration-fast"
               >
                 Quên mật khẩu đúng hong 🫠
@@ -286,7 +286,7 @@ function Form({
             <p className="text-sm text-content-secondary">
               Cùng kết nối với chúng mình nha 😍{" "}
               <Link
-                to={singleURl.general.register}
+                to={PUBLIC_URL.REGISTER}
                 className="font-medium text-primary hover:text-primary-dark transition-duration-fast"
               >
                 Quất luôn 😎

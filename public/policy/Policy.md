@@ -1,15 +1,15 @@
-# Chính sách & Điều khoản sử dụng – Chợ Tốt
+# Chính sách & Điều khoản sử dụng – Chợ Việt
 
-Chào mừng bạn đến với **Chợ Tốt** – Nền tảng kết nối mua bán uy tín, an toàn và tiện lợi.
+Chào mừng bạn đến với **Chợ Việt** – Nền tảng kết nối mua bán uy tín, an toàn và tiện lợi.
 
-Khi truy cập và sử dụng dịch vụ của Chợ Tốt, bạn đồng ý tuân thủ các điều khoản và chính sách được quy định dưới đây. Vui lòng đọc kỹ trước khi tiếp tục sử dụng nền tảng.
+Khi truy cập và sử dụng dịch vụ của Chợ Việt, bạn đồng ý tuân thủ các điều khoản và chính sách được quy định dưới đây. Vui lòng đọc kỹ trước khi tiếp tục sử dụng nền tảng.
 
 ---
 
 ## 1. Quy định chung
 
-- **Chợ Tốt** là nền tảng trung gian hỗ trợ đăng tin rao vặt, kết nối giữa người mua và người bán.
-- Mọi giao dịch, thỏa thuận mua bán là sự tự nguyện giữa hai bên và **Chợ Tốt không chịu trách nhiệm** về nội dung hoặc chất lượng hàng hóa.
+- **Chợ Việt** là nền tảng trung gian hỗ trợ đăng tin rao vặt, kết nối giữa người mua và người bán.
+- Mọi giao dịch, thỏa thuận mua bán là sự tự nguyện giữa hai bên và **Chợ Việt không chịu trách nhiệm** về nội dung hoặc chất lượng hàng hóa.
 - Người dùng phải **đủ 16 tuổi trở lên** và chịu trách nhiệm trước pháp luật về các nội dung đăng tải.
 
 ---
@@ -27,14 +27,14 @@ Khi truy cập và sử dụng dịch vụ của Chợ Tốt, bạn đồng ý t
 
 - Người mua và người bán cần **thỏa thuận trực tiếp** về giá, phương thức giao hàng và thanh toán.
 - Khuyến khích sử dụng hình thức **giao dịch trực tiếp tại nơi công cộng** để đảm bảo an toàn.
-- **Chợ Tốt không giữ tiền**, không thu hoa hồng từ giao dịch của người dùng.
+- **Chợ Việt không giữ tiền**, không thu hoa hồng từ giao dịch của người dùng.
 
 ---
 
 ## 4. Chính sách bảo mật
 
 - Thông tin cá nhân của người dùng được bảo mật tuyệt đối và chỉ sử dụng để phục vụ hoạt động của nền tảng.
-- **Chợ Tốt không chia sẻ dữ liệu cho bên thứ ba** nếu không có sự đồng ý từ người dùng.
+- **Chợ Việt không chia sẻ dữ liệu cho bên thứ ba** nếu không có sự đồng ý từ người dùng.
 
 ---
 
@@ -49,7 +49,7 @@ Khi truy cập và sử dụng dịch vụ của Chợ Tốt, bạn đồng ý t
 ## 6. Trách nhiệm pháp lý
 
 - Người dùng hoàn toàn chịu trách nhiệm về nội dung, hành vi và hậu quả từ các hoạt động của mình trên nền tảng.
-- Chợ Tốt **miễn trừ trách nhiệm** trong các tranh chấp giữa người mua và người bán.
+- Chợ Việt **miễn trừ trách nhiệm** trong các tranh chấp giữa người mua và người bán.
 - Mọi hành vi lừa đảo sẽ bị xử lý theo quy định pháp luật Việt Nam.
 
 ---
@@ -61,10 +61,10 @@ Chúng tôi có thể cập nhật chính sách này theo thời gian nhằm ph�
 ---
 
 📞 **Liên hệ hỗ trợ**:  
-Email: hotro@chotot.vn  
+Email: hotro@choviet.vn  
 Hotline: 1900 1234 (8h – 22h mỗi ngày)  
 
 ---
 
-> **Chợ Tốt – Mọi thứ bạn cần, ở mọi nơi bạn muốn.**
+> **Chợ Việt – Mọi thứ bạn cần, ở mọi nơi bạn muốn.**
 

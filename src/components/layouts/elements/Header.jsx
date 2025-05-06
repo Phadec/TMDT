@@ -5,9 +5,10 @@ import {
   ArrowLeftEndOnRectangleIcon,
   ChatBubbleLeftEllipsisIcon,
   BookOpenIcon,
+  UserCircleIcon
 } from "@heroicons/react/24/solid";
 
-import { PUBLIC_URL } from "~/path";
+import { PUBLIC_URL, PRIVATE_URL } from "~/path";
 
 const navItems = [
   {
@@ -34,6 +35,11 @@ const navItems = [
     icon: ArrowLeftEndOnRectangleIcon,
     url: PUBLIC_URL.LOGIN,
     label: "Đăng nhập",
+  },
+  {
+    icon: UserCircleIcon,
+    url: PRIVATE_URL.USER,
+    label: "Tài khoản",
   },
 ];
 

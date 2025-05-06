@@ -9,4 +9,8 @@ const PUBLIC_URL = {
   FORGET: "/forget"
 };
 
-export { PUBLIC_URL };
+const PRIVATE_URL = {
+  USER: "/account",
+};
+
+export { PUBLIC_URL, PRIVATE_URL };
