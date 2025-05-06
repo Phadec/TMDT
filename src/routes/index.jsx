@@ -5,7 +5,9 @@ import { Connect } from "~/pages/Connect";
 import { ProductDetail } from "~/pages/ProductDetail";
 import { Login, Register, Forget } from "~/pages/Auth";
 import { User } from "~/pages/User";
+import { Cart } from "~/pages/Cart";
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
+import { path } from "framer-motion/client";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
@@ -49,6 +51,10 @@ const privateRoutes = [
     path: PRIVATE_URL.USER,
     element: User,
   },
+  {
+    path: PRIVATE_URL.CART,
+    element: Cart,
+  }
 ];
 
 // Chỉ admin mới được xem

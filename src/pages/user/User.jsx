@@ -65,22 +65,22 @@ function User() {
   };
 
   return (
-    <div className="h-full flex items-center justify-center">
-      <div className="flex w-10/12 h-[600px]"> {/* Chiều cao cố định */}
+    <div className="h-full flex items-center justify-center lg:px-2 px-4 pt-[530px] lg:pt-0">
+      <div className="flex flex-col md:flex-row w-full max-w-5xl h-auto md:h-[600px]">
         {/* Bên trái */}
-        <div className="w-1/3 bg-white p-6 shadow-md rounded-lg h-full overflow-auto">
+        <div className="w-full md:w-1/3 bg-white p-4 sm:p-6 shadow-md rounded-lg h-auto md:h-full overflow-auto mb-4 md:mb-0">
           {/* Avatar và tên người dùng */}
           <div className="flex flex-col items-center">
             <Avatar name="Nguyễn Văn A" username="nguyenvana" />
           </div>
 
           {/* Danh sách tính năng */}
-          <div className="mt-10 space-y-4">
+          <div className="mt-8 sm:mt-10 space-y-3 sm:space-y-4">
             {
               tabs.map((tab) => (
                 <button 
                   key={tab.id} 
-                  className={`w-full text-left px-4 py-2 rounded ${tab.custom || ''} ${activeTab === tab.id ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                  className={`w-full text-left px-3 sm:px-4 py-2 rounded ${tab.custom || ''} ${activeTab === tab.id ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                   onClick={() => tab.id === "logout" ? handleLogout() : handleTabClick(tab.id)}
                 >
                   {tab.label}
@@ -91,9 +91,9 @@ function User() {
         </div>
 
         {/* Bên phải */}
-        <div className="w-2/3 pl-6 h-full flex flex-col">
-          <h1 className="text-2xl font-bold mb-4">Chi tiết</h1>
-          <div className="bg-white rounded shadow p-6 flex-1 overflow-y-auto"> {/* Thêm thanh cuộn dọc */}
+        <div className="w-full md:w-2/3 md:pl-6 h-auto md:h-full flex flex-col mb-32 lg:mb-0">
+          <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Chi tiết</h1>
+          <div className="bg-white rounded shadow p-4 sm:p-6 flex-1 overflow-y-auto">
             {tabContents[activeTab]}
           </div>
         </div>

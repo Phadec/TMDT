@@ -11,6 +11,7 @@ const PUBLIC_URL = {
 
 const PRIVATE_URL = {
   USER: "/account",
+  CART: "/cart",
 };
 
 export { PUBLIC_URL, PRIVATE_URL };
