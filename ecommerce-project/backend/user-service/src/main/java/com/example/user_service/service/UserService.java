@@ -104,7 +104,6 @@ public class UserService {
         response.setId(user.getId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
-        response.setAccessToken(accessToken);
         response.setRefreshToken(refreshToken.getToken());
         
         if (user.getRole() != null) {
