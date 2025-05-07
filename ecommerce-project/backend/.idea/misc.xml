@@ -14,11 +14,14 @@
         <option value="$PROJECT_DIR$/service-discovery/pom.xml" />
         <option value="$PROJECT_DIR$/analytics-service/pom.xml" />
         <option value="$PROJECT_DIR$/notification-service/pom.xml" />
+        <option value="$PROJECT_DIR$/customer_service/pom.xml" />
+        <option value="$PROJECT_DIR$/customer-service_01/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/config-server/pom.xml" />
+        <option value="$PROJECT_DIR$/customer-service_01/pom.xml" />
       </set>
     </option>
   </component>
