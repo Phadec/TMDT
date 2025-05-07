@@ -12,18 +12,15 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendLoginNotification(String toEmail, String timestamp) throws MessagingException {
+    public void sendNotification(String toEmail, String title, String content) throws MessagingException {
         System.out.println("...sending email");
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
         helper.setTo(toEmail);
-        helper.setSubject("Đăng nhập thành công vào Chợ Việt");
-        helper.setText(String.format(
-                "Chào bạn,\n\nBạn đã đăng nhập vào hệ thống Chợ Việt lúc %s.\nNếu không phải bạn, vui lòng liên hệ hỗ trợ.\n\nTrân trọng,\nChợ Việt",
-                timestamp
-        ));
+        helper.setSubject(title);
+        helper.setText(String.format(content));
 
         mailSender.send(message);
     }

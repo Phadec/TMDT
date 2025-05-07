@@ -1,14 +1,14 @@
 package com.example.user_service.dto;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
-public class LoginResponse {
+public class UserDto {
     private Long id;
     private String username;
     private String email;
-    private String refreshToken;
-    private String tokenType = "Bearer";
     private String roleName;
-    private String[] permissions;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
