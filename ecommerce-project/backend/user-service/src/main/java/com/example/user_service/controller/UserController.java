@@ -94,4 +94,16 @@ public class UserController {
                     .body(new ErrorResponse("An error occurred during logout"));
         }
     }
+
+    @PutMapping("/change")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        UserDto response =  userService.changePassword(changePasswordRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/forgot")
+    public ResponseEntity<?> forgotPassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        UserDto response =  userService.forgotPassword(changePasswordRequest);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -5,8 +5,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class LoginEvent implements Serializable {
-    private Long userId;
+public class UserEvent implements Serializable {
     private String email;
     private LocalDateTime timestamp;
     private String action;

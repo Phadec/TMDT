@@ -1,5 +1,6 @@
 package com.example.user_service.service;
 
+import com.example.user_service.config.Constants;
 import com.example.user_service.dto.*;
 import com.example.user_service.entity.RefreshToken;
 import com.example.user_service.entity.Role;
@@ -83,20 +84,8 @@ public class UserService {
             // Continue even if Redis fails
         }
 
-        try {
-            // Send login event to RabbitMQ
-            LoginEvent event = new LoginEvent();
-            event.setUserId(user.getId());
-            event.setEmail(user.getEmail());
-            event.setTimestamp(LocalDateTime.now());
-            event.setAction("USER_LOGIN");
-
-            // Send message to user.exchange with routing key user.login
-            rabbitTemplate.convertAndSend("user.exchange", "user.login", event);
-        } catch (Exception e) {
-            // This should not happen with our FallbackRabbitTemplate, but just in case
-            logger.debug("Failed to send login event: {}. This is not critical.", e.getMessage());
-        }
+        // đẩy vào queue
+        pushToQueue(user.getEmail(), "USER_LOGIN", Constants.LOGIN_QUEUE);
 
         // Create response
         LoginResponse response = new LoginResponse();
@@ -181,18 +170,8 @@ public class UserService {
             userDto.setRoleName(savedUser.getRole().getRoleName());
         }
 
-        try {
-            // Log logout event
-            LoginEvent event = new LoginEvent();
-            event.setEmail(savedUser.getEmail());
-            event.setTimestamp(LocalDateTime.now());
-            event.setAction("USER_REGISTER");
-
-            rabbitTemplate.convertAndSend("user.exchange", "user.register", event);
-        } catch (Exception e) {
-            // This should not happen with our FallbackRabbitTemplate, but just in case
-            logger.debug("Failed to send logout event: {}. This is not critical.", e.getMessage());
-        }
+        // đẩy vào queue
+        pushToQueue(user.getEmail(), "USER_REGISTER", Constants.REGISTER_QUEUE);
 
         return userDto;
     }
@@ -285,17 +264,101 @@ public class UserService {
             throw new RuntimeException("Error during logout process");
         }
 
-        try {
-            // Log logout event
-            LoginEvent event = new LoginEvent();
-            event.setEmail(user.getEmail());
-            event.setTimestamp(LocalDateTime.now());
-            event.setAction("USER_LOGOUT");
 
-            rabbitTemplate.convertAndSend("user.exchange", "user.logout", event);
+        // đẩy vào queue
+        pushToQueue( user.getEmail(), "USER_LOGOUT", Constants.LOGOUT_QUEUE);
+    }
+
+    // đổi mật khẩu
+
+    public UserDto changePassword(ChangePasswordRequest changePasswordRequest){
+        Long userId = changePasswordRequest.getUserId();
+        String oldPassword = changePasswordRequest.getOldPassword();
+        String newPassword = changePasswordRequest.getNewPassword();
+        String againNewPassword = changePasswordRequest.getReNewPassword();
+        String email = changePasswordRequest.getEmail();
+
+        if(!newPassword.equals(againNewPassword)) {
+            throw new IllegalArgumentException("New password does not match the confirmation password");
+        }else if(newPassword.equals(oldPassword)){
+            throw new IllegalArgumentException("New password match the old password");
+        }
+
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Wrong password");
+        }
+
+        if(!user.getEmail().equals(email)){
+            throw new RuntimeException("Wrong email");
+        }
+
+        // đẩy vào queue
+        pushToQueue(user.getEmail(), "USER_CHANGE_PASSWORD", Constants.CHANGE_PASSWORD_QUEUE);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setUsername(user.getUsername());
+        userDto.setEmail(user.getEmail());
+        userDto.setCreatedAt(user.getCreatedAt());
+        userDto.setUpdatedAt(user.getUpdatedAt());
+
+        return userDto;
+    }
+
+
+    public UserDto forgotPassword(ChangePasswordRequest changePasswordRequest){
+        Long userId = changePasswordRequest.getUserId();
+        String newPassword = changePasswordRequest.getNewPassword();
+        String againNewPassword = changePasswordRequest.getReNewPassword();
+        String email = changePasswordRequest.getEmail();
+
+        if(!newPassword.equals(againNewPassword)) {
+            throw new IllegalArgumentException("New password does not match the confirmation password");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if(!user.getEmail().equals(email)){
+            throw new RuntimeException("Wrong email");
+        }
+
+
+        // đẩy vào queue
+        pushToQueue(user.getEmail(), "USER_FORGET_PASSWORD", Constants.FORGOT_PASSWORD_QUEUE);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setUsername(user.getUsername());
+        userDto.setEmail(user.getEmail());
+        userDto.setCreatedAt(user.getCreatedAt());
+        userDto.setUpdatedAt(user.getUpdatedAt());
+
+        return userDto;
+    }
+
+    // đẩy vào queue của rabbitmq
+    private void pushToQueue(String email, String action, String queue){
+        try {
+            UserEvent event = new UserEvent();
+            event.setEmail(email);
+            event.setTimestamp(LocalDateTime.now());
+            event.setAction(action);
+
+            rabbitTemplate.convertAndSend(Constants.EXCHANGE, queue, event);
         } catch (Exception e) {
-            // This should not happen with our FallbackRabbitTemplate, but just in case
-            logger.debug("Failed to send logout event: {}. This is not critical.", e.getMessage());
+            logger.debug("Failed to send login event: {}. This is not critical.", e.getMessage());
         }
     }
+
 }
