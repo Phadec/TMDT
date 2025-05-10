@@ -1,4 +1,4 @@
-package com.example.notification_service.listener;
+package com.example.notification_service.consumer;
 
 import com.example.notification_service.config.Constants;
 import com.example.notification_service.dto.LoginEvent;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class RabbitMQListener {
+public class NotificationConsumer {
 
     @Autowired
     private EmailService emailService;
