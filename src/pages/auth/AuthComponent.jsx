@@ -4,8 +4,40 @@ import { motion } from "framer-motion";
 import { OrbitControls, Float } from "@react-three/drei";
 import { Link } from "react-router-dom";
 import * as THREE from "three";
+import { cva } from 'class-variance-authority';
 
 import { PUBLIC_URL } from "~/path";
+
+const authLink = cva(
+    ['font-medium', 'text-secondary', 'hover:text-secondary-dark', 'transition-duration-fast'],
+    {
+        variants: {
+            color: {
+                secondary: 'text-secondary hover:text-secondary-dark',
+                primary: 'text-primary hover:text-primary-dark',
+            },
+        },
+        defaultVariants: {
+            color: 'secondary',
+        },
+    }
+);
+
+const socialButton = cva(
+    ['flex', 'items-center', 'justify-center', 'w-12', 'h-12', 'rounded-full', 'border', 'border-gray-200', 'shadow', 'transition'],
+    {
+        variants: {
+            platform: {
+                google: 'bg-white text-gray-700 hover:bg-gray-50',
+                facebook: 'bg-[#1877f2] text-white hover:bg-[#145db2]',
+                apple: 'bg-black text-white hover:bg-gray-800',
+            },
+        },
+        defaultVariants: {
+            platform: 'google',
+        },
+    }
+);
 
 // Vietnam Flag 3D component
 function VietnamFlag() {
@@ -259,7 +291,7 @@ function Form({
             <div className="text-sm">
               <Link
                 to={PUBLIC_URL.LOGIN}
-                className="font-medium text-secondary hover:text-secondary-dark transition-duration-fast"
+                className={authLink()}
               >
                 Đăng nhập nhe 😗
               </Link>
@@ -268,7 +300,7 @@ function Form({
             <div className="text-sm">
               <Link
                 to={PUBLIC_URL.FORGET}
-                className="font-medium text-secondary hover:text-secondary-dark transition-duration-fast"
+                className={authLink()}
               >
                 Quên mật khẩu đúng hong 🫠
               </Link>
@@ -287,7 +319,7 @@ function Form({
               Cùng kết nối với chúng mình nha 😍{" "}
               <Link
                 to={PUBLIC_URL.REGISTER}
-                className="font-medium text-primary hover:text-primary-dark transition-duration-fast"
+                className={authLink({ color: 'primary' })}
               >
                 Quất luôn 😎
               </Link>
@@ -300,7 +332,7 @@ function Form({
             <div className="flex flex-row justify-center gap-6 mt-8">
               <button
                 type="button"
-                className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow transition"
+                className={socialButton({ platform: 'google' })}
                 aria-label="Đăng nhập với Google"
               >
                 {/* Google icon */}
@@ -331,7 +363,7 @@ function Form({
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-200 bg-[#1877f2] text-white hover:bg-[#145db2] shadow transition"
+                className={socialButton({ platform: 'facebook' })}
                 aria-label="Đăng nhập với Facebook"
               >
                 {/* Facebook icon */}
@@ -345,7 +377,7 @@ function Form({
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center w-12 h-12 rounded-full border border-gray-200 bg-black text-white hover:bg-gray-800 shadow transition"
+                className={socialButton({ platform: 'apple' })}
                 aria-label="Đăng nhập với Apple ID"
               >
                 {/* Apple icon */}
