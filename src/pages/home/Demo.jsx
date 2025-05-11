@@ -1,5 +1,28 @@
 import { getImageFromAssets } from "~/utils/imageUtils";
+import { cva } from 'class-variance-authority';
 
+const productCard = cva(['bg-white', 'rounded-2xl', 'overflow-hidden', 'shadow-xl', 'transform', 'transition-all', 'duration-500'], {
+  variants: {
+    hover: {
+      true: 'hover:-translate-y-2 hover:scale-[1.03] hover:rotate-1',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    hover: true,
+  },
+});
+
+export const cardImage = cva(['w-full', 'object-cover'], {
+  variants: {
+    height: {
+      md: 'h-48',
+    },
+  },
+  defaultVariants: {
+    height: 'md',
+  },
+});
 const products = [
   {
     name: "Gian hàng thông minh",
@@ -51,12 +74,12 @@ function Demo() {
         {products.map((product, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl overflow-hidden shadow-xl transform transition-all duration-500 hover:-translate-y-2 hover:scale-[1.03] hover:rotate-1"
+            className={productCard()}
           >
             <img
               src={getImageFromAssets(product.image, "home/demo")}
               alt={product.name}
-              className="w-full h-48 object-cover"
+              className={cardImage()}
             />
             <div className="p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-2">
