@@ -38,7 +38,7 @@ const tabContents = {
   ),
   logout: (
     <div className="text-center">
-      <h2 className="text-xl font-semibold mb-4">Đăng xuất</h2>
+      <h2 className="section-title">Đăng xuất</h2>
       <p className="mb-6">Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?</p>
       <div className="flex justify-center space-x-4">
         <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

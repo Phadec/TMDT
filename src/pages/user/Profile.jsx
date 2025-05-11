@@ -1,56 +1,58 @@
+import { inputStyles} from './Setting.jsx';
+
 function Profile() {
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">Thông tin cá nhân</h2>
+      <h2 className="section-title">Thông tin cá nhân</h2>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="form-label">
               Họ và tên
             </label>
             <input
               type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className={inputStyles()}
               defaultValue="Nguyễn Văn A"
             />
           </div>
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="form-label">
               Tên người dùng
             </label>
             <input
               type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className={inputStyles()}
               defaultValue="nguyenvana"
             />
           </div>
         </div>
         <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="form-label">
             Email
           </label>
           <input
             type="email"
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className={inputStyles()}
             defaultValue="nguyenvana@example.com"
           />
         </div>
         <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="form-label">
             Số điện thoại
           </label>
           <input
             type="tel"
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className={inputStyles()}
             defaultValue="0123456789"
           />
         </div>
         <div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="form-label">
             Địa chỉ
           </label>
           <textarea
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className={inputStyles()}
             defaultValue="123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh"
           />
         </div>
