@@ -1,5 +1,18 @@
 import { useState } from "react";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { cva } from 'class-variance-authority';
+
+const reviewItem = cva(['cursor-pointer', 'p-3', 'mb-3', 'rounded-lg', 'transition-all', 'transform'], {
+  variants: {
+    active: {
+      true: 'bg-blue-500 text-white shadow-lg',
+      false: 'bg-white hover:scale-105 hover:rotate-3d',
+    },
+  },
+  defaultVariants: {
+    active: false,
+  },
+});
 
 // Dữ liệu đánh giá giả lập (có thể thay thế bằng API gọi)
 const reviews = [
@@ -128,13 +141,9 @@ function ProductVote() {
         <div className="overflow-y-scroll max-h-[calc(100vh-27rem)]">
           {filteredReviews.map((review, index) => (
             <div
-              key={index}
-              className={`cursor-pointer p-3 mb-3 rounded-lg transition-all transform ${
-                selectedTab === index
-                  ? "bg-blue-500 text-white shadow-lg"
-                  : "bg-white hover:scale-105 hover:rotate-3d"
-              }`}
-              onClick={() => setSelectedTab(index)}
+                key={index}
+                className={reviewItem({ active: selectedTab === index })}
+                onClick={() => setSelectedTab(index)}
             >
               <div className="flex items-center">
                 <img

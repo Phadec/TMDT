@@ -1,5 +1,26 @@
 import { useState } from "react";
 import { getImageFromAssets } from "~/utils/imageUtils";
+import { cva } from 'class-variance-authority';
+
+const detailImage = cva(['w-full', 'h-full', 'object-cover'], {
+  variants: {
+    rounded: {
+      xl: 'rounded-2xl',
+    },
+    shadow: {
+      lg: 'shadow-lg hover:shadow-2xl',
+    },
+    transform: {
+      true: 'transform hover:scale-105 transition duration-300 ease-in-out',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    rounded: 'xl',
+    shadow: 'lg',
+    transform: true,
+  },
+});
 
 function ProductArticle() {
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -121,7 +142,7 @@ function ProductArticle() {
                   <img
                     src={getImageFromAssets("1.jpg", "productDetail")}
                     alt="Chi tiết sản phẩm"
-                    className="w-full h-full object-cover rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition duration-300 ease-in-out"
+                    className={detailImage()}
                   />
                 </div>
               </div>
