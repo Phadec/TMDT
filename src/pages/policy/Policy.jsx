@@ -1,6 +1,45 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { cva } from 'class-variance-authority';
 
+const sidebarButtonStyles = cva(
+    'w-full text-left px-3 py-2 rounded-md flex items-center transition-colors',
+    {
+      variants: {
+        state: {
+          active: 'bg-indigo-50 text-indigo-700 font-medium',
+          inactive: 'text-gray-700 hover:bg-gray-50',
+        },
+      },
+      defaultVariants: {
+        state: 'inactive',
+      },
+    }
+);
+
+// Biến thể cho action buttons
+const actionButtonStyles = cva(
+    'inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500',
+    {
+      variants: {
+        type: {
+          download: 'border-transparent text-white bg-indigo-600 hover:bg-indigo-700',
+          email: 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50',
+        },
+      },
+      defaultVariants: {
+        type: 'download',
+      },
+    }
+);
+// Biến thể cho liên kết trong footer
+const linkStyles = cva(
+    'text-gray-500 hover:text-indigo-600',
+    {
+      variants: {},
+      defaultVariants: {},
+    }
+);
 function Policy() {
   const [activeSection, setActiveSection] = useState("intro");
   const [policyData, setPolicyData] = useState(null);
@@ -186,11 +225,7 @@ function Policy() {
                     <li key={section.id}>
                       <button
                         onClick={() => handleSectionClick(section.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md flex items-center transition-colors ${
-                          activeSection === section.id
-                            ? "bg-indigo-50 text-indigo-700 font-medium"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
+                        className={sidebarButtonStyles({ state: activeSection === section.id ? 'active' : 'inactive' })}
                       >
                         <span className="mr-2">{section.icon}</span>
                         <span>{section.title}</span>
@@ -288,13 +323,13 @@ function Policy() {
 
             {/* Action buttons */}
             <div className="mt-6 flex flex-col sm:flex-row sm:justify-between">
-              <button className="mb-4 sm:mb-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button className={actionButtonStyles({type: 'download'})}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Tải xuống PDF
               </button>
-              <button className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button className={actionButtonStyles({type: 'email'})}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -313,13 +348,13 @@ function Policy() {
               © 2023 Chợ Việt. Tất cả các quyền được bảo lưu.
             </p>
             <div className="mt-4 md:mt-0 flex space-x-6">
-              <a href="#" className="text-gray-500 hover:text-indigo-600">
+              <a href="#" className={linkStyles()}>
                 Điều khoản sử dụng
               </a>
-              <a href="#" className="text-gray-500 hover:text-indigo-600">
+              <a href="#" className={linkStyles()}>
                 Chính sách bảo mật
               </a>
-              <a href="#" className="text-gray-500 hover:text-indigo-600">
+              <a href="#" className={linkStyles()}>
                 Trợ giúp
               </a>
             </div>
