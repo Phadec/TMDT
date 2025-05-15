@@ -8,6 +8,7 @@ const PUBLIC_URL = {
   LOGIN: "/login",
   REGISTER: "/register",
   FORGET: "/forget",
+  NOT_FOUND: "/not-found",
 };
 
 const PRIVATE_URL = {

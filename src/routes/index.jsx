@@ -8,16 +8,23 @@ import { User } from "~/pages/User";
 import { Cart } from "~/pages/Cart";
 import { Wishlist } from "~/pages/Wishlist";
 import { Classifieds } from "~/pages/Classifieds";
+import { NotFound } from "~/pages/NotFound";
 
 import { Docs } from "~/pages/Docs";
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
+import { EmptyLayout } from "~/components/layouts";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
   {
     path: PUBLIC_URL.DOC,
-    element: Docs,
+    element: Docs
+  },
+  {
+    path: PUBLIC_URL.NOT_FOUND,
+    element: NotFound,
+    layout: EmptyLayout
   },
   {
     path: PUBLIC_URL.HOME,
