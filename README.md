@@ -1,5 +1,3 @@
-Dưới đây là phiên bản format lại phần thông tin của bạn để dễ đọc và rõ ràng hơn:
-
 Chợ Việt - Nhánh UI
 ===================
 
@@ -55,5 +53,7 @@ Thư viện và công cụ:
 *   **sweetalert2**
     
 
-
 gsap
+
+Tổng quan về giao diện
+

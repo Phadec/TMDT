@@ -6,11 +6,18 @@ import { ProductDetail } from "~/pages/ProductDetail";
 import { Login, Register, Forget } from "~/pages/Auth";
 import { User } from "~/pages/User";
 import { Cart } from "~/pages/Cart";
+import { Wishlist } from "~/pages/Wishlist";
+
+import { Docs } from "~/pages/Docs";
+
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
-import { path } from "framer-motion/client";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
+  {
+    path: PUBLIC_URL.DOC,
+    element: Docs,
+  },
   {
     path: PUBLIC_URL.HOME,
     element: Home,
@@ -54,14 +61,18 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.CART,
     element: Cart,
-  }
+  },
+  {
+    path: PRIVATE_URL.WISHLIST,
+    element: Wishlist,
+  },
 ];
 
 // Chỉ admin mới được xem
 const adminRoute = [];
 
 // Những cá nhân theo quyền: kiểm tra bài viết, kiểm tra thống kê, seo, bảo trì,
-const userRole = [];
+const memberRole = [];
 
 // Chỉ người bán mới được xem
 const sellRoute = [];
