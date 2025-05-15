@@ -7,6 +7,7 @@ import { Login, Register, Forget } from "~/pages/Auth";
 import { User } from "~/pages/User";
 import { Cart } from "~/pages/Cart";
 import { Wishlist } from "~/pages/Wishlist";
+import { Classifieds } from "~/pages/Classifieds";
 
 import { Docs } from "~/pages/Docs";
 
@@ -65,6 +66,10 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.WISHLIST,
     element: Wishlist,
+  },
+  {
+    path: PRIVATE_URL.CLASSIFIEDS,
+    element: Classifieds,
   },
 ];
 

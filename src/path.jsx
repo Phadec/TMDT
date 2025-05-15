@@ -7,13 +7,14 @@ const PUBLIC_URL = {
   PRODUCT_DETIAL: "/product-detail/:id",
   LOGIN: "/login",
   REGISTER: "/register",
-  FORGET: "/forget"
+  FORGET: "/forget",
 };
 
 const PRIVATE_URL = {
   USER: "/account",
   CART: "/cart",
   WISHLIST: "/wishlist",
+  CLASSIFIEDS: "/classifieds",
 };
 
 export { PUBLIC_URL, PRIVATE_URL };
