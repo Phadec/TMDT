@@ -6,9 +6,8 @@ import { ProductDetail } from "~/pages/ProductDetail";
 import { Login, Register, Forget } from "~/pages/Auth";
 import { User } from "~/pages/User";
 import { Cart } from "~/pages/Cart";
-import { Wishlist } from "~/pages/Wishlist";
-import { Classifieds } from "~/pages/Classifieds";
 import { NotFound } from "~/pages/NotFound";
+import { Dashboard } from "~/pages/Dashboard";
 
 import { Docs } from "~/pages/Docs";
 
@@ -19,12 +18,12 @@ import { EmptyLayout } from "~/components/layouts";
 const publicRoutes = [
   {
     path: PUBLIC_URL.DOC,
-    element: Docs
+    element: Docs,
   },
   {
     path: PUBLIC_URL.NOT_FOUND,
     element: NotFound,
-    layout: EmptyLayout
+    layout: EmptyLayout,
   },
   {
     path: PUBLIC_URL.HOME,
@@ -71,12 +70,9 @@ const privateRoutes = [
     element: Cart,
   },
   {
-    path: PRIVATE_URL.WISHLIST,
-    element: Wishlist,
-  },
-  {
-    path: PRIVATE_URL.CLASSIFIEDS,
-    element: Classifieds,
+    path: PRIVATE_URL.DASHBOARD,
+    element: Dashboard,
+    layout: EmptyLayout,
   },
 ];
 

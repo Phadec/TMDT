@@ -7,6 +7,8 @@ import {
   useTexture,
 } from "@react-three/drei";
 import { easing } from "maath";
+import { useNavigate } from "react-router-dom";
+import { PUBLIC_URL } from "~/path";
 
 import { getImageFromAssets } from "~/utils/imageUtils";
 
@@ -98,11 +100,18 @@ function Rig(props) {
 }
 
 
+/**
+ * Cards component renders a circular arrangement of product cards
+ * Each card is clickable and navigates to its respective product detail page
+ * The productId parameter is passed to each Card to determine which product page to navigate to
+ */
 function Cards({ radius = 1.4, count = 8 }) {
   return Array.from({ length: count }, (_, i) => (
     <Card
       key={i}
       url={getImageFromAssets(`/img${Math.floor(i % 10) + 1}_.jpg`, "home/carousel")}
+      // Pass a unique product ID for each card (i+1 ensures IDs start from 1)
+      productId={i + 1}
       position={[
         Math.sin((i / count) * Math.PI * 2) * radius,
         0,
@@ -113,34 +122,65 @@ function Cards({ radius = 1.4, count = 8 }) {
   ));
 }
 
-function Card({ url, ...props }) {
+function Card({ url, productId = 1, ...props }) {
+  const navigate = useNavigate();
   const ref = useRef();
   const [hovered, hover] = useState(false);
+  
   const pointerOver = (e) => (e.stopPropagation(), hover(true));
   const pointerOut = () => hover(false);
+  const handleClick = (e) => {
+    e.stopPropagation();
+    // Navigate to product detail page with the product ID
+    const productDetailPath = PUBLIC_URL.PRODUCT_DETIAL.replace(':id', productId);
+    navigate(productDetailPath);
+  };
+  
   useFrame((state, delta) => {
-    easing.damp3(ref.current.scale, hovered ? 1.15 : 1, 0.1, delta);
+    // Enhanced hover effect to indicate clickability
+    easing.damp3(ref.current.scale, hovered ? 1.25 : 1, 0.1, delta);
     easing.damp(
       ref.current.material,
       "radius",
-      hovered ? 0.25 : 0.1,
+      hovered ? 0.35 : 0.1,
       0.2,
       delta
     );
     easing.damp(ref.current.material, "zoom", hovered ? 1 : 1.5, 0.2, delta);
+    
+    // Add a subtle pulsing effect when hovered to indicate clickability
+    if (hovered) {
+      const pulse = Math.sin(state.clock.elapsedTime * 4) * 0.03;
+      ref.current.scale.x = 1.25 + pulse;
+      ref.current.scale.y = 1.25 + pulse;
+      ref.current.scale.z = 1.25 + pulse;
+    }
   });
+  
   return (
-    <Image
-      ref={ref}
-      url={url}
-      transparent
-      side={THREE.DoubleSide}
-      onPointerOver={pointerOver}
-      onPointerOut={pointerOut}
-      {...props}
-    >
-      <bentPlaneGeometry args={[0.1, 1, 1, 20, 20]} />
-    </Image>
+    <group>
+      <Image
+        ref={ref}
+        url={url}
+        transparent
+        side={THREE.DoubleSide}
+        onPointerOver={pointerOver}
+        onPointerOut={pointerOut}
+        onClick={handleClick}
+        {...props}
+        // Change cursor to pointer when hovering to indicate clickability
+        onPointerEnter={(e) => {
+          document.body.style.cursor = 'pointer';
+          pointerOver(e);
+        }}
+        onPointerLeave={(e) => {
+          document.body.style.cursor = 'auto';
+          pointerOut(e);
+        }}
+      >
+        <bentPlaneGeometry args={[0.1, 1, 1, 20, 20]} />
+      </Image>
+    </group>
   );
 }
 

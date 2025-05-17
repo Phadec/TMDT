@@ -2,7 +2,7 @@
 import * as THREE from "three"; // Thư viện 3D để xử lý các đối tượng hình học và vật liệu
 import { useRef, useState, useMemo, useEffect } from "react"; // React hooks để quản lý state và tham chiếu
 import { Canvas, useFrame, useThree } from "@react-three/fiber"; // Các hook và component từ react-three/fiber để vẽ đồ họa 3D trong React
-import { Image, ScrollControls, Scroll, useScroll } from "@react-three/drei"; // Các component hỗ trợ từ Drei cho Scroll và Image
+import { Image, ScrollControls, Scroll, useScroll, Html } from "@react-three/drei"; // Các component hỗ trợ từ Drei cho Scroll và Image
 import { proxy, useSnapshot } from "valtio"; // Quản lý state toàn cục với valtio
 import { easing } from "maath"; // Các hàm hỗ trợ easing chuyển động
 import { Suspense } from "react"; // Để lazy load các component trong React

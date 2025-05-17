@@ -14,8 +14,7 @@ const PUBLIC_URL = {
 const PRIVATE_URL = {
   USER: "/account",
   CART: "/cart",
-  WISHLIST: "/wishlist",
-  CLASSIFIEDS: "/classifieds",
+  DASHBOARD: "/dashboard"
 };
 
 export { PUBLIC_URL, PRIVATE_URL };
