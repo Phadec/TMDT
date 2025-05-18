@@ -3,42 +3,36 @@ import { Routes, Route } from "react-router-dom";
 import { publicRoutes, privateRoutes } from "~/routes";
 import { DefaultLayout } from "~/components/layouts";
 
+function renderRoutes(routes) {
+  return routes.map((route, index) => {
+    const Layout = route.layout || DefaultLayout;
+    const Page = route.element;
+
+    return (
+      <Route
+        key={index}
+        path={route.path}
+        element={
+          <Layout>
+            <Page />
+          </Layout>
+        }
+      />
+    );
+  });
+}
+
 function App() {
   return (
     <Routes>
-      {/* Nhóm không cần đăng nhập */}
-      {publicRoutes.map((route, index) => {
-        const Layout = route.layout || DefaultLayout;
-        const Page = route.element;
-        return (
-          <Route
-            key={index}
-            path={route.path}
-            element={
-              <Layout>
-                <Page />
-              </Layout>
-            }
-          />
-        );
-      })}
+       {/* Nhóm không cần đăng nhập */}
+      {renderRoutes(publicRoutes)}
 
-      {/* Khi người dùng đã đăng nhập, kiểm tra thêm PRIVATE ROUTE  */}
-      {privateRoutes.map((route, index) => {
-        const Layout = route.layout || DefaultLayout;
-        const Page = route.element;
-        return (
-          <Route
-            key={index}
-            path={route.path}
-            element={
-              <Layout>
-                <Page />
-              </Layout>
-            }
-          />
-        );
-      })}
+      {/* Khi người dùng đã đăng nhập */}
+      {renderRoutes(privateRoutes)}
+
+      {/* Về route của admin */}
+
     </Routes>
   );
 }

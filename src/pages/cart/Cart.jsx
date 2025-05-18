@@ -26,8 +26,8 @@ function Cart() {
                 <div className="relative">
                   <input
                       type="text"
+                      placeholder="Tìm sản phẩm..."
                       className={inputVariant({ type: 'text' })}
-                      className="border border-gray-300 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-64"
                   />
                 </div>
                 <button
