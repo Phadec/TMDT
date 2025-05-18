@@ -51,26 +51,5 @@ export default {
       },
     },
   },
-  plugins: [
-    plugin(function ({ addComponents }) {
-      addComponents({
-        // Settings, Profile
-        '.form-label': {
-          '@apply block text-gray-700 text-sm font-bold mb-2': {},
-        },
-        // // Profile, Settings
-        // '.primary-button': {
-        //   '@apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline': {},
-        // },
-        // // Thêm lớp thủ công này để tránh lỗi
-        // '.focus\\:shadow-outline': {
-        //   boxShadow: '0 0 0 3px rgba(66, 153, 225, 0.5)',
-        // },
-        // Tranfer, profile, setting, user
-        '.section-title': {
-          '@apply text-xl font-semibold mb-4': {},
-        },
-      });
-    }),
-  ],
+  plugins: [],
 };

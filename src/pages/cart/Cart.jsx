@@ -1,6 +1,7 @@
 import { NotiSale, CardGridProduct } from "~/components/items";
 import { ShoppingCartIcon, FunnelIcon, AdjustmentsHorizontalIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { buttonVariant, inputVariant, containerVariant, tagVariant } from "~/cartVariant"; // Import CVA
 
 function Cart() {
   const [showFilters, setShowFilters] = useState(false);
@@ -14,7 +15,7 @@ function Cart() {
 
         <div className="max-w-7xl mx-auto py-6 px-4 space-y-6">
           {/* Bộ lọc nâng cao */}
-          <div className="bg-white shadow-md rounded-2xl overflow-hidden">
+          <div className={containerVariant({type: 'filter'})}>
             {/* Phần header của bộ lọc */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center space-x-2">
@@ -25,13 +26,13 @@ function Cart() {
                 <div className="relative">
                   <input
                       type="text"
-                      placeholder="Tìm sản phẩm..."
+                      className={inputVariant({ type: 'text' })}
                       className="border border-gray-300 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 w-64"
                   />
                 </div>
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-800"
+                    className={buttonVariant({ intent: 'filter' })}
                 >
                   <AdjustmentsHorizontalIcon className="h-5 w-5" />
                   <span className="text-sm font-medium">Tùy chọn lọc</span>
@@ -88,19 +89,19 @@ function Cart() {
                         />
                         <div className="flex space-x-2">
                           <button
-                              className={`px-3 py-1 text-xs rounded-full ${priceRange[1] <= 200000 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700'}`}
+                              className={buttonVariant({ intent: 'price', active: priceRange[1] <= 200000 })}
                               onClick={() => setPriceRange([0, 200000])}
                           >
                             &lt; 200K
                           </button>
                           <button
-                              className={`px-3 py-1 text-xs rounded-full ${priceRange[1] > 200000 && priceRange[1] <= 500000 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700'}`}
+                              className={buttonVariant({ intent: 'price', active: priceRange[1] > 200000 && priceRange[1] <= 500000 })}
                               onClick={() => setPriceRange([200000, 500000])}
                           >
                             200K - 500K
                           </button>
                           <button
-                              className={`px-3 py-1 text-xs rounded-full ${priceRange[1] > 500000 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-700'}`}
+                              className={buttonVariant({ intent: 'price', active: priceRange[1] > 500000 })}
                               onClick={() => setPriceRange([500000, 1000000])}
                           >
                             &gt; 500K
@@ -115,7 +116,7 @@ function Cart() {
                       <select
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          className={inputVariant({ type: 'select' })}
                       >
                         <option value="relevance">Phù hợp nhất</option>
                         <option value="price-asc">Giá: Thấp đến cao</option>
@@ -128,10 +129,10 @@ function Cart() {
 
                   {/* Nút áp dụng và đặt lại */}
                   <div className="flex justify-end mt-4 space-x-2">
-                    <button className="px-4 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-100">
+                    <button className={buttonVariant({intent: 'secondary'})}>
                       Đặt lại
                     </button>
-                    <button className="px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <button className={buttonVariant({intent: 'primary'})}>
                       Áp dụng
                     </button>
                   </div>
@@ -139,11 +140,11 @@ function Cart() {
             )}
 
             {/* Thanh trạng thái lọc */}
-            <div className="flex items-center justify-between p-3 bg-white">
+            <div className={containerVariant({type: 'status'})}>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <span>Hiển thị: <b>18</b> sản phẩm</span>
                 {selectedCategory !== 'all' && (
-                    <div className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-xs flex items-center">
+                    <div className={tagVariant()}>
                       Danh mục: {selectedCategory === 'electronics' ? 'Điện tử' :
                         selectedCategory === 'clothing' ? 'Quần áo' :
                             selectedCategory === 'books' ? 'Sách' : 'Đồ gia dụng'}
@@ -151,17 +152,17 @@ function Cart() {
                     </div>
                 )}
                 {priceRange[1] < 1000000 && (
-                    <div className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-xs flex items-center">
+                    <div className={tagVariant()}>
                       Giá: {priceRange[0].toLocaleString()}₫ - {priceRange[1].toLocaleString()}₫
                       <button className="ml-1 text-gray-500 hover:text-gray-700">×</button>
                     </div>
                 )}
               </div>
               <div className="flex space-x-4">
-                <button className={`px-3 py-1 text-sm rounded-full ${selectedCategory === 'all' ? 'bg-indigo-200 text-indigo-900' : 'hover:bg-indigo-100'}`}>
+                <button className={buttonVariant({ intent: 'tag', active: selectedCategory === 'all' })}>
                   Tất cả
                 </button>
-                <button className="hover:bg-indigo-100 px-3 py-1 rounded-full text-sm">
+                <button className={buttonVariant({intent: 'tag'})}> 
                   Đã lưu
                 </button>
               </div>
