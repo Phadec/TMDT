@@ -1,7 +1,7 @@
 import { NotiSale, CardGridProduct } from "~/components/items";
 import { ShoppingCartIcon, FunnelIcon, AdjustmentsHorizontalIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import { buttonVariant, inputVariant, containerVariant, tagVariant } from "~/cartVariant"; // Import CVA
+import { buttonVariant, inputVariant, containerVariant, tagVariant } from "./cartVariant"; // Import CVA
 
 function Cart() {
   const [showFilters, setShowFilters] = useState(false);
