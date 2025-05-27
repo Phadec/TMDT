@@ -1,13 +1,13 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, X, Menu } from "lucide-react";
-import { tabVariants } from "./StyleVariants";
+import { tabVariants } from "~/pages/dashboard/StyleVariants";
 
 // Mobile Menu Button Component
 export const MobileMenuButton = ({ sidebarOpen, setSidebarOpen }) => {
   return (
     <button
       onClick={() => setSidebarOpen(!sidebarOpen)}
-      className="md:hidden fixed top-4 right-4 z-50 bg-indigo-600 text-white p-2 rounded-lg shadow-md"
+      className="fixed z-50 p-2 text-white bg-indigo-600 rounded-lg shadow-md md:hidden top-4 right-4"
     >
       {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
     </button>
@@ -21,18 +21,18 @@ export const SidebarHeader = () => {
       <div className="p-4 border-b border-gray-200">
         <Link
           to="/"
-          className="flex items-center gap-2 text-indigo-600 font-medium"
+          className="flex items-center gap-2 font-medium text-indigo-600"
         >
           <ArrowLeft size={18} />
           <span>Quay về trang chủ</span>
         </Link>
       </div>
 
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
+      <div className="flex items-center gap-3 p-6">
+        <div className="flex items-center justify-center w-10 h-10 font-bold text-white bg-indigo-600 rounded-lg">
           CV
         </div>
-        <div className="font-bold text-xl">Dashboard</div>
+        <div className="text-xl font-bold">Dashboard</div>
       </div>
     </>
   );
@@ -41,7 +41,7 @@ export const SidebarHeader = () => {
 // Sidebar Tabs Component
 export const SidebarTabs = ({ tabs, activeTab, setActiveTab, isMobile, setSidebarOpen }) => {
   return (
-    <div className="flex-1 p-3 space-y-1 w-full">
+    <div className="flex-1 w-full p-3 space-y-1">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -64,7 +64,7 @@ export const SidebarTabs = ({ tabs, activeTab, setActiveTab, isMobile, setSideba
 // User Profile Component
 export const UserProfile = () => {
   return (
-    <div className="p-4 border-t border-gray-200 mt-auto">
+    <div className="p-4 mt-auto border-t border-gray-200">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div>
@@ -99,7 +99,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab, isMobil
       {/* Overlay for mobile */}
       {sidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}

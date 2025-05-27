@@ -12,7 +12,7 @@ import { Dashboard } from "~/pages/Dashboard";
 import { Docs } from "~/pages/Docs";
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
-import { EmptyLayout } from "~/components/layouts";
+import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
@@ -72,7 +72,7 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.DASHBOARD,
     element: Dashboard,
-    layout: EmptyLayout,
+    layout: DashboardLayout,
   },
 ];
 

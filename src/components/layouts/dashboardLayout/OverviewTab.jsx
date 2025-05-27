@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import { cardVariants } from "./StyleVariants";
+import { cardVariants } from "~/components/layouts/dashboardLayout/StyleVariants";
 import Model from "./Model";
 
 // Stats Card Component
