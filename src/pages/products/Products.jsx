@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { cva } from 'class-variance-authority';
 
 import { ChatWithAI, Search } from "~/components/items";
 import { Tool } from "~/components/items";
@@ -13,6 +14,20 @@ const dummyProducts = Array.from({ length: 21 }).map((_, i) => ({
   condition: i % 2 === 0 ? "Mới" : "Đã sử dụng",
 }));
 
+const paginationButtonStyles = cva(
+    'px-4 py-2 rounded-lg font-semibold border transition',
+    {
+      variants: {
+        state: {
+          active: 'bg-purple-600 text-white border-purple-600',
+          inactive: 'bg-white text-purple-600 border-purple-300 hover:bg-purple-100',
+        },
+      },
+      defaultVariants: {
+        state: 'inactive',
+      },
+    }
+);
 export default function Products() {
   const [chatFilter, setChatFilter] = useState("");
   const [products, setProducts] = useState(dummyProducts);
@@ -110,11 +125,7 @@ export default function Products() {
                 <button
                   key={i}
                   onClick={() => setPage(i + 1)}
-                  className={`px-4 py-2 rounded-lg font-semibold border transition ${
-                    page === i + 1
-                      ? "bg-purple-600 text-white border-purple-600"
-                      : "bg-white text-purple-600 border-purple-300 hover:bg-purple-100"
-                  }`}
+                  className={paginationButtonStyles({ state: page === i + 1 ? 'active' : 'inactive' })}
                 >
                   {i + 1}
                 </button>

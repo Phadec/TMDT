@@ -2,6 +2,34 @@ import { useState } from "react";
 
 import { getImageFromAssets } from "~/utils/imageUtils";
 import { Search } from "~/components/items";
+import { cva } from 'class-variance-authority';
+import { cardImage } from './Demo.jsx';
+
+const productCard = cva(['rounded-lg', 'overflow-hidden', 'shadow-md', 'transition-transform', 'hover:scale-105', 'hover:shadow-lg', 'border-l-4', 'bg-surface-white'], {
+  variants: {
+    level: {
+      trending: '',
+      discount: '',
+      new: '',
+      default: 'border-border',
+    },
+  },
+  defaultVariants: {
+    level: 'default',
+  },
+});
+
+const productTag = cva(['text-xs', 'px-2', 'py-1', 'rounded-full', 'bg-surface-light', 'border', 'border-border'], {
+  variants: {
+    color: {
+      secondary: 'text-content-secondary',
+      primary: '',
+    },
+  },
+  defaultVariants: {
+    color: 'secondary',
+  },
+});
 
 /**
  * Sản phẩm theo mục:
@@ -115,14 +143,12 @@ function BestProduct() {
         {bestProduct.map((product) => (
           <div
             key={product.id}
-            className={`rounded-lg  overflow-hidden shadow-md transition-transform hover:scale-105 hover:shadow-lg border-l-4 ${
-              levelColors[product.level] || "border-border"
-            } bg-surface-white`}
+            className={productCard({ level: product.level })}
           >
             <img
               src={getImageFromAssets(product.image, "home/carousel")}
               alt={product.name}
-              className="w-full h-48 object-cover"
+              className={cardImage()}
             />
             <div className="p-4 space-y-2">
               <h3 className="text-lg font-semibold text-content-primary">
@@ -132,7 +158,7 @@ function BestProduct() {
                 {product.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="text-xs px-2 py-1 rounded-full bg-surface-light text-content-secondary border border-border"
+                    className={productTag()}
                   >
                     {tag}
                   </span>

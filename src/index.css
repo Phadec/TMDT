@@ -34,6 +34,14 @@
 }
 
 @layer components {
+  /* Từ plugin */
+  .form-label {
+    @apply block text-gray-700 text-sm font-bold mb-2;
+  }
+  .section-title {
+    @apply text-xl font-semibold mb-4;
+  }
+
   .btn {
     @apply px-4 py-2 rounded-DEFAULT transition-all duration-DEFAULT;
     &-primary {
