@@ -261,7 +261,7 @@ function ReportsManagement() {
             
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <div className="p-4 mb-4 bg-red-50 rounded-lg">
+                <div className="p-4 mb-4 rounded-lg bg-red-50">
                   <div className="flex items-center mb-2">
                     <AlertTriangle size={20} className="mr-2 text-red-500" />
                     <h3 className="text-lg font-medium text-red-700">Thông tin báo cáo</h3>
@@ -296,7 +296,7 @@ function ReportsManagement() {
                 </div>
                 
                 {selectedReport.status !== "pending" && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <h3 className="mb-2 text-lg font-medium">Thông tin xử lý</h3>
                     
                     <div className="space-y-2">
@@ -320,7 +320,7 @@ function ReportsManagement() {
               </div>
               
               <div>
-                <div className="p-4 mb-4 bg-gray-50 rounded-lg">
+                <div className="p-4 mb-4 rounded-lg bg-gray-50">
                   <h3 className="mb-2 text-lg font-medium">Thông tin bài đăng</h3>
                   
                   <div className="space-y-2">
@@ -344,7 +344,7 @@ function ReportsManagement() {
                 </div>
                 
                 {selectedReport.status === "pending" && (
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <h3 className="mb-2 text-lg font-medium">Xử lý báo cáo</h3>
                     
                     <div className="space-y-4">
@@ -362,7 +362,7 @@ function ReportsManagement() {
                             handleResolveReport(selectedReport.id);
                             setShowReportDetail(false);
                           }}
-                          className="flex items-center flex-1 justify-center px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
+                          className="flex items-center justify-center flex-1 px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
                         >
                           <CheckCircle size={18} className="mr-1" />
                           Chấp nhận báo cáo
@@ -373,7 +373,7 @@ function ReportsManagement() {
                             handleRejectReport(selectedReport.id);
                             setShowReportDetail(false);
                           }}
-                          className="flex items-center flex-1 justify-center px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
+                          className="flex items-center justify-center flex-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
                         >
                           <XCircle size={18} className="mr-1" />
                           Từ chối báo cáo
@@ -383,7 +383,7 @@ function ReportsManagement() {
                   </div>
                 )}
                 
-                <div className="p-4 mt-4 bg-gray-50 rounded-lg">
+                <div className="p-4 mt-4 rounded-lg bg-gray-50">
                   <h3 className="mb-2 text-lg font-medium">Phản hồi cho người báo cáo</h3>
                   
                   <div className="space-y-4">

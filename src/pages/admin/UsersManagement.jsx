@@ -309,7 +309,7 @@ function UsersManagement() {
             
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div className="md:col-span-1">
-                <div className="flex flex-col items-center p-6 text-center bg-gray-50 rounded-lg">
+                <div className="flex flex-col items-center p-6 text-center rounded-lg bg-gray-50">
                   <img 
                     src={selectedUser.avatar} 
                     alt={selectedUser.name} 
@@ -368,42 +368,42 @@ function UsersManagement() {
               
               <div className="md:col-span-2">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Email</p>
                     <p className="text-gray-900">{selectedUser.email}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Số điện thoại</p>
                     <p className="text-gray-900">{selectedUser.phone}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Địa chỉ</p>
                     <p className="text-gray-900">{selectedUser.address}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Ngày đăng ký</p>
                     <p className="text-gray-900">{formatDate(selectedUser.createdAt)}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Đăng nhập gần nhất</p>
                     <p className="text-gray-900">{formatDate(selectedUser.lastLogin)}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Số bài đăng</p>
                     <p className="text-gray-900">{selectedUser.postsCount}</p>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Trạng thái</p>
                     <div>{renderStatus(selectedUser.status)}</div>
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 rounded-lg bg-gray-50">
                     <p className="mb-1 text-sm font-medium text-gray-500">Vai trò</p>
                     <div className="flex items-center gap-2">
                       {renderRole(selectedUser.role)}
@@ -439,7 +439,7 @@ function UsersManagement() {
                   </div>
                 </div>
                 
-                <div className="p-4 mt-4 bg-gray-50 rounded-lg">
+                <div className="p-4 mt-4 rounded-lg bg-gray-50">
                   <h3 className="mb-2 text-lg font-medium">Hoạt động gần đây</h3>
                   <div className="space-y-2">
                     <div className="p-2 bg-white rounded">
