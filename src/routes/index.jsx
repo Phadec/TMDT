@@ -8,10 +8,11 @@ import { User } from "~/pages/User";
 import { Cart } from "~/pages/Cart";
 import { NotFound } from "~/pages/NotFound";
 import { Dashboard } from "~/pages/Dashboard";
+import { Dashboard as DashboardAdmin } from "~/pages/admin";
 
 import { Docs } from "~/pages/Docs";
 
-import { PUBLIC_URL, PRIVATE_URL } from "~/path";
+import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
 import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
 // Được phép xem dù không đăng nhập
@@ -77,15 +78,15 @@ const privateRoutes = [
 ];
 
 // Chỉ admin mới được xem
-const adminRoute = [];
+const adminRoute = [
+  {
+    path: ADMIN_URL.DASHBOARD,
+    element: DashboardAdmin,
+    layout: DashboardLayout,
+  }
+];
 
-// Những cá nhân theo quyền: kiểm tra bài viết, kiểm tra thống kê, seo, bảo trì,
-const memberRole = [];
-
-// Chỉ người bán mới được xem
-const sellRoute = [];
-
-export { publicRoutes, privateRoutes };
+export { publicRoutes, privateRoutes, adminRoute };
 
 /**
  * Sau này khi cần cấu hình dựa vào cấu trúc đã có

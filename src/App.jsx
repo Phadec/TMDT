@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
-import { publicRoutes, privateRoutes } from "~/routes";
+import { publicRoutes, privateRoutes, adminRoute } from "~/routes";
 import { DefaultLayout } from "~/components/layouts";
 
 function renderRoutes(routes) {
@@ -25,14 +25,14 @@ function renderRoutes(routes) {
 function App() {
   return (
     <Routes>
-       {/* Nhóm không cần đăng nhập */}
+      {/* Nhóm không cần đăng nhập */}
       {renderRoutes(publicRoutes)}
 
       {/* Khi người dùng đã đăng nhập */}
       {renderRoutes(privateRoutes)}
 
       {/* Về route của admin */}
-
+      {renderRoutes(adminRoute)}
     </Routes>
   );
 }
