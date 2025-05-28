@@ -1,31 +1,33 @@
 package com.example.choviet.config;
 
+import com.example.choviet.entity.Order;
+
+import java.util.List;
+import java.util.Map;
+
 public class Constants {
+
     private Constants() {
         throw new AssertionError("Cannot instantiate Constants class");
     }
     public static final int EMAIL_TOKEN_EXPIRY_MINUTES = 2; // minutes
 
-    // Các biến queue của rabbitmq
-    public static final String USER_EXCHANGE = "user.exchange";
-    public static final String LOGIN_QUEUE = "user.login";
-    public static final String REGISTER_QUEUE = "user.register";
-    public static final String LOGOUT_QUEUE = "user.logout";
-    public static final String VERIFY_EMAIL_QUEUE = "user.verify_email";
-    public static final String CHANGE_PASSWORD_QUEUE = "user.change_password";
-    public static final String FORGOT_PASSWORD_QUEUE = "user.forgot_password";
 
-    // Các biến lắng nghe luồng  của rabbitmq
-    public static final String LOGIN_QUEUE_LISTENER = "user.login.queue";
-    public static final String REGISTER_QUEUE_LISTENER = "user.register.queue";
-    public static final String LOGOUT_QUEUE_LISTENER = "user.logout.queue";
-    public static final String VERIFY_EMAIL_QUEUE_LISTENER = "user.verify_email.queue";
-    public static final String CHANGE_PASSWORD_QUEUE_LISTENER = "user.change_password.queue";
-    public static final String FORGOT_PASSWORD_QUEUE_LISTENER = "user.forgot_password.queue";
-
-    public static final String ORDER_EXCHANGE = "order.exchange";
-    public static final String PAYMENT_QUEUE = "order.payment";
-    public static final String ORDER_QUEUE = "order.order";
-    public static final String PAYMENT_QUEUE_LISTENER = "order.payment.queue";
-    public static final String ORDER_QUEUE_LISTENER = "order.order.queue";
+    public static final Map<Order.Status, List<Order.Status>> VALID_TRANSITIONS = Map.ofEntries(
+            Map.entry(Order.Status.READY_TO_PICK, List.of(Order.Status.PICKING, Order.Status.CANCEL)),
+            Map.entry(Order.Status.PICKING, List.of(Order.Status.PICKED, Order.Status.CANCEL)),
+            Map.entry(Order.Status.PICKED, List.of(Order.Status.STORING, Order.Status.CANCEL)),
+            Map.entry(Order.Status.STORING, List.of(Order.Status.TRANSPORTING)),
+            Map.entry(Order.Status.TRANSPORTING, List.of(Order.Status.DELIVERING)),
+            Map.entry(Order.Status.DELIVERING, List.of(Order.Status.DELIVERED, Order.Status.DELIVERY_FAIL)),
+            Map.entry(Order.Status.DELIVERY_FAIL, List.of(Order.Status.WAITING_TO_RETURN)),
+            Map.entry(Order.Status.WAITING_TO_RETURN, List.of(Order.Status.RETURN)),
+            Map.entry(Order.Status.RETURN, List.of(Order.Status.RETURN_TRANSPORTING)),
+            Map.entry(Order.Status.RETURN_TRANSPORTING, List.of(Order.Status.RETURNING)),
+            Map.entry(Order.Status.RETURNING, List.of(Order.Status.RETURNED, Order.Status.RETURN_FAIL)),
+            Map.entry(Order.Status.RETURNED, List.of()),
+            Map.entry(Order.Status.RETURN_FAIL, List.of()),
+            Map.entry(Order.Status.DELIVERED, List.of()),
+            Map.entry(Order.Status.CANCEL, List.of())
+    );
 }

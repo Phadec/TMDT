@@ -1,6 +1,6 @@
 package com.example.choviet.consumer;
 
-import static com.example.choviet.config.Constants.*;
+import static com.example.choviet.config.ConfigTopicUser.*;
 
 import com.example.choviet.dto.LoginEvent;
 import com.example.choviet.service.EmailService;
@@ -95,7 +95,6 @@ public class NotificationConsumer {
     }
 
 
-
     private String getTime(LocalDateTime timestamp){
         String formattedDate;
         if (timestamp != null) {
@@ -106,7 +105,4 @@ public class NotificationConsumer {
         }
         return formattedDate;
     }
-
-
-
 }

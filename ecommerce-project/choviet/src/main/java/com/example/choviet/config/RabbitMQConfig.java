@@ -11,11 +11,12 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import static com.example.choviet.config.Constants.*;
+import static com.example.choviet.config.ConfigTopicOrder.*;
+import static com.example.choviet.config.ConfigTopicUser.*;
+import static com.example.choviet.config.ConfigTopicProduct.*;
 
 @Configuration
 public class RabbitMQConfig {
-
     // Tạo exchange cho user
     @Bean
     public TopicExchange userExchange() {
@@ -109,6 +110,22 @@ public class RabbitMQConfig {
     public Binding orderBinding() {
         return BindingBuilder.bind(orderQueue()).to(orderExchange()).with(ORDER_QUEUE);
     }
+
+    @Bean
+    public TopicExchange productExchange() {
+        return new TopicExchange(PRODUCT_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Queue addProuctsQueue() {
+        return new Queue(ADD_PRODUCTS_LISTENER, true);
+    }
+
+    @Bean
+    public Binding addProductBinding() {
+        return BindingBuilder.bind(addProuctsQueue()).to(productExchange()).with(ADD_PRODUCTS_QUEUE);
+    }
+
 
     @Bean
     public Jackson2JsonMessageConverter jsonMessageConverter() {

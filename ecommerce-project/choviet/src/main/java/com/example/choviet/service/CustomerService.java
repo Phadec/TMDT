@@ -1,4 +1,4 @@
 package com.example.choviet.service;
 
-public class CustromerService {
+public class CustomerService {
 }
