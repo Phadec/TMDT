@@ -1,23 +1,67 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
+import { authService } from "../../api";
 
 function Login() {
   return <AuthComponent children={<FormLogin />} />;
 }
 
 function FormLogin() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // Call login API
+      await authService.login(formData.email, formData.password);
+      
+      // Redirect to home page after successful login
+      navigate("/");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message || 
+        "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập và thử lại."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Form
-      title="Bạn đang ở đăng nhập á"
+      title={error ? error : "Bạn đang ở đăng nhập á"}
+      onSubmit={handleSubmit}
       formInput={
         <>
           <AnimatedInput
             label="Email"
             type="email"
             name="email"
+            value={formData.email}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -36,10 +80,12 @@ function FormLogin() {
             label="Password"
             type="password"
             name="password"
+            value={formData.password}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -53,6 +99,11 @@ function FormLogin() {
               </svg>
             }
           />
+          {loading && (
+            <div className="text-center text-primary">
+              Đang đăng nhập...
+            </div>
+          )}
         </>
       }
     />
