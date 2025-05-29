@@ -22,8 +22,8 @@ public class User {
 
     private Role role;
 
-    private Type status;
-    public enum Type {
+    private Status status;
+    public enum Status {
         ACTIVE, INACTIVE, SUSPENDED
     }
 }

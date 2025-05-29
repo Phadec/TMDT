@@ -1,5 +1,6 @@
 package com.example.choviet.consumer;
-import com.example.choviet.dto.ProductEvent;
+import com.example.choviet.dto.Event;
+import com.example.choviet.entity.Product;
 import com.example.choviet.repository.ProductRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,11 @@ public class ProductConsumer {
     private ProductRepository productRepository;
 
     @RabbitListener(queues = ADD_PRODUCTS_LISTENER)
-    public void handleLoginEvent(ProductEvent event) {
+    public void handleLoginEvent(Event<Product> event) {
         try {
-            if (event.getProducts() != null && !event.getProducts().isEmpty()) {
-                productRepository.saveAll(event.getProducts());
-                System.out.println("Saved products to MongoDB " +  event.getProducts().size());
+            if (event.getDataList() != null && !event.getDataList().isEmpty()) {
+                productRepository.saveAll(event.getDataList());
+                System.out.println("Saved products to MongoDB " +  event.getDataList().size());
             } else {
                 System.out.println("Received empty product list");
             }

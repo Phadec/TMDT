@@ -30,4 +30,9 @@ public class Constants {
             Map.entry(Order.Status.DELIVERED, List.of()),
             Map.entry(Order.Status.CANCEL, List.of())
     );
+
+    public static final int PAGE = 100;
+    public static final int SIZE_15 = 15;
+    public static final int SIZE_25 = 25;
+    public static final int SIZE_35 = 35;
 }

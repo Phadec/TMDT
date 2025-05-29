@@ -1,37 +1,59 @@
 package com.example.choviet.service;
 
-import com.example.choviet.dto.ProductEvent;
+import com.example.choviet.dto.Event;
 import com.example.choviet.entity.Product;
-import com.example.choviet.entity.ProductCategory;
 import com.example.choviet.repository.ProductRepository;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-
 import static com.example.choviet.config.ConfigTopicProduct.*;
+import static com.example.choviet.config.Constants.*;
 
 @Service
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private EventPublisher eventPublisher;
+    @Autowired
+    private PagingService pagingService;
 
-    // Lấy tất cả sản phẩm
-    public List<Product> findAll() {
-        return productRepository.findAll();
+    // Lấy tất cả sản phẩm theo trang
+    public Page<Product> getProductsPaging(int page, int size) {
+        // Tạo Pageable và lấy dữ liệu
+        Pageable pageable = pagingService.createPageable(page, size);
+        Page<Product> result = productRepository.findAll(pageable);
+
+        // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+        if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+            pageable = pagingService.createPageable(result.getTotalPages() - 1, size);
+            result = productRepository.findAll(pageable);
+        }
+
+        return result;
     }
 
     // Lấy sản phẩm theo loại
-    public List<Product> findAllByCategory(String categoryId) {
-        ProductCategory category = new ProductCategory();
-        category.setId(categoryId);
-        return productRepository.findAllByProductCategory(category);
+    public Page<Product> getProductsByCategory(String categoryId, int page, int size) {
+        // Validate categoryId
+        if (categoryId == null || categoryId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Category ID không được để trống");
+        }
+
+        Pageable pageable = pagingService.createPageable(page, size);
+        Page<Product> result = productRepository.findAllByProductCategoryId(categoryId, pageable);
+
+        // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+        if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+            pageable = pagingService.createPageable(result.getTotalPages() -1, size);
+            result = productRepository.findAllByProductCategoryId(categoryId, pageable);
+        }
+
+        return result;
     }
 
     // Xem chi tiết sản phẩm
@@ -65,13 +87,8 @@ public class ProductService {
     // Thêm nhiều sản phẩm và gửi vào hàng đợi
     @Async
     public void createProducts(List<Product> products) {
-        ProductEvent event = new ProductEvent();
-        event.setProducts(products);
-        pushToQueue(event, ADD_PRODUCTS_QUEUE);
-    }
-
-    // Gửi sự kiện đến hàng đợi RabbitMQ
-    private void pushToQueue(ProductEvent event, String queue) {
-        rabbitTemplate.convertAndSend(PRODUCT_EXCHANGE, queue, event);
+        Event<Product> event = new Event<Product>();
+        event.setDataList(products);
+        eventPublisher.pushToQueue(event, PRODUCT_EXCHANGE, ADD_PRODUCTS_QUEUE);
     }
 }

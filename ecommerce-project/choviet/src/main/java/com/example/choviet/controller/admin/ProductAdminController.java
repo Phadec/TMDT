@@ -1,0 +1,45 @@
+package com.example.choviet.controller.admin;
+
+import com.example.choviet.dto.ApiResponse;
+import com.example.choviet.entity.Product;
+import com.example.choviet.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import static com.example.choviet.config.Code.*;
+
+@RestController
+@RequestMapping("/api/v1/admin/products")
+public class ProductAdminController {
+
+    private final ProductService productService;
+
+    @Autowired
+    public ProductAdminController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    // Cập nhật trạng thái sản phẩm
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<Product>> updateStatus(@PathVariable String id, @RequestParam String status) {
+        Product product = productService.updateStatus(id, status);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", product));
+    }
+
+    // Thêm sản phẩm
+    @PostMapping
+    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {
+        Product saved = productService.createProduct(product);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", saved));
+    }
+
+    // Thêm nhiều sản phẩm
+    @PostMapping("/batch")
+    public ResponseEntity<ApiResponse<String>> createProducts(@RequestBody List<Product> products) {
+        productService.createProducts(products);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", "Sản phẩm đang được xử lý bất đồng bộ"));
+    }
+}

@@ -1,6 +1,6 @@
 package com.example.choviet.service;
 import com.example.choviet.dto.UserDto;
-import com.example.choviet.dto.UserEvent;
+import com.example.choviet.dto.Event;
 import com.example.choviet.dto.VerifyEmailRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,42 +18,33 @@ import static com.example.choviet.config.ConfigTopicUser.*;
 
 @Service
 public class VerifyService {
-    private static final Logger logger = LoggerFactory.getLogger(VerifyService.class);
-
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private EventPublisher eventPublisher;
 
-    public void sendVerificationEmail(String email){
+    public String sendVerificationEmail(String email){
         String token = generateOTP();
         UserDto userDto = new UserDto();
         userDto.setEmail(email);
 
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<>();
+        event.setData(userDto);
         event.setCreatedAt(LocalDateTime.now());
         event.setAction(token);
 
-        rabbitTemplate.convertAndSend(USER_EXCHANGE, VERIFY_EMAIL_QUEUE, event);
-
-        try {
-            redisTemplate.opsForValue().set(email, token, EMAIL_TOKEN_EXPIRY_MINUTES, TimeUnit.MINUTES);
-        } catch (Exception e) {
-            logger.warn("Failed to save session to Redis: {}. This won't affect authentication.", e.getMessage());
-        }
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, VERIFY_EMAIL_QUEUE);
+        redisTemplate.opsForValue().set(email, token, EMAIL_TOKEN_EXPIRY_MINUTES, TimeUnit.MINUTES);
+        return "Đã gửi OTP";
     }
 
-    public boolean validateEmailToken(VerifyEmailRequest verifyEmailRequest){
+    public String validateEmailToken(VerifyEmailRequest verifyEmailRequest){
         String email = verifyEmailRequest.getEmail();
         String token = verifyEmailRequest.getToken();
 
         Object storedToken = redisTemplate.opsForValue().get(email);
-
-        if (storedToken == null) {
-            throw new IllegalArgumentException("Invalid token or token has expired");
-        }
 
         // So sánh token người dùng nhập với token lưu trong Redis
         if (!storedToken.toString().equals(token)) {
@@ -62,7 +53,7 @@ public class VerifyService {
 
         // Token hợp lệ, xóa key khỏi Redis
         redisTemplate.delete(email);
-        return true;
+        return email;
     }
 
     private String generateOTP() {

@@ -1,33 +1,32 @@
 package com.example.choviet.service;
 import com.example.choviet.dto.*;
-import com.example.choviet.entity.RefreshToken;
-import com.example.choviet.entity.Role;
-import com.example.choviet.entity.User;
-import com.example.choviet.exception.TokenRefreshException;
+import com.example.choviet.entity.*;
+import com.example.choviet.mapper.CustomerMapper;
+import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.repository.RoleRepository;
 import com.example.choviet.repository.UserRepository;
 import com.example.choviet.utils.JwtUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.choviet.config.ConfigTopicUser.*;
+import static com.example.choviet.config.Constants.*;
 
 @Service
 public class UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -37,14 +36,30 @@ public class UserService {
 
     @Autowired
     private RefreshTokenService refreshTokenService;
-
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private EventPublisher eventPublisher;
+    @Autowired
+    private CustomerMapper customerMapper;
+    @Autowired
+    private PagingService pagingService;
+
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    public Page<CustomerDto> getCustomerPaging(int page, int size) {
+        Pageable pageable = pagingService.createPageable(page, size);
+        Page<Customer> customers = customerRepository.findAll(pageable);
+
+        if(page > customers.getTotalPages() && customers.getTotalPages() > 0){
+            pageable = pagingService.createPageable(customers.getTotalPages() - 1, size);
+            customers = customerRepository.findAll(pageable);
+        }
+
+        return customers.map(customerMapper::toDto);
+    }
 
     public LoginResponse login(LoginRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
@@ -75,24 +90,18 @@ public class UserService {
         // Generate refresh token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 
-        try {
-            // Store session in Redis
-            redisTemplate.opsForValue().set(user.getId(), accessToken, 1, TimeUnit.HOURS);
-        } catch (Exception e) {
-            logger.warn("Failed to save session to Redis: {}. This won't affect authentication.", e.getMessage());
-            // Continue even if Redis fails
-        }
+        redisTemplate.opsForValue().set(user.getId(), accessToken, 1, TimeUnit.HOURS);
 
         // đẩy vào queue
         UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());
 
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<UserDto>();
+        event.setData(userDto);
         event.setAction("USER_LOGIN");
         event.setCreatedAt(LocalDateTime.now());
-        pushToQueue(event, LOGIN_QUEUE);
 
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
         // Create response
         LoginResponse response = new LoginResponse();
         response.setId(user.getId());
@@ -131,7 +140,7 @@ public class UserService {
 
                     return new TokenRefreshResponse(accessToken, newRefreshToken.getToken());
                 })
-                .orElseThrow(() -> new TokenRefreshException("Refresh token is not in database!"));
+                .orElseThrow(null);
     }
 
     @Transactional
@@ -169,11 +178,11 @@ public class UserService {
         }
 
         // đẩy vào queue
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<UserDto>();
+        event.setData(userDto);
         event.setAction("USER_REGISTER");
         event.setCreatedAt(LocalDateTime.now());
-        pushToQueue(event, REGISTER_QUEUE);
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, REGISTER_QUEUE);
 
         return userDto;
     }
@@ -219,7 +228,7 @@ public class UserService {
         return userDto;
     }
 
-    public UserDto getUserById(String id) {
+    public UserDto getCustomerById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -241,34 +250,25 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        try {
-            // Delete session from Redis
-            redisTemplate.delete("session:" + userId);
-        } catch (Exception e) {
-            logger.warn("Failed to delete session from Redis: {}. This won't affect logout.", e.getMessage());
-        }
 
-        try {
-            // Invalidate all refresh tokens for the user
-            refreshTokenService.invalidateAllUserTokens(user);
-        } catch (Exception e) {
-            logger.error("Failed to invalidate refresh tokens: {}", e.getMessage());
-            throw new RuntimeException("Error during logout process");
-        }
+        redisTemplate.delete("session:" + userId);
+
+
+
+        refreshTokenService.invalidateAllUserTokens(user);
 
 
         // đẩy vào queue
         UserDto userDto = new UserDto();
         userDto.setEmail(user.getEmail());
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<UserDto>();
+        event.setData(userDto);
         event.setAction("USER_LOGOUT");
         event.setCreatedAt(LocalDateTime.now());
-        pushToQueue(event, LOGOUT_QUEUE);
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGOUT_QUEUE);
     }
 
     // đổi mật khẩu
-
     public UserDto changePassword(ChangePasswordRequest changePasswordRequest){
         String userId = changePasswordRequest.getUserId();
         String oldPassword = changePasswordRequest.getOldPassword();
@@ -304,11 +304,11 @@ public class UserService {
         userDto.setUpdatedAt(user.getUpdatedAt());
 
         // đẩy vào queue
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<UserDto>();
+        event.setData(userDto);
         event.setAction("USER_CHANGE_PASSWORD");
         event.setCreatedAt(LocalDateTime.now());
-        pushToQueue(event, CHANGE_PASSWORD_QUEUE);
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, CHANGE_PASSWORD_QUEUE);
 
         return userDto;
     }
@@ -341,22 +341,33 @@ public class UserService {
         userDto.setUpdatedAt(user.getUpdatedAt());
 
         // đẩy vào queue
-        UserEvent event = new UserEvent();
-        event.setUserDto(userDto);
+        Event<UserDto> event = new Event<UserDto>();
+        event.setData(userDto);
         event.setAction("USER_FORGET_PASSWORD");
         event.setCreatedAt(LocalDateTime.now());
-        pushToQueue(event, FORGOT_PASSWORD_QUEUE);
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, FORGOT_PASSWORD_QUEUE);
 
         return userDto;
     }
 
-    // đẩy vào queue của rabbitmq
-    private void pushToQueue(UserEvent event, String queue){
-        try {
-            rabbitTemplate.convertAndSend(USER_EXCHANGE, queue, event);
-        } catch (Exception e) {
-            logger.debug("Failed to send login event: {}. This is not critical.", e.getMessage());
-        }
-    }
+    public UserDto updateStatus(String id, String status){
+        Optional<User> optionalUser = userRepository.findById(id);
+        User user = optionalUser.orElse(null);
+        try{
+            User.Status newStatus = User.Status.valueOf(status.toUpperCase());
+            user.setStatus(newStatus);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
 
+            UserDto userDto = new UserDto();
+            userDto.setEmail(user.getEmail());
+            userDto.setCreatedAt(user.getCreatedAt());
+            userDto.setUpdatedAt(user.getUpdatedAt());
+            return userDto;
+        }
+        catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Trạng thái không hợp lệ và phải nằm trong [ACTIVE, INACTIVE, SUSPENDED]");
+        }
+
+    }
 }

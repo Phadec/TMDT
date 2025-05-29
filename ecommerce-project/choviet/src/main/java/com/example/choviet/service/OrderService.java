@@ -1,23 +1,24 @@
 package com.example.choviet.service;
 
-import com.example.choviet.dto.OrderEvent;
-import com.example.choviet.entity.Customer;
+import com.example.choviet.dto.Event;
 import com.example.choviet.entity.Order;
-import com.example.choviet.entity.Product;
 import com.example.choviet.repository.OrderRepository;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
-import static com.example.choviet.config.ConfigTopicOrder.*;
+import static com.example.choviet.config.ConfigTopicOrder.ORDER_EXCHANGE;
+import static com.example.choviet.config.ConfigTopicOrder.ORDER_QUEUE;
 import static com.example.choviet.config.Constants.*;
 
 @Service
@@ -25,46 +26,91 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private EventPublisher eventPublisher;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private PagingService pagingService;
 
     // tạo đơn hàng
     @Async
-    public void createOrder(Order order){
-        OrderEvent event = new OrderEvent();
-        event.setOrder(order);
-        pushToQueue(event, ORDER_QUEUE);
+    public void createOrder(Order order) {
+        Event<Order> event = new Event<Order>();
+        event.setData(order);
+        eventPublisher.pushToQueue(event, ORDER_EXCHANGE, ORDER_QUEUE);
     }
 
-    // xem tất cả đơn hàng
-    public List<Order> findAll(){
-        return orderRepository.findAll();
+    // xem tất cả đơn hàng theo trang
+    public Page<Order> getOrderPaging(int page, int size) {
+        Pageable pageable = pagingService.createPageable(page, size);
+        Page<Order> result = orderRepository.findAll(pageable);
+
+        // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+        if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+            pageable = pagingService.createPageable(result.getTotalPages() - 1, size);
+            result = orderRepository.findAll(pageable);
+        }
+
+        return result;
     }
 
-    // lấy chi tiết đơn hàng
-    public Order details(String id){
-        return orderRepository.findById(id).orElseThrow(null);
+
+    // xem tất cả đơn hàng theo trạng thái và khách hàng
+    public Page<Order> getOrderByStatus(String customerId, String status, int page, int size) {
+        if (customerId == null || customerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer ID không được để trống");
+        }
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("Status không được để trống");
+        }
+
+        try {
+            Order.Status newStatus = Order.Status.valueOf(status.toUpperCase());
+            Pageable pageable = pagingService.createPageableWithSort(page, size, Sort.by("createdDate").descending());
+            Page<Order> result = orderRepository.findAllByCustomerIdAndStatus(customerId, newStatus, pageable);
+
+            // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+            if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+                pageable = pagingService.createPageableWithSort(result.getTotalPages() - 1, size, Sort.by("createdDate").descending());
+                result = orderRepository.findAllByCustomerIdAndStatus(customerId, newStatus, pageable);
+            }
+
+            return result;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status không hợp lệ: " + status);
+        }
     }
 
     // xem đơn hàng qua id khách hàng
-    public List<Order> findAllByCustomerId(String id){
-        return orderRepository.findAllByCustomerId(id);
+    public Page<Order> getOrdersByCustomerId(String customerId, int page, int size) {
+        if (customerId == null || customerId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Customer ID không được để trống");
+        }
+
+        Pageable pageable = pagingService.createPageableWithSort(page, size, Sort.by("createdDate").descending());
+        Page<Order> result = orderRepository.findAllByCustomerId(customerId, pageable);
+
+        // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+        if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+            pageable = pagingService.createPageableWithSort(result.getTotalPages() - 1, size, Sort.by("createdDate").descending());
+            result = orderRepository.findAllByCustomerId(customerId, pageable);
+        }
+
+        return result;
     }
 
-
-
     // cập nhập trạng thái đơn hàng
-    public Order updateStatus(String id, String status){
+    public Order updateStatus(String id, String status) {
         Optional<Order> optionalOrder = orderRepository.findById(id);
-        if (optionalOrder.isEmpty()) return null;
-        Order order = optionalOrder.get();
+        Order order = optionalOrder.orElse(null);
 
         try {
             Order.Status newStatus = Order.Status.valueOf(status.toUpperCase());
             List<Order.Status> allowed = VALID_TRANSITIONS.getOrDefault(order.getStatus(), List.of());
-            if (!allowed.contains(newStatus)) throw new IllegalArgumentException("Trạng thái không hợp lệ và phải nằm trong [READY_TO_PICK, PICKING, PICKED, STORING, TRANSPORTING, DELIVERING, DELIVERED, DELIVERY_FAIL, WAITING_TO_RETURN, RETURN, RETURN_TRANSPORTING, RETURNING, RETURNED, RETURN_FAIL, CANCEL]");
+            if (!allowed.contains(newStatus))
+                throw new IllegalArgumentException("Trạng thái không hợp lệ và phải nằm trong [READY_TO_PICK, PICKING, PICKED, STORING, TRANSPORTING, DELIVERING, DELIVERED, DELIVERY_FAIL, WAITING_TO_RETURN, RETURN, RETURN_TRANSPORTING, RETURNING, RETURNED, RETURN_FAIL, CANCEL]");
 
             order.setStatus(newStatus);
             order.setUpdatedAt(LocalDateTime.now());
@@ -78,8 +124,9 @@ public class OrderService {
     }
 
 
-    // Gửi sự kiện đến hàng đợi RabbitMQ
-    private void pushToQueue(OrderEvent event, String queue) {
-        rabbitTemplate.convertAndSend(ORDER_EXCHANGE, queue, event);
+    // lấy chi tiết đơn hàng
+    public Order details(String id) {
+        Optional<Order> optionalOrder = orderRepository.findById(id);
+        return optionalOrder.orElse(null);
     }
 }
