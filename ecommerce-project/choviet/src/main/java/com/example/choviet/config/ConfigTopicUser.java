@@ -19,8 +19,6 @@ public class ConfigTopicUser {
 
 
 
-
-
     // Các biến lắng nghe luồng của rabbitmq
     public static final String LOGIN_QUEUE_LISTENER = "user.login.queue";
     public static final String REGISTER_QUEUE_LISTENER = "user.register.queue";
