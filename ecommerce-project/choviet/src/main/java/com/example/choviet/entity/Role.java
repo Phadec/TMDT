@@ -12,7 +12,7 @@ public class Role {
     @Id
     private int id;
 
-    private String roleName;
+    private RoleName roleName;
 
     private String permissionsString;
 
@@ -24,6 +24,10 @@ public class Role {
 
     public enum PermissionScope {
         CUSTOM, ALL
+    }
+
+    public enum RoleName{
+        SUPER_ADMIN, ADMIN, STAFF_MANAGEMENT, STAFF_CHAT, STAFF_NEWS
     }
 
     // Convert comma-separated string to array when getting permissions

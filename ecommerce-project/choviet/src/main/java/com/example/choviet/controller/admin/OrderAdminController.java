@@ -16,19 +16,19 @@ public class OrderAdminController {
     @Autowired
     private OrderService orderService;
 
-    // lấy đơn hàng theo trang
+    // lấy tất cả đơn hàng
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<Order>>> getOrderPaging(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<ApiResponse<Page<Order>>> getOrder(@RequestParam int page, @RequestParam int size) {
         Page<Order> orders = orderService.getOrderPaging(page, size);
         ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Lấy danh sách đơn hàng thành công", orders);
         return ResponseEntity.ok(response);
     }
 
-    // lấy đơn hàng theo khách hàng
-    @PostMapping("/customer")
-    public ResponseEntity<ApiResponse<Page<Order>>> getOrdersByCustomerId(@PathVariable String id, @RequestParam int page, @RequestParam int size) {
-        Page<Order> orders = orderService.getOrdersByCustomerId(id, page, size);
-        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Lấy đơn hàng theo khách hàng thành công", orders);
+    // lấy tất cả đơn hàng theo trạng thái
+    @GetMapping("/status")
+    public ResponseEntity<ApiResponse<Page<Order>>> getOrderByStatus(@RequestParam String status, @RequestParam int page, @RequestParam int size){
+        Page<Order> orders = orderService.getOrderByStatus(status, page, size);
+        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Success", orders);
         return ResponseEntity.ok(response);
     }
 

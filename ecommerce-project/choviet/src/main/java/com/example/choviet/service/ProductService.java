@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import static com.example.choviet.config.ConfigTopicProduct.*;
-import static com.example.choviet.config.Constants.*;
 
 @Service
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
     @Autowired
-    private EventPublisher eventPublisher;
+    private RabbitMQService eventPublisher;
     @Autowired
     private PagingService pagingService;
 

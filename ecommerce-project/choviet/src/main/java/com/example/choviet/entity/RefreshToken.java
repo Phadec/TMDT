@@ -20,6 +20,7 @@ public class RefreshToken {
     private Instant expiryDate;
 
     private User user;
+    private Customer customer;
 
     private boolean valid;
 

@@ -1,0 +1,43 @@
+package com.example.choviet.controller.common;
+
+import com.example.choviet.dto.ApiResponse;
+import com.example.choviet.entity.Product;
+import com.example.choviet.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import static com.example.choviet.config.Code.OK;
+
+@RestController
+@RequestMapping("/api/v1/common/products")
+public class ProductController {
+    @Autowired
+    private ProductService productService;
+
+    // Lấy tất cả sản phẩm
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<Product>>> getProducts(@RequestParam int page, @RequestParam int size) {
+        Page<Product> products = productService.getProductsPaging(page, size);
+
+        ApiResponse<Page<Product>> response = new ApiResponse<>(
+                OK,
+                "Success",
+                products
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    // Lấy sản phẩm theo loại
+    @GetMapping("/category/{id}")
+    public ResponseEntity<ApiResponse<Page<Product>>> getProductsByCategory(@PathVariable String id, @RequestParam int page, @RequestParam int size) {
+        Page<Product> products = productService.getProductsByCategory(id, page, size);
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                OK,
+                "Success",
+                products
+        ));
+    }
+}

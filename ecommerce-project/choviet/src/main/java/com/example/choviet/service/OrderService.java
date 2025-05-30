@@ -5,7 +5,6 @@ import com.example.choviet.entity.Order;
 import com.example.choviet.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,11 +25,9 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
-    private EventPublisher eventPublisher;
+    private RabbitMQService eventPublisher;
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private PagingService pagingService;
 
@@ -57,8 +54,8 @@ public class OrderService {
     }
 
 
-    // xem tất cả đơn hàng theo trạng thái và khách hàng
-    public Page<Order> getOrderByStatus(String customerId, String status, int page, int size) {
+    // xem đơn hàng theo trạng thái và khách hàng
+    public Page<Order> getOrderByCustomerIdAndStatus(String customerId, String status, int page, int size) {
         if (customerId == null || customerId.trim().isEmpty()) {
             throw new IllegalArgumentException("Customer ID không được để trống");
         }
@@ -82,6 +79,30 @@ public class OrderService {
             throw new IllegalArgumentException("Status không hợp lệ: " + status);
         }
     }
+
+    // xem tất cả đơn hàng theo trạng thái
+    public Page<Order> getOrderByStatus(String status, int page, int size) {
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("Status không được để trống");
+        }
+
+        try {
+            Order.Status newStatus = Order.Status.valueOf(status.toUpperCase());
+            Pageable pageable = pagingService.createPageableWithSort(page, size, Sort.by("createdDate").descending());
+            Page<Order> result = orderRepository.findAllByStatus(newStatus, pageable);
+
+            // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
+            if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
+                pageable = pagingService.createPageableWithSort(result.getTotalPages() - 1, size, Sort.by("createdDate").descending());
+                result = orderRepository.findAllByStatus(newStatus, pageable);
+            }
+
+            return result;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status không hợp lệ: " + status);
+        }
+    }
+
 
     // xem đơn hàng qua id khách hàng
     public Page<Order> getOrdersByCustomerId(String customerId, int page, int size) {

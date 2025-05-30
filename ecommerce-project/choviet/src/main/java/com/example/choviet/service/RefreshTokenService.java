@@ -1,5 +1,6 @@
 package com.example.choviet.service;
 
+import com.example.choviet.entity.Customer;
 import com.example.choviet.entity.RefreshToken;
 import com.example.choviet.entity.User;
 import com.example.choviet.repository.RefreshTokenRepository;
@@ -81,6 +82,15 @@ public class RefreshTokenService {
     @Transactional
     public void invalidateAllUserTokens(User user) {
         List<RefreshToken> tokens = refreshTokenRepository.findAllByUser(user);
+        for (RefreshToken token : tokens) {
+            token.setValid(false);
+        }
+        refreshTokenRepository.saveAll(tokens);
+    }
+
+    @Transactional
+    public void invalidateAllCustomerTokens(Customer customer) {
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByCustomer(customer);
         for (RefreshToken token : tokens) {
             token.setValid(false);
         }

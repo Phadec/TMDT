@@ -18,10 +18,18 @@ public class OrderClientController {
 
 
     // lấy tất cả đơn hàng theo trạng thái
-    @GetMapping("/{customerId}")
+    @GetMapping("/status/{customerId}")
     public ResponseEntity<ApiResponse<Page<Order>>> getOrderByStatus(@PathVariable String customerId, @RequestParam String status, @RequestParam int page, @RequestParam int size){
-        Page<Order> orders = orderService.getOrderByStatus(customerId, status, page, size);
+        Page<Order> orders = orderService.getOrderByCustomerIdAndStatus(customerId, status, page, size);
         ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Success", orders);
+        return ResponseEntity.ok(response);
+    }
+
+    // lấy đơn hàng theo khách hàng
+    @PostMapping("/{id}")
+    public ResponseEntity<ApiResponse<Page<Order>>> getOrders(@PathVariable String id, @RequestParam int page, @RequestParam int size) {
+        Page<Order> orders = orderService.getOrdersByCustomerId(id, page, size);
+        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Lấy đơn hàng theo khách hàng thành công", orders);
         return ResponseEntity.ok(response);
     }
 

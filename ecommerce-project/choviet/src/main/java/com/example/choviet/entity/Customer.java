@@ -18,6 +18,7 @@ public class Customer {
     private Map<String, String> addresses;
     private int isSeller;
     private LocalDateTime createdAt;
+    private LocalDateTime updateAt;
 
     public enum Status {
         ACTIVE, INACTIVE, SUSPENDED
