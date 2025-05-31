@@ -68,91 +68,91 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse loginUser(LoginRequest request){
+        if (request.getEmail() == null || request.getPassword() == null) {
+            throw new IllegalArgumentException("Email and password are required");
+        }
+        // Tìm kiếm trong cả 2 bảng
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        if (optionalUser.isPresent() && passwordEncoder.matches(request.getPassword(), optionalUser.get().getPassword())) {
+            User user = optionalUser.get();
+            if(redisService.isKeyExists(user.getId())) throw new RuntimeException("Session logged in, pls logout first");
+            if(user.getStatus().equals(User.Status.INACTIVE)) throw new RuntimeException("Not Active");
+
+            // Generate access token
+            String accessToken;
+            if (user.getRole() != null) {
+                accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
+            } else {
+                accessToken = jwtUtil.generateToken(user.getEmail());
+            }
+
+            // Generate refresh token
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+            redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
+
+
+            // Create response
+            AuthResponse response = new AuthResponse();
+            response.setEmail(user.getEmail());
+            response.setToken(refreshToken.getToken());
+            response.setRoleName(user.getRole().getRoleName());
+            response.setPermission(user.getRole().getPermissions());
+            response.setUserType("USER");
+            response.setCreatedAt(LocalDateTime.now());
+
+            Event<AuthResponse> event = new Event<>();
+            event.setData(response);
+            event.setAction("USER_LOGIN");
+            event.setCreatedAt(response.getCreatedAt());
+            eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
+
+            return response;
+
+        }
+        throw new RuntimeException("Invalid credentials");
+    }
+
+    @Transactional
+    public AuthResponse loginCustomer(LoginRequest request){
         if (request.getEmail() == null || request.getPassword() == null) {
             throw new IllegalArgumentException("Email and password are required");
         }
 
-        // Tìm kiếm trong cả 2 bảng
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
-        if (user.isPresent() && passwordEncoder.matches(request.getPassword(), user.get().getPassword())) {
-            return createAuthResponseUser(user.get(), "USER");
-        }
+        Optional<Customer> optionalCustomer = customerRepository.findByEmail(request.getEmail());
+        if (optionalCustomer.isPresent() && passwordEncoder.matches(request.getPassword(), optionalCustomer.get().getPasswordHash())) {
+            Customer customer = optionalCustomer.get();
+            if(redisService.isKeyExists(customer.getId())) throw new RuntimeException("Session logged in, pls logout first");
+            if(customer.getStatus().equals(Customer.Status.INACTIVE)) throw new RuntimeException("Not Active");
 
-        Optional<Customer> customer = customerRepository.findByEmail(request.getEmail());
-        if (customer.isPresent() && passwordEncoder.matches(request.getPassword(), customer.get().getPasswordHash())) {
-            return createAuthResponseCustomer(customer.get(), "CUSTOMER");
-        }
+            // Generate access token
+            String accessToken = jwtUtil.generateToken(customer.getEmail());
 
+            // Generate refresh token
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(customer.getId());
+
+            redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
+
+            // đẩy vào queue
+            AuthResponse response = new AuthResponse();
+            response.setEmail(customer.getEmail());
+            response.setToken(refreshToken.getToken());
+            response.setUserType("CUSTOMER");
+            response.setCreatedAt(LocalDateTime.now());
+
+            Event<AuthResponse> event = new Event<>();
+            event.setData(response);
+            event.setAction("USER_LOGIN");
+            event.setCreatedAt(response.getCreatedAt());
+
+            eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
+            return response;
+
+        }
         throw new RuntimeException("Invalid credentials");
     }
 
-    // đăng nhập của nhân viên
-    @Transactional
-    public AuthResponse createAuthResponseUser(User user, String userType) {
-        if(redisService.isKeyExists(user.getId())) throw new RuntimeException("Session logged in, pls logout first");
-        if(user.getStatus().equals(User.Status.INACTIVE)) throw new RuntimeException("Not Active");
-
-        // Generate access token
-        String accessToken;
-        if (user.getRole() != null) {
-            accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
-        } else {
-            accessToken = jwtUtil.generateToken(user.getEmail());
-        }
-
-        // Generate refresh token
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
-
-        redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
-
-
-        // Create response
-        AuthResponse response = new AuthResponse();
-        response.setEmail(user.getEmail());
-        response.setToken(refreshToken.getToken());
-        response.setRoleName(user.getRole().getRoleName());
-        response.setPermission(user.getRole().getPermissions());
-        response.setUserType(userType);
-        response.setCreatedAt(LocalDateTime.now());
-
-        Event<AuthResponse> event = new Event<>();
-        event.setData(response);
-        event.setAction("USER_LOGIN");
-        event.setCreatedAt(response.getCreatedAt());
-        eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
-
-        return response;
-    }
-
-    // đăng nhập của khách hàng
-    @Transactional
-    public AuthResponse createAuthResponseCustomer(Customer customer, String userType) {
-        if(redisService.isKeyExists(customer.getId())) throw new RuntimeException("Session logged in, pls logout first");
-        if(customer.getStatus().equals(Customer.Status.INACTIVE)) throw new RuntimeException("Not Active");
-
-        // Generate access token
-        String accessToken = jwtUtil.generateToken(customer.getEmail());
-
-        // Generate refresh token
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(customer.getId());
-
-        redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
-
-        // đẩy vào queue
-        AuthResponse response = new AuthResponse();
-        response.setEmail(customer.getEmail());
-        response.setToken(refreshToken.getToken());
-        response.setCreatedAt(LocalDateTime.now());
-
-        Event<AuthResponse> event = new Event<>();
-        event.setData(response);
-        event.setAction("USER_LOGIN");
-        event.setCreatedAt(response.getCreatedAt());
-
-        eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
-        return response;
-    }
 
     // đăng ký tài khoản của nhân viên
     @Transactional
