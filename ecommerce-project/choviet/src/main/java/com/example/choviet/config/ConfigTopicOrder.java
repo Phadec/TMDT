@@ -1,5 +1,7 @@
 package com.example.choviet.config;
 
+import org.springframework.context.annotation.Configuration;
+
 public class ConfigTopicOrder {
     public static final String ORDER_EXCHANGE = "order.exchange";
 

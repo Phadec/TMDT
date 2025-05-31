@@ -1,5 +1,7 @@
 package com.example.choviet.controller.common;
-
+import static com.example.choviet.config.API.Prefix.*;
+import static com.example.choviet.config.API.Mid.*;
+import static com.example.choviet.config.API.suffix.Product.*;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.entity.Product;
 import com.example.choviet.service.ProductService;
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import static com.example.choviet.config.Code.OK;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
-@RequestMapping("/api/v1/common/products")
+@RequestMapping(COMMON + PRODUCT)
 public class ProductController {
     @Autowired
     ProductService productService;
@@ -32,7 +34,7 @@ public class ProductController {
     }
 
     // Lấy sản phẩm theo loại
-    @GetMapping("/category/{id}")
+    @GetMapping(GET_PRODUCTS_BY_CATEGORY)
     public ResponseEntity<ApiResponse<Page<Product>>> getProductsByCategory(@PathVariable String id, @RequestParam int page, @RequestParam int size) {
         Page<Product> products = productService.getProductsByCategory(id, page, size);
 

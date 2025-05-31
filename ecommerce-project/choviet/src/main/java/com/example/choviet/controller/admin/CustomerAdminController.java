@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import static com.example.choviet.config.API.Prefix.*;
+import static com.example.choviet.config.API.Mid.*;
+import static com.example.choviet.config.API.suffix.Customer.*;
 import static com.example.choviet.config.Code.OK;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
-@RequestMapping("/api/v1/admin/customers")
+@RequestMapping(ADMIN + CUSTOMER)
 public class CustomerAdminController {
     @Autowired
     CustomerService customerService;

@@ -1,5 +1,7 @@
 package com.example.choviet.config;
 
+import org.springframework.context.annotation.Configuration;
+
 public class ConfigTopicUser {
     private ConfigTopicUser() {
         throw new AssertionError("Cannot instantiate Constants class");

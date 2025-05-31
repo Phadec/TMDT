@@ -12,9 +12,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.example.choviet.config.Code.*;
+
+import static com.example.choviet.config.API.Prefix.*;
+import static com.example.choviet.config.API.Mid.*;
+import static com.example.choviet.config.API.suffix.Product.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
-@RequestMapping("/api/v1/admin/products")
+@RequestMapping(ADMIN + PRODUCT)
 public class ProductAdminController {
 
     final ProductService productService;
@@ -25,7 +29,7 @@ public class ProductAdminController {
     }
 
     // Cập nhật trạng thái sản phẩm
-    @PutMapping("/{id}/status")
+    @PutMapping(UPDATE_STATUS)
     public ResponseEntity<ApiResponse<Product>> updateStatus(@PathVariable String id, @RequestParam String status) {
         Product product = productService.updateStatus(id, status);
         return ResponseEntity.ok(new ApiResponse<>( OK, "Success", product));
@@ -39,7 +43,7 @@ public class ProductAdminController {
     }
 
     // Thêm nhiều sản phẩm
-    @PostMapping("/batch")
+    @PostMapping(CREATE_PRODUCTS)
     public ResponseEntity<ApiResponse<String>> createProducts(@RequestBody List<Product> products) {
         productService.createProducts(products);
         return ResponseEntity.ok(new ApiResponse<>( OK, "Success", "Sản phẩm đang được xử lý bất đồng bộ"));

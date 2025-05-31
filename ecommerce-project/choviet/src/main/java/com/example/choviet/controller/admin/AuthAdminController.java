@@ -1,5 +1,8 @@
 package com.example.choviet.controller.admin;
 import static com.example.choviet.config.Code.*;
+import static com.example.choviet.config.API.Prefix.*;
+import static com.example.choviet.config.API.Mid.*;
+import static com.example.choviet.config.API.suffix.Auth.*;
 import com.example.choviet.dto.*;
 import com.example.choviet.service.AuthService;
 import lombok.AccessLevel;
@@ -10,18 +13,18 @@ import org.springframework.web.bind.annotation.*;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
-@RequestMapping("/api/v1/admin/auth")
+@RequestMapping(ADMIN + AUTH)
 public class AuthAdminController {
     @Autowired
     AuthService authService;
 
-    @PostMapping("/login")
+    @PostMapping(LOGIN)
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthResponse response = authService.loginUser(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
     }
 
-    @PostMapping("/register/user")
+    @PostMapping(REGISTER)
     public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody UserRegisterRequest request) {
         AuthResponse response = authService.registerUser(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));

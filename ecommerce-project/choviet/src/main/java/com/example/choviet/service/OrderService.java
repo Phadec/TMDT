@@ -1,6 +1,7 @@
 package com.example.choviet.service;
 
 import com.example.choviet.dto.Event;
+import com.example.choviet.dto.OrderRequest;
 import com.example.choviet.entity.Order;
 import com.example.choviet.repository.OrderRepository;
 import lombok.AccessLevel;
@@ -55,13 +56,15 @@ public class OrderService {
         return result;
     }
 
-
     // xem đơn hàng theo trạng thái và khách hàng
-    public Page<Order> getOrderByCustomerIdAndStatus(String customerId, String status, int page, int size) {
+    public Page<Order> getOrderByCustomerIdAndStatus(OrderRequest request, int page, int size) {
+        String customerId = request.getCustomerId();
+        String status = request.getStatus();
+
         if (customerId == null || customerId.trim().isEmpty()) {
             throw new IllegalArgumentException("Customer ID không được để trống");
         }
-        if (status == null || status.trim().isEmpty()) {
+        if (status == null) {
             throw new IllegalArgumentException("Status không được để trống");
         }
 
@@ -83,7 +86,9 @@ public class OrderService {
     }
 
     // xem tất cả đơn hàng theo trạng thái
-    public Page<Order> getOrderByStatus(String status, int page, int size) {
+    public Page<Order> getOrderByStatus(OrderRequest request, int page, int size) {
+        String status = request.getStatus();
+
         if (status == null || status.trim().isEmpty()) {
             throw new IllegalArgumentException("Status không được để trống");
         }
@@ -107,7 +112,9 @@ public class OrderService {
 
 
     // xem đơn hàng qua id khách hàng
-    public Page<Order> getOrdersByCustomerId(String customerId, int page, int size) {
+    public Page<Order> getOrdersByCustomerId(OrderRequest request, int page, int size) {
+        String customerId = request.getCustomerId();
+
         if (customerId == null || customerId.trim().isEmpty()) {
             throw new IllegalArgumentException("Customer ID không được để trống");
         }
@@ -125,7 +132,10 @@ public class OrderService {
     }
 
     // cập nhập trạng thái đơn hàng
-    public Order updateStatus(String id, String status) {
+    public Order updateStatus(OrderRequest request) {
+        String id = request.getId();
+        String status = request.getStatus();
+
         Optional<Order> optionalOrder = orderRepository.findById(id);
         Order order = optionalOrder.orElse(null);
 
@@ -146,10 +156,9 @@ public class OrderService {
         }
     }
 
-
     // lấy chi tiết đơn hàng
-    public Order details(String id) {
-        Optional<Order> optionalOrder = orderRepository.findById(id);
+    public Order details(OrderRequest request) {
+        Optional<Order> optionalOrder = orderRepository.findById(request.getId());
         return optionalOrder.orElse(null);
     }
 }

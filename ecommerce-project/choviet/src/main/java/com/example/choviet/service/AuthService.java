@@ -233,9 +233,10 @@ public class AuthService {
         return response;
     }
 
-    // đăng xuất tài khoản của nhân viên
+    // đăng xuất tài khoản của nhân viên và khách hàng
     @Transactional
-    public void logout(String id) {
+    public void logout(PersonRequest request) {
+        String id = request.getPersonId();
         if(!redisService.isKeyExists(id)) throw new RuntimeException("Logged out");
 
         boolean isUser = userRepository.existsById(id);
