@@ -1,12 +1,15 @@
 package com.example.choviet.dto;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChangePasswordRequest {
-    private String userId;
-    private String oldPassword;
-    private String newPassword;
-    private String reNewPassword;
-    private String email;
+    String userId;
+    String oldPassword;
+    String newPassword;
+    String reNewPassword;
+    String email;
 }

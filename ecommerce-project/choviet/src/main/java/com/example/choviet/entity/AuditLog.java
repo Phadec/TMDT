@@ -1,6 +1,8 @@
 package com.example.choviet.entity;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,19 +10,20 @@ import java.time.LocalDateTime;
 
 @Document(collection = "audit_logs")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuditLog {
     @Id
-    private String id;
+    String id;
 
-    private User user;
+    User user;
 
-    private String action;
+    String action;
 
-    private EntityType entityType;
+    EntityType entityType;
 
-    private int entityId;
+    int entityId;
 
-    private String details;
+    String details;
 
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 }

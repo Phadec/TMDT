@@ -1,5 +1,7 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -7,13 +9,14 @@ import java.time.LocalDateTime;
 
 @Document(collection = "shifts")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Shift {
     @Id
-    private String id;
+    String id;
 
-    private String shiftName;
+    String shiftName;
 
-    private LocalDateTime startTime;
+    LocalDateTime startTime;
 
-    private LocalDateTime endTime;
+    LocalDateTime endTime;
 }

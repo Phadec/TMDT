@@ -1,23 +1,26 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(collection = "attendance")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Attendance {
     @Id
-    private String id;
+    String id;
 
-    private User user;
+    User user;
 
-    private Shift shift;
+    Shift shift;
 
-    private LocalDateTime checkIn;
+    LocalDateTime checkIn;
 
-    private LocalDateTime checkOut;
+    LocalDateTime checkOut;
 
-    private AttendanceStatus attendanceStatus;
-    private String note;
+    AttendanceStatus attendanceStatus;
+    String note;
 }

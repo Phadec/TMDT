@@ -1,10 +1,13 @@
 package com.example.choviet.dto;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProfileUpdateRequest {
-    private String email;
-    private String currentPassword;
-    private String newPassword;
+    String email;
+    String currentPassword;
+    String newPassword;
 }

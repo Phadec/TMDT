@@ -3,6 +3,8 @@ package com.example.choviet.service;
 import com.example.choviet.dto.Event;
 import com.example.choviet.entity.Product;
 import com.example.choviet.repository.ProductRepository;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,15 +13,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import static com.example.choviet.config.ConfigTopicProduct.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class ProductService {
     @Autowired
-    private ProductRepository productRepository;
+    ProductRepository productRepository;
     @Autowired
-    private RabbitMQService eventPublisher;
+    RabbitMQService eventPublisher;
     @Autowired
-    private PagingService pagingService;
+    PagingService pagingService;
 
     // Lấy tất cả sản phẩm theo trang
     public Page<Product> getProductsPaging(int page, int size) {

@@ -2,6 +2,8 @@ package com.example.choviet.service;
 import com.example.choviet.dto.AuthResponse;
 import com.example.choviet.dto.Event;
 import com.example.choviet.dto.VerifyEmailRequest;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,13 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.example.choviet.config.Constants.*;
 import static com.example.choviet.config.ConfigTopicUser.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class VerifyService {
     @Autowired
-    private RedisService redisService;
+    RedisService redisService;
     @Autowired
-    private RabbitMQService eventPublisher;
+    RabbitMQService eventPublisher;
 
     public String sendVerificationEmail(String email){
         if(redisService.isKeyExists(email)) throw new RuntimeException("Token has sent");
@@ -55,7 +57,7 @@ public class VerifyService {
         return email;
     }
 
-    private String generateOTP() {
+    String generateOTP() {
         SecureRandom random = new SecureRandom();
         int otp = random.nextInt(900000) + 100000; // Tạo số ngẫu nhiên từ 100000 đến 999999
         return String.valueOf(otp);

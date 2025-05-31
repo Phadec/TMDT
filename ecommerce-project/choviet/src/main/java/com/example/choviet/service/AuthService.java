@@ -9,6 +9,8 @@ import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.repository.RoleRepository;
 import com.example.choviet.repository.UserRepository;
 import com.example.choviet.utils.JwtUtil;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,25 +19,25 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import static com.example.choviet.config.ConfigTopicUser.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class AuthService {
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
     @Autowired
-    private CustomerRepository customerRepository;
+    CustomerRepository customerRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    RoleRepository roleRepository;
     @Autowired
-    private JwtUtil jwtUtil;
+    JwtUtil jwtUtil;
     @Autowired
-    private RefreshTokenService refreshTokenService;
+    RefreshTokenService refreshTokenService;
     @Autowired
-    private RedisService redisService;
+    RedisService redisService;
     @Autowired
-    private RabbitMQService eventPublisher;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    RabbitMQService eventPublisher;
+    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
     @Transactional

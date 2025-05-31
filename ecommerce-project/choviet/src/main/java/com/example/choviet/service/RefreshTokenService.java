@@ -5,6 +5,8 @@ import com.example.choviet.entity.RefreshToken;
 import com.example.choviet.entity.User;
 import com.example.choviet.repository.RefreshTokenRepository;
 import com.example.choviet.repository.UserRepository;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,17 +17,17 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class RefreshTokenService {
     @Value("${jwt.refresh-token.expiration:86400000}") // 24 hours in milliseconds by default
-    private Long refreshTokenDurationMs;
+    Long refreshTokenDurationMs;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);

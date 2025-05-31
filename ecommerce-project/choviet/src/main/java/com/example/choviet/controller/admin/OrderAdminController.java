@@ -4,17 +4,19 @@ import static com.example.choviet.config.Code.*;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.entity.Order;
 import com.example.choviet.service.OrderService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping("/api/v1/admin/orders")
 public class OrderAdminController {
 
     @Autowired
-    private OrderService orderService;
+    OrderService orderService;
 
     // lấy tất cả đơn hàng
     @GetMapping

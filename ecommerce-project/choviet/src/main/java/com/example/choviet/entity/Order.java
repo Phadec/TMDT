@@ -1,29 +1,31 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 @Document(collection = "orders")
 public class Order {
     @Id
-    private String id;
-    private Customer customer;
-    private String fullName;
-    private String phone;
-    private Discount discount;
+    String id;
+    Customer customer;
+    String fullName;
+    String phone;
+    Discount discount;
 
-    private Map<String, String> product; // productVariant, quantity, price
-    private Map<String, String> fee; // service_id, insurance_value, from_district_id, from_ward_code, service_type_id, to_district_id, to_ward_code, height, length, weight, width, coupon
-    private Map<String, String> address; // to_address, from_address (gồm province, district, ward)
-    private Map<String, String> payment; // transaction, method, status, createdAt
+    Map<String, String> product; // productVariant, quantity, price
+    Map<String, String> fee; // service_id, insurance_value, from_district_id, from_ward_code, service_type_id, to_district_id, to_ward_code, height, length, weight, width, coupon
+    Map<String, String> address; // to_address, from_address (gồm province, district, ward)
+    Map<String, String> payment; // transaction, method, status, createdAt
     // nếu transaction là COD thì method trống, transaction là online thì method là đơn vị cung cấp
-    private Status status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    Status status;
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
     public enum Status {
         READY_TO_PICK,
         PICKING,

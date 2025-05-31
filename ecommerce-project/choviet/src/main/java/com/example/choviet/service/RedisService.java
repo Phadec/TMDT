@@ -1,16 +1,18 @@
 package com.example.choviet.service;
 
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class RedisService {
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
     public boolean isKeyExists(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));

@@ -5,31 +5,33 @@ import com.example.choviet.entity.Customer;
 import com.example.choviet.mapper.CustomerMapper;
 import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.utils.JwtUtil;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class CustomerService {
     @Autowired
-    private CustomerRepository customerRepository;
+    CustomerRepository customerRepository;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    JwtUtil jwtUtil;
 
     @Autowired
-    private RefreshTokenService refreshTokenService;
+    RefreshTokenService refreshTokenService;
     @Autowired
-    private RedisService redisService;
+    RedisService redisService;
 
     @Autowired
-    private RabbitMQService eventPublisher;
+    RabbitMQService eventPublisher;
     @Autowired
-    private CustomerMapper customerMapper;
+    CustomerMapper customerMapper;
     @Autowired
-    private PagingService pagingService;
+    PagingService pagingService;
 
 
     // login
@@ -37,7 +39,7 @@ public class CustomerService {
     // forgot pass
     // changepass
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public Page<AuthResponse> getCustomerPaging(int page, int size) {
         Pageable pageable = pagingService.createPageable(page, size);

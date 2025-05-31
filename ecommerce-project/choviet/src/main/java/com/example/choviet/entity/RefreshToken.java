@@ -1,7 +1,9 @@
 package com.example.choviet.entity;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,19 +13,20 @@ import java.time.LocalDateTime;
 @Document(collection = "refresh_tokens")
 @Data
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class RefreshToken {
     @Id
-    private String id;
+    String id;
 
-    private String token;
+    String token;
 
-    private Instant expiryDate;
+    Instant expiryDate;
 
-    private User user;
-    private Customer customer;
+    User user;
+    Customer customer;
 
-    private boolean valid;
+    boolean valid;
 
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 
 }

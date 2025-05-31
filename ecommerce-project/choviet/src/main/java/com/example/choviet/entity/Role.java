@@ -1,5 +1,7 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
@@ -8,19 +10,20 @@ import java.util.List;
 
 @Document(collection = "roles")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
     @Id
-    private int id;
+    int id;
 
-    private RoleName roleName;
+    RoleName roleName;
 
-    private String permissionsString;
+    String permissionsString;
 
-    private PermissionScope permissionScope;
+    PermissionScope permissionScope;
 
-    private String description;
+    String description;
 
-    private String[] permissions;
+    String[] permissions;
 
     public enum PermissionScope {
         CUSTOM, ALL

@@ -2,23 +2,26 @@ package com.example.choviet.dto;
 
 import com.example.choviet.entity.Role;
 import com.example.choviet.entity.User;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthResponse {
-    private String token;
-    private String userType; // "USER" or "CUSTOMER"
-    private String email;
-    private String fullname;
-    private String phone;
-    private String name;
-    private Role.RoleName roleName;
-    private String[] permission;
-    private LocalDateTime createdAt;
+    String token;
+    String userType; // "USER" or "CUSTOMER"
+    String email;
+    String fullname;
+    String phone;
+    String name;
+    Role.RoleName roleName;
+    String[] permission;
+    LocalDateTime createdAt;
 }

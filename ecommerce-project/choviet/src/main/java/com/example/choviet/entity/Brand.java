@@ -1,7 +1,9 @@
 package com.example.choviet.entity;
 
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,17 +11,18 @@ import java.time.LocalDateTime;
 
 @Document(collection = "brands")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Brand {
     @Id
-    private String id;
+    String id;
 
-    private String slug;
+    String slug;
 
-    private String brandName;
+    String brandName;
 
-    private String description;
+    String description;
 
-    private String logoUrl;
+    String logoUrl;
 
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 }

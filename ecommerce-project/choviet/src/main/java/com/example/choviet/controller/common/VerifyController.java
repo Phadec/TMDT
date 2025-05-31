@@ -3,15 +3,18 @@ import static com.example.choviet.config.Code.*;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.dto.VerifyEmailRequest;
 import com.example.choviet.service.VerifyService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping("/api/v1/common/verify")
 public class VerifyController {
     @Autowired
-    private VerifyService verifyService;
+    VerifyService verifyService;
 
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<String>> sendVerificationEmail(@RequestBody VerifyEmailRequest verifyEmail) {

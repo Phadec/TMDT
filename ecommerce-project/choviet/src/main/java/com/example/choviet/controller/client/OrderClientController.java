@@ -3,6 +3,8 @@ package com.example.choviet.controller.client;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.entity.Order;
 import com.example.choviet.service.OrderService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -10,13 +12,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import static com.example.choviet.config.Code.OK;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping("/api/v1/client/orders")
 public class OrderClientController {
 
     @Autowired
-    private OrderService orderService;
+    OrderService orderService;
 
 
     // lấy tất cả đơn hàng theo trạng thái

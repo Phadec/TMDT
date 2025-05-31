@@ -1,27 +1,30 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Document(collection = "notifications")
 @Data
 public class Notification {
     @Id
-    private String id;
+    String id;
 
-    private Customer customer;
+    Customer customer;
 
-    private String title;
+    String title;
 
-    private String message;
+    String message;
 
-    private EntityType entityType;
+    EntityType entityType;
 
-    private int entityId;
+    int entityId;
 
-    private boolean isRead;
+    boolean isRead;
 
-    private LocalDateTime createdAt;
+    LocalDateTime createdAt;
 }

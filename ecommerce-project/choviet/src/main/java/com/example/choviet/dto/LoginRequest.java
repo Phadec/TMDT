@@ -1,9 +1,12 @@
 package com.example.choviet.dto;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
-    private String email;
-    private String password;
+    String email;
+    String password;
 }
 

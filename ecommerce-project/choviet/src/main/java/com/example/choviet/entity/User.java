@@ -1,26 +1,29 @@
 package com.example.choviet.entity;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(collection = "users")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
-    private String id;
+    String id;
 
-    private String email;
+    String email;
 
-    private String password;
+    String password;
 
-    private Role role;
+    Role role;
 
-    private Status status;
-    private LocalDateTime createdAt;
+    Status status;
+    LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    LocalDateTime updatedAt;
     public enum Status {
         ACTIVE, INACTIVE, SUSPENDED
     }

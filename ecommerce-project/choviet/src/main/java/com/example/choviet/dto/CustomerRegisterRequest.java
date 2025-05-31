@@ -1,15 +1,18 @@
 package com.example.choviet.dto;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Map;
 
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class CustomerRegisterRequest {
-    private String email;
-    private String password;
-    private String fullName;
-    private String phone;
-    private Map<String, String> addresses;
-    private boolean isSeller;
+    String email;
+    String password;
+    String fullName;
+    String phone;
+    Map<String, String> addresses;
+    boolean isSeller;
 }

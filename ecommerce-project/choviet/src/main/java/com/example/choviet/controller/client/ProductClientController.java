@@ -3,6 +3,8 @@ package com.example.choviet.controller.client;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.entity.Product;
 import com.example.choviet.service.ProductService;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.example.choviet.config.Code.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping("/api/v1/client/products")
 public class ProductClientController {
 
-    private final ProductService productService;
+    final ProductService productService;
 
     @Autowired
     public ProductClientController(ProductService productService) {

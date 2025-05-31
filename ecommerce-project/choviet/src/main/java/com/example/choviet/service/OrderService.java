@@ -3,6 +3,8 @@ package com.example.choviet.service;
 import com.example.choviet.dto.Event;
 import com.example.choviet.entity.Order;
 import com.example.choviet.repository.OrderRepository;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,17 +21,17 @@ import java.util.Optional;
 import static com.example.choviet.config.ConfigTopicOrder.ORDER_EXCHANGE;
 import static com.example.choviet.config.ConfigTopicOrder.ORDER_QUEUE;
 import static com.example.choviet.config.Constants.*;
-
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class OrderService {
     @Autowired
-    private OrderRepository orderRepository;
+    OrderRepository orderRepository;
     @Autowired
-    private RabbitMQService eventPublisher;
+    RabbitMQService eventPublisher;
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    SimpMessagingTemplate messagingTemplate;
     @Autowired
-    private PagingService pagingService;
+    PagingService pagingService;
 
     // tạo đơn hàng
     @Async

@@ -1,22 +1,25 @@
 package com.example.choviet.entity;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 
 @Document(collection = "discounts")
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Discount {
     @Id
-    private String id;
-    private String code;
-    private String description;
-    private DiscountType type;
-    private int discountValue;
-    private int minOrderValue;
-    private int maxUsage;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
-    private boolean isActive;
-    private LocalDateTime createdAt;
+    String id;
+    String code;
+    String description;
+    DiscountType type;
+    int discountValue;
+    int minOrderValue;
+    int maxUsage;
+    LocalDateTime startDate;
+    LocalDateTime endDate;
+    boolean isActive;
+    LocalDateTime createdAt;
 }
