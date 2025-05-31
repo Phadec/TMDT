@@ -16,7 +16,7 @@ public class Customer {
     private String phone;
     private Status status;
     private Map<String, String> addresses;
-    private int isSeller;
+    private boolean isSeller;
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
 
