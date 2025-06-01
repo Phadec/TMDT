@@ -1,9 +1,13 @@
 package com.example.choviet.utils;
 
+import com.example.choviet.dto.AuthResponse;
+import com.example.choviet.entity.User;
+import com.example.choviet.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +26,10 @@ public class JwtUtil {
     @Value("${jwt.expiration:3600000}") // 1 hour in milliseconds
     private Long jwtExpirationMs;
 
-    public String extractUsername(String token) {
+    @Autowired
+    private UserRepository userRepository;
+
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -68,9 +75,9 @@ public class JwtUtil {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username);
+        return createToken(claims, email);
     }
 
     public String generateTokenWithRole(String username, String role) {
@@ -89,13 +96,23 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Boolean validateToken(String token, String username) {
+    public AuthResponse validateTokenUser(String token) {
         try {
-            final String extractedUsername = extractUsername(token);
-            return (extractedUsername.equals(username) && !isTokenExpired(token));
+            Claims claims = Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())) // Thay thế setSigningKey()
+                    .build()
+                    .parseClaimsJws(token)
+                    .getPayload();
+            String email = claims.getSubject();
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user != null && user.getStatus().equals(User.Status.ACTIVE)) {
+                AuthResponse response = new AuthResponse();
+                response.setRoleName(user.getRole().getRoleName());
+                return response;
+            }
         } catch (Exception e) {
-            logger.error("Token validation failed: {}", e.getMessage());
-            return false;
+            System.out.println(e.getMessage());
         }
+        return null;
     }
 }

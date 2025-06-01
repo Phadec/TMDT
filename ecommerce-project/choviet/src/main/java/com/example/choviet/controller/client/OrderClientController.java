@@ -35,7 +35,7 @@ public class OrderClientController {
     @PostMapping(GET_ORDERS)
     public ResponseEntity<ApiResponse<Page<Order>>> getOrders(@RequestBody OrderRequest request, @RequestParam int page, @RequestParam int size) {
         Page<Order> orders = orderService.getOrdersByCustomerId(request, page, size);
-        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Lấy đơn hàng theo khách hàng thành công", orders);
+        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "success", orders);
         return ResponseEntity.ok(response);
     }
 
@@ -43,14 +43,14 @@ public class OrderClientController {
     @PostMapping
     public ResponseEntity<ApiResponse<String>> createOrder(@RequestBody Order order) {
         orderService.createOrder(order);
-        ApiResponse<String> response = new ApiResponse<>( OK, "Đơn hàng đang được xử lý", null);
+        ApiResponse<String> response = new ApiResponse<>( OK, "success", null);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping(DETAIL)
     public ResponseEntity<ApiResponse<Order>> detail(@RequestBody OrderRequest request) {
         Order order = orderService.details(request);
-        ApiResponse<Order> response = new ApiResponse<>( OK, "Lấy đơn hàng thành công", order);
+        ApiResponse<Order> response = new ApiResponse<>( OK, "success", order);
         return ResponseEntity.ok(response);
     }
 }

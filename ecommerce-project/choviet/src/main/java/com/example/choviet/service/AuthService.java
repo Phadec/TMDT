@@ -167,9 +167,10 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-
         // Assign default staff role
         Optional<Role> staffRole = roleRepository.findByRoleName(request.getRole());
+
+        System.out.println("staffRole: " + staffRole);
         if (staffRole.isPresent()) {
             user.setRole(staffRole.get());
         } else {
@@ -385,5 +386,9 @@ public class AuthService {
         response.setCreatedAt(LocalDateTime.now());
 
         return response;
+    }
+
+    public AuthResponse validateTokenUser(String token){
+        return jwtUtil.validateTokenUser(token);
     }
 }

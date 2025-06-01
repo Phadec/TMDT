@@ -24,6 +24,6 @@ public class ProductClientController {
     @GetMapping(DETAIL)
     public ResponseEntity<ApiResponse<Product>> detail(@PathVariable String id) {
         Product product = productService.detail(id);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", product));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", product));
     }
 }

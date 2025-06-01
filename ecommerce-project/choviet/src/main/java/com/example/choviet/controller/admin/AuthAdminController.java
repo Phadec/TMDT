@@ -18,7 +18,7 @@ public class AuthAdminController {
     @Autowired
     AuthService authService;
 
-    @PostMapping(LOGIN)
+    @GetMapping(LOGIN)
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthResponse response = authService.loginUser(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));

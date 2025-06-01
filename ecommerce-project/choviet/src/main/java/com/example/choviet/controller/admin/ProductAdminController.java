@@ -32,20 +32,20 @@ public class ProductAdminController {
     @PutMapping(UPDATE_STATUS)
     public ResponseEntity<ApiResponse<Product>> updateStatus(@PathVariable String id, @RequestParam String status) {
         Product product = productService.updateStatus(id, status);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", product));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", product));
     }
 
     // Thêm sản phẩm
     @PostMapping
     public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {
         Product saved = productService.createProduct(product);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", saved));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", saved));
     }
 
     // Thêm nhiều sản phẩm
     @PostMapping(CREATE_PRODUCTS)
     public ResponseEntity<ApiResponse<String>> createProducts(@RequestBody List<Product> products) {
         productService.createProducts(products);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", "Sản phẩm đang được xử lý bất đồng bộ"));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", "Sản phẩm đang được xử lý bất đồng bộ"));
     }
 }

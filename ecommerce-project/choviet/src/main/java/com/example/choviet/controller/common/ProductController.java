@@ -27,7 +27,7 @@ public class ProductController {
 
         ApiResponse<Page<Product>> response = new ApiResponse<>(
                 OK,
-                "Success",
+                "success",
                 products
         );
         return ResponseEntity.ok(response);
@@ -40,7 +40,7 @@ public class ProductController {
 
         return ResponseEntity.ok(new ApiResponse<>(
                 OK,
-                "Success",
+                "success",
                 products
         ));
     }

@@ -27,7 +27,7 @@ public class OrderAdminController {
     @GetMapping
     public ResponseEntity<ApiResponse<Page<Order>>> getOrder(@RequestParam int page, @RequestParam int size) {
         Page<Order> orders = orderService.getOrderPaging(page, size);
-        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Lấy danh sách đơn hàng thành công", orders);
+        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "success", orders);
         return ResponseEntity.ok(response);
     }
 
@@ -35,7 +35,7 @@ public class OrderAdminController {
     @GetMapping(GET_ORDERS_BY_STATUS)
     public ResponseEntity<ApiResponse<Page<Order>>> getOrderByStatus(@RequestBody OrderRequest request, @RequestParam int page, @RequestParam int size){
         Page<Order> orders = orderService.getOrderByStatus(request, page, size);
-        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Success", orders);
+        ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "success", orders);
         return ResponseEntity.ok(response);
     }
 
@@ -43,7 +43,7 @@ public class OrderAdminController {
     @PutMapping(UPDATE_STATUS)
     public ResponseEntity<ApiResponse<Order>> updateStatus(@RequestBody OrderRequest request) {
         Order updatedOrder = orderService.updateStatus(request);
-        ApiResponse<Order> response = new ApiResponse<>( OK, "Cập nhật trạng thái đơn hàng thành công", updatedOrder);
+        ApiResponse<Order> response = new ApiResponse<>( OK, "success", updatedOrder);
         return ResponseEntity.ok(response);
     }
 }

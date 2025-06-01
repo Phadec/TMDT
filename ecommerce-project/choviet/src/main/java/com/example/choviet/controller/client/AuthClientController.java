@@ -20,7 +20,7 @@ public class AuthClientController {
     @Autowired
     AuthService authService;
 
-    @PostMapping(LOGIN)
+    @GetMapping(LOGIN)
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthResponse response = authService.loginCustomer(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
@@ -38,7 +38,7 @@ public class AuthClientController {
         return ResponseEntity.ok(new ApiResponse<>(OK, "success", response));
     }
 
-    @PostMapping(EMAIL_EXIST)
+    @GetMapping(EMAIL_EXIST)
     public ResponseEntity<ApiResponse<AuthResponse>> isEmailExist(@RequestParam String email){
         AuthResponse avail = authService.isExistEmail(email);
         return ResponseEntity.ok(new ApiResponse<>(OK, "success", avail));

@@ -22,12 +22,12 @@ public class VerifyController {
     @PostMapping(SEND_VERIFICATION_EMAIL)
     public ResponseEntity<ApiResponse<String>> sendVerificationEmail(@RequestBody VerifyEmailRequest verifyEmail) {
         String message = verifyService.sendVerificationEmail(verifyEmail.getEmail());
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", message));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", message));
     }
 
     @PostMapping(VALIDATE_EMAIL_TOKEN)
     public ResponseEntity<ApiResponse<String>> validateEmailToken(@RequestBody VerifyEmailRequest verifyEmail) {
         String emailValid = verifyService.validateEmailToken(verifyEmail);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "Success", "Xác thực thành công " + emailValid));
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", "Xác thực thành công " + emailValid));
     }
 }
