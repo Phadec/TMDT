@@ -221,7 +221,7 @@ function AnimatedInput({ label, type, name, value, onChange, icon }) {
         damping: 20,
       }}
     >
-      <div className="flex items-center overflow-hidden border-2 rounded-lg shadow-md bg-surface-white">
+      <div className="flex items-center border-2 rounded-lg overflow-hidden bg-surface-white shadow-md">
         <span className="pl-4 text-content-secondary">{icon}</span>
         <input
           type={type}
@@ -231,7 +231,7 @@ function AnimatedInput({ label, type, name, value, onChange, icon }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder={label}
-          className="w-full px-4 py-3 bg-transparent outline-none text-content-primary"
+          className="w-full px-4 py-3 outline-none bg-transparent text-content-primary"
         />
       </div>
     </motion.div>
@@ -240,7 +240,7 @@ function AnimatedInput({ label, type, name, value, onChange, icon }) {
 
 function AuthComponent({ children }) {
   return (
-    <div className="flex flex-col min-h-screen overflow-hidden md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row overflow-hidden">
       {/* 3D Canvas Section */}
       <div
         className="w-full md:w-1/2 h-[100px] md:h-screen relative"
@@ -259,8 +259,8 @@ function AuthComponent({ children }) {
       </div>
 
       {/* Form Section */}
-      <div className="relative w-full h-screen overflow-auto md:w-1/2">
-        <div className="flex flex-col justify-center min-h-full p-6">
+      <div className="w-full md:w-1/2 h-screen overflow-auto relative">
+        <div className="min-h-full p-6 flex flex-col justify-center">
           {children}
         </div>
       </div>
@@ -272,26 +272,18 @@ function Form({
   title = "Chợ Việt sẽ tiếp tục thông tin cho bạn",
   formInput,
   isShow3LoginButton = true,
-  onSubmit,
 }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) {
-      onSubmit(e);
-    }
-  };
-
   return (
-    <div className="flex items-center justify-center p-8 mb-20 bg-surface-light">
+    <div className="flex items-center justify-center p-8 bg-surface-light mb-20">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold text-primary">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary mb-2">
             Chợ Việt Xin Chào
           </h1>
           <p className="text-content-secondary">{title}</p>
         </div>
 
-        <form className="w-full space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6 w-full">
           {/* Cáu trúc riêng từng form */}
           {formInput}
 
@@ -317,7 +309,7 @@ function Form({
 
           <button
             type="submit"
-            className="flex justify-center w-full px-4 py-3 text-white border border-transparent rounded-lg shadow-md bg-secondary hover:bg-secondary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-duration-fast"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-white bg-secondary hover:bg-secondary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary transition-duration-fast"
           >
             Được rồi
           </button>
