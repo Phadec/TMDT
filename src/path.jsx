@@ -1,5 +1,4 @@
 const PUBLIC_URL = {
-  DOC: "/docs",
   HOME: "/",
   PRODUCTS: "/products",
   POLICY: "/policy",

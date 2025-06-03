@@ -10,17 +10,11 @@ import { NotFound } from "~/pages/NotFound";
 import { Dashboard } from "~/pages/Dashboard";
 import { Dashboard as DashboardAdmin } from "~/pages/admin";
 
-import { Docs } from "~/pages/Docs";
-
 import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
 import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
 // Được phép xem dù không đăng nhập
 const publicRoutes = [
-  {
-    path: PUBLIC_URL.DOC,
-    element: Docs,
-  },
   {
     path: PUBLIC_URL.NOT_FOUND,
     element: NotFound,
