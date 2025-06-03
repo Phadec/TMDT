@@ -1,10 +1,6 @@
-package com.example.choviet.config.API.suffix;
+package com.example.choviet.config.api.suffix;
 
-public class Verify {
-    private Verify() {
-        throw new AssertionError("Cannot instantiate Constants class");
-    }
-
-    public static final String SEND_VERIFICATION_EMAIL = "/send";
-    public static final String VALIDATE_EMAIL_TOKEN = "/confirm";
+public interface Verify {
+    String SEND_VERIFICATION_EMAIL = "/send";
+    String VALIDATE_EMAIL_TOKEN = "/confirm";
 }

@@ -1,7 +1,5 @@
-package com.example.choviet.config.API.suffix;
+package com.example.choviet.config.api.suffix;
 
-public class Customer {
-    private Customer() {
-        throw new AssertionError("Cannot instantiate Constants class");
-    }
+public interface Customer {
+    // Có thể thêm các constants cho Customer API endpoints ở đây nếu cần
 }

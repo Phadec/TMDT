@@ -10,9 +10,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import static com.example.choviet.config.ConfigTopicProduct.*;
+import static com.example.choviet.config.envent.EventNameConfig.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class ProductService {
@@ -90,6 +92,8 @@ public class ProductService {
     public void createProducts(List<Product> products) {
         Event<Product> event = new Event<Product>();
         event.setDataList(products);
+        event.setAction(PRODUCT_CREATE_BATCH);
+        event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, PRODUCT_EXCHANGE, ADD_PRODUCTS_QUEUE);
     }
 }

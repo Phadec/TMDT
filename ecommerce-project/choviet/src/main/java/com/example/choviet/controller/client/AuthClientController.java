@@ -1,7 +1,4 @@
 package com.example.choviet.controller.client;
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Auth.*;
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.dto.AuthResponse;
 import com.example.choviet.dto.CustomerRegisterRequest;
@@ -13,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.example.choviet.config.Code.OK;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Auth.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping(CLIENT + AUTH)

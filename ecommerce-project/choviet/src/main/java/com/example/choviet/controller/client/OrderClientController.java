@@ -12,9 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static com.example.choviet.config.Code.OK;
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Order.*;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Order.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping(CLIENT + ORDER)

@@ -1,12 +1,8 @@
-package com.example.choviet.config.API;
+package com.example.choviet.config.api;
 
-public class Prefix {
-    private Prefix() {
-        throw new AssertionError("Cannot instantiate Constants class");
-    }
-
+public interface Prefix {
     // tiền api
-    public static final String ADMIN = "/api/v1/admin";
-    public static final String CLIENT = "/api/v1/client";
-    public static final String COMMON = "/api/v1/common";
+    String ADMIN = "/api/v1/admin";
+    String CLIENT = "/api/v1/client";
+    String COMMON = "/api/v1/common";
 }

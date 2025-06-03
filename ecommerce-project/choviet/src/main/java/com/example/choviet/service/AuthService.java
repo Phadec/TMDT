@@ -2,7 +2,6 @@ package com.example.choviet.service;
 
 import com.example.choviet.dto.*;
 import com.example.choviet.entity.Customer;
-import com.example.choviet.entity.RefreshToken;
 import com.example.choviet.entity.Role;
 import com.example.choviet.entity.User;
 import com.example.choviet.repository.CustomerRepository;
@@ -15,10 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
 import static com.example.choviet.config.ConfigTopicUser.*;
+import static com.example.choviet.config.envent.EventNameConfig.*;
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class AuthService {
@@ -31,72 +34,40 @@ public class AuthService {
     RoleRepository roleRepository;
     @Autowired
     JwtUtil jwtUtil;
-    @Autowired
-    RefreshTokenService refreshTokenService;
+
     @Autowired
     RedisService redisService;
     @Autowired
     RabbitMQService eventPublisher;
     final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-
     @Transactional
-    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
-        String requestRefreshToken = request.getRefreshToken();
-
-        return refreshTokenService.findByToken(requestRefreshToken)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    // Create new access token
-                    String accessToken;
-                    if (user.getRole() != null) {
-                        accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
-                    } else {
-                        accessToken = jwtUtil.generateToken(user.getEmail());
-                    }
-
-                    // Invalidate old refresh token
-                    refreshTokenService.invalidateToken(requestRefreshToken);
-
-                    // Create new refresh token
-                    RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getId());
-
-                    return new TokenRefreshResponse(accessToken, newRefreshToken.getToken());
-                })
-                .orElseThrow(null);
-    }
-
-    @Transactional
-    public AuthResponse loginUser(LoginRequest request){
+    public AuthResponse loginUser(LoginRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
             throw new IllegalArgumentException("Email and password are required");
         }
         // Tìm kiếm trong cả 2 bảng
         Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
-        if (optionalUser.isPresent() && passwordEncoder.matches(request.getPassword(), optionalUser.get().getPassword())) {
+        if (optionalUser.isPresent()
+                && passwordEncoder.matches(request.getPassword(), optionalUser.get().getPassword())) {
             User user = optionalUser.get();
-            if(redisService.isKeyExists(user.getId())) throw new RuntimeException("Session logged in, pls logout first");
-            if(user.getStatus().equals(User.Status.INACTIVE)) throw new RuntimeException("Not Active");
+            // Đã lưu kiểm tra trên redis
+            if (redisService.isKeyExists(user.getId()))
+                throw new RuntimeException("Session logged in, pls logout first");
+
+            // Tài khoản này bị ban
+            if (user.getStatus().equals(User.Status.INACTIVE))
+                throw new RuntimeException("Not Active");
 
             // Generate access token
-            String accessToken;
-            if (user.getRole() != null) {
-                accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
-            } else {
-                accessToken = jwtUtil.generateToken(user.getEmail());
-            }
-
-            // Generate refresh token
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
-
+            String accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
+            
             redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
-
 
             // Create response
             AuthResponse response = new AuthResponse();
             response.setEmail(user.getEmail());
-            response.setToken(refreshToken.getToken());
+            response.setToken(accessToken);
             response.setRoleName(user.getRole().getRoleName());
             response.setPermission(user.getRole().getPermissions());
             response.setUserType("USER");
@@ -104,7 +75,7 @@ public class AuthService {
 
             Event<AuthResponse> event = new Event<>();
             event.setData(response);
-            event.setAction("USER_LOGIN");
+            event.setAction(USER_LOGIN);
             event.setCreatedAt(response.getCreatedAt());
             eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
 
@@ -115,35 +86,35 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse loginCustomer(LoginRequest request){
+    public AuthResponse loginCustomer(LoginRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
             throw new IllegalArgumentException("Email and password are required");
         }
 
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(request.getEmail());
-        if (optionalCustomer.isPresent() && passwordEncoder.matches(request.getPassword(), optionalCustomer.get().getPasswordHash())) {
+        if (optionalCustomer.isPresent()
+                && passwordEncoder.matches(request.getPassword(), optionalCustomer.get().getPasswordHash())) {
             Customer customer = optionalCustomer.get();
-            if(redisService.isKeyExists(customer.getId())) throw new RuntimeException("Session logged in, pls logout first");
-            if(customer.getStatus().equals(Customer.Status.INACTIVE)) throw new RuntimeException("Not Active");
+            if (redisService.isKeyExists(customer.getId()))
+                throw new RuntimeException("Session logged in, pls logout first");
+            if (customer.getStatus().equals(Customer.Status.INACTIVE))
+                throw new RuntimeException("Not Active");
 
             // Generate access token
             String accessToken = jwtUtil.generateToken(customer.getEmail());
-
-            // Generate refresh token
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(customer.getId());
 
             redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
 
             // đẩy vào queue
             AuthResponse response = new AuthResponse();
             response.setEmail(customer.getEmail());
-            response.setToken(refreshToken.getToken());
+            response.setToken(accessToken);
             response.setUserType("CUSTOMER");
             response.setCreatedAt(LocalDateTime.now());
 
             Event<AuthResponse> event = new Event<>();
             event.setData(response);
-            event.setAction("USER_LOGIN");
+            event.setAction(USER_LOGIN);
             event.setCreatedAt(response.getCreatedAt());
 
             eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGIN_QUEUE);
@@ -152,7 +123,6 @@ public class AuthService {
         }
         throw new RuntimeException("Invalid credentials");
     }
-
 
     // đăng ký tài khoản của nhân viên
     @Transactional
@@ -195,7 +165,7 @@ public class AuthService {
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
-        event.setAction("USER_REGISTER");
+        event.setAction(USER_REGISTER);
         event.setCreatedAt(user.getCreatedAt());
         eventPublisher.pushToQueue(event, USER_EXCHANGE, REGISTER_QUEUE);
 
@@ -203,7 +173,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse registerCustomer(CustomerRegisterRequest request){
+    public AuthResponse registerCustomer(CustomerRegisterRequest request) {
         // Check if email already exists
         if (customerRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already in use");
@@ -227,7 +197,7 @@ public class AuthService {
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
-        event.setAction("USER_REGISTER");
+        event.setAction(USER_REGISTER);
         event.setCreatedAt(customer.getCreatedAt());
         eventPublisher.pushToQueue(event, USER_EXCHANGE, REGISTER_QUEUE);
 
@@ -238,7 +208,11 @@ public class AuthService {
     @Transactional
     public void logout(PersonRequest request) {
         String id = request.getPersonId();
-        if(!redisService.isKeyExists(id)) throw new RuntimeException("Logged out");
+        if (!redisService.isKeyExists(id))
+            throw new RuntimeException("Logged out");
+
+        // Get current token from Redis to add to blacklist
+        String currentToken = (String) redisService.get(id);
 
         boolean isUser = userRepository.existsById(id);
         boolean isCustomer = customerRepository.existsById(id);
@@ -248,21 +222,29 @@ public class AuthService {
         User user = null;
         Customer customer = null;
 
-        if(isUser){
+        if (isUser) {
             user = userRepository.findById(id).orElseThrow(
-                    () -> new RuntimeException("User not found")
-            );
+                    () -> new RuntimeException("User not found"));
             idGot = user.getId();
             email = user.getEmail();
-            refreshTokenService.invalidateAllUserTokens(user);
-        }
-        else if(isCustomer){
+        } else if (isCustomer) {
             customer = customerRepository.findById(id).orElseThrow(
-                    () -> new RuntimeException("Customer not found")
-            );
+                    () -> new RuntimeException("Customer not found"));
             idGot = customer.getId();
             email = customer.getEmail();
-            refreshTokenService.invalidateAllCustomerTokens(customer);
+        }
+
+        // Add token to blacklist with remaining expiration time
+        if (currentToken != null) {
+            try {
+                long remainingTime = jwtUtil.extractExpiration(currentToken).getTime() - System.currentTimeMillis();
+                if (remainingTime > 0) {
+                    redisService.set("blacklist:" + currentToken, "true", (int) (remainingTime / 1000),
+                            TimeUnit.SECONDS);
+                }
+            } catch (Exception e) {
+                // Token might be invalid, but we still proceed with logout
+            }
         }
 
         redisService.delete(id);
@@ -273,34 +255,34 @@ public class AuthService {
 
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
-        event.setAction("USER_LOGOUT");
+        event.setAction(USER_LOGOUT);
         event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, USER_EXCHANGE, LOGOUT_QUEUE);
     }
+
     @Transactional
     // đổi mật khẩu của nhân viên
-    public AuthResponse changePassword(ChangePasswordRequest changePasswordRequest){
+    public AuthResponse changePassword(ChangePasswordRequest changePasswordRequest) {
         String userId = changePasswordRequest.getUserId();
         String newPassword = changePasswordRequest.getNewPassword();
         String oldPassword = changePasswordRequest.getOldPassword();
         String againNewPassword = changePasswordRequest.getReNewPassword();
         String email = changePasswordRequest.getEmail();
 
-        if(!newPassword.equals(againNewPassword)) {
+        if (!newPassword.equals(againNewPassword)) {
             throw new IllegalArgumentException("New password does not match the confirmation password");
-        }else if(newPassword.equals(oldPassword)){
+        } else if (newPassword.equals(oldPassword)) {
             throw new IllegalArgumentException("New password match the old password");
         }
-
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new RuntimeException("Wrong password");
         }
 
-        if(!user.getEmail().equals(email)){
+        if (!user.getEmail().equals(email)) {
             throw new RuntimeException("Wrong email");
         }
 
@@ -313,7 +295,7 @@ public class AuthService {
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
-        event.setAction("USER_CHANGE_PASSWORD");
+        event.setAction(USER_CHANGE_PASSWORD);
         event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, USER_EXCHANGE, CHANGE_PASSWORD_QUEUE);
 
@@ -322,20 +304,20 @@ public class AuthService {
 
     @Transactional
     // quên mật khẩu của nhân viên
-    public AuthResponse forgotPassword(ChangePasswordRequest changePasswordRequest){
+    public AuthResponse forgotPassword(ChangePasswordRequest changePasswordRequest) {
         String userId = changePasswordRequest.getUserId();
         String newPassword = changePasswordRequest.getNewPassword();
         String againNewPassword = changePasswordRequest.getReNewPassword();
         String email = changePasswordRequest.getEmail();
 
-        if(!newPassword.equals(againNewPassword)) {
+        if (!newPassword.equals(againNewPassword)) {
             throw new IllegalArgumentException("New password does not match the confirmation password");
         }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if(!user.getEmail().equals(email)){
+        if (!user.getEmail().equals(email)) {
             throw new RuntimeException("Wrong email");
         }
 
@@ -348,7 +330,7 @@ public class AuthService {
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
-        event.setAction("USER_FORGET_PASSWORD");
+        event.setAction(USER_FORGET_PASSWORD);
         event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, USER_EXCHANGE, FORGOT_PASSWORD_QUEUE);
 
@@ -356,29 +338,35 @@ public class AuthService {
     }
 
     // cập nhật trạng thái của khách hàng
-    public AuthResponse updateStatus(String id, String status){
+    public AuthResponse updateStatus(String id, String status) {
         Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("User not found")
-        );
+                () -> new RuntimeException("User not found"));
 
         Customer.Status newStatus = Customer.Status.valueOf(status);
 
         customer.setUpdateAt(LocalDateTime.now());
         customer.setStatus(newStatus);
+        customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
         response.setEmail(customer.getEmail());
         response.setUserType("CUSTOMER");
         response.setCreatedAt(LocalDateTime.now());
+
+        // Đẩy event cập nhật trạng thái vào queue
+        Event<AuthResponse> event = new Event<>();
+        event.setData(response);
+        event.setAction(USER_UPDATE_STATUS);
+        event.setCreatedAt(LocalDateTime.now());
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, REGISTER_QUEUE);
 
         return response;
     }
 
     // kiểm tra email của khách hàng tồn tại
-    public AuthResponse isExistEmail(String email){
+    public AuthResponse isExistEmail(String email) {
         Customer customer = customerRepository.findByEmail(email).orElseThrow(
-                () -> new RuntimeException("User not found")
-        );
+                () -> new RuntimeException("User not found"));
 
         AuthResponse response = new AuthResponse();
         response.setEmail(customer.getEmail());
@@ -388,7 +376,11 @@ public class AuthService {
         return response;
     }
 
-    public AuthResponse validateTokenUser(String token){
+    public AuthResponse validateTokenUser(String token) {
         return jwtUtil.validateTokenUser(token);
+    }
+
+    public AuthResponse validateTokenCustomer(String token) {
+        return jwtUtil.validateTokenCustomer(token);
     }
 }

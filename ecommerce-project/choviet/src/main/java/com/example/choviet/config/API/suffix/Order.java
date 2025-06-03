@@ -1,15 +1,9 @@
-package com.example.choviet.config.API.suffix;
+package com.example.choviet.config.api.suffix;
 
-public class Order {
-    private Order() {
-        throw new AssertionError("Cannot instantiate Constants class");
-    }
-
-
-    public static final String GET_ORDERS_BY_STATUS = "/status";
-    public static final String UPDATE_STATUS = "/{orderId}/status";
-    public static final String GET_ORDERS_BY_CUSTOMER_AND_STATUS = "/get/status";
-    public static final String GET_ORDERS = "/get";
-    public static final String DETAIL = "/detail";
-
+public interface Order {
+    String GET_ORDERS_BY_STATUS = "/status";
+    String UPDATE_STATUS = "/{orderId}/status";
+    String GET_ORDERS_BY_CUSTOMER_AND_STATUS = "/get/status";
+    String GET_ORDERS = "/get";
+    String DETAIL = "/detail";
 }

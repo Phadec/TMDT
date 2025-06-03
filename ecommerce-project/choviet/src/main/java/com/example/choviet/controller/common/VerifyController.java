@@ -1,8 +1,9 @@
 package com.example.choviet.controller.common;
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Verify.*;
 import static com.example.choviet.config.Code.*;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Verify.*;
+
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.dto.VerifyEmailRequest;
 import com.example.choviet.service.VerifyService;

@@ -1,19 +1,21 @@
 package com.example.choviet.service;
-import com.example.choviet.dto.AuthResponse;
-import com.example.choviet.dto.Event;
-import com.example.choviet.dto.VerifyEmailRequest;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import static com.example.choviet.config.ConfigTopicUser.*;
+import static com.example.choviet.config.Constants.*;
+import static com.example.choviet.config.envent.EventNameConfig.*;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static com.example.choviet.config.Constants.*;
-import static com.example.choviet.config.ConfigTopicUser.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.choviet.dto.AuthResponse;
+import com.example.choviet.dto.Event;
+import com.example.choviet.dto.VerifyEmailRequest;
+
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class VerifyService {
@@ -32,7 +34,7 @@ public class VerifyService {
         Event<AuthResponse> event = new Event<>();
         event.setData(userDto);
         event.setCreatedAt(LocalDateTime.now());
-        event.setAction(token);
+        event.setAction(EMAIL_VERIFICATION_SENT);
 
         eventPublisher.pushToQueue(event, USER_EXCHANGE, VERIFY_EMAIL_QUEUE);
         redisService.set(email, token, EMAIL_TOKEN_EXPIRY_MINUTES, TimeUnit.MINUTES);
@@ -54,6 +56,19 @@ public class VerifyService {
 
         // Token hợp lệ, xóa key khỏi Redis
         redisService.delete(email);
+        
+        // Đẩy event xác thực thành công vào queue
+        AuthResponse response = new AuthResponse();
+        response.setEmail(email);
+        response.setCreatedAt(LocalDateTime.now());
+        
+        Event<AuthResponse> event = new Event<>();
+        event.setData(response);
+        event.setCreatedAt(LocalDateTime.now());
+        event.setAction(EMAIL_VERIFICATION_SUCCESS);
+        
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, VERIFY_EMAIL_QUEUE);
+        
         return email;
     }
 

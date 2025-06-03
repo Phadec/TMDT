@@ -1,6 +1,10 @@
 package com.example.choviet.controller.admin;
 
 import static com.example.choviet.config.Code.*;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Order.*;
+
 import com.example.choviet.dto.ApiResponse;
 import com.example.choviet.dto.OrderRequest;
 import com.example.choviet.entity.Order;
@@ -11,9 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Order.*;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController

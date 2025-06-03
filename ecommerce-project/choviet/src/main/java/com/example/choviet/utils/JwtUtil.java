@@ -2,7 +2,10 @@ package com.example.choviet.utils;
 
 import com.example.choviet.dto.AuthResponse;
 import com.example.choviet.entity.User;
+import com.example.choviet.entity.Customer;
 import com.example.choviet.repository.UserRepository;
+import com.example.choviet.repository.CustomerRepository;
+import com.example.choviet.service.RedisService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
@@ -28,6 +31,12 @@ public class JwtUtil {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CustomerRepository customerRepository;
+    
+    @Autowired
+    private RedisService redisService;
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -74,6 +83,10 @@ public class JwtUtil {
             return true;
         }
     }
+    
+    public Boolean isTokenBlacklisted(String token) {
+        return redisService.isKeyExists("blacklist:" + token);
+    }
 
     public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
@@ -98,6 +111,11 @@ public class JwtUtil {
 
     public AuthResponse validateTokenUser(String token) {
         try {
+            // Check if token is blacklisted
+            if (isTokenBlacklisted(token)) {
+                return null;
+            }
+            
             Claims claims = Jwts.parser()
                     .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes())) // Thay thế setSigningKey()
                     .build()
@@ -108,6 +126,32 @@ public class JwtUtil {
             if (user != null && user.getStatus().equals(User.Status.ACTIVE)) {
                 AuthResponse response = new AuthResponse();
                 response.setRoleName(user.getRole().getRoleName());
+                return response;
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    
+    public AuthResponse validateTokenCustomer(String token) {
+        try {
+            // Check if token is blacklisted
+            if (isTokenBlacklisted(token)) {
+                return null;
+            }
+            
+            Claims claims = Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getPayload();
+            String email = claims.getSubject();
+            Customer customer = customerRepository.findByEmail(email).orElse(null);
+            if (customer != null && customer.getStatus().equals(Customer.Status.ACTIVE)) {
+                AuthResponse response = new AuthResponse();
+                response.setEmail(customer.getEmail());
+                response.setUserType("CUSTOMER");
                 return response;
             }
         } catch (Exception e) {

@@ -12,10 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.example.choviet.config.Code.*;
-
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Product.*;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Product.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping(ADMIN + PRODUCT)

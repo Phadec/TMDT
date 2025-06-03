@@ -21,8 +21,7 @@ public class CustomerService {
     @Autowired
     JwtUtil jwtUtil;
 
-    @Autowired
-    RefreshTokenService refreshTokenService;
+
     @Autowired
     RedisService redisService;
 

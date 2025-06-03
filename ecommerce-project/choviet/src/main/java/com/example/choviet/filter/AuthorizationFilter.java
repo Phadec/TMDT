@@ -16,18 +16,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Auth.*;
+import static com.example.choviet.config.api.suffix.Order.*;
+import static com.example.choviet.config.api.suffix.Product.*;
+import static com.example.choviet.config.api.suffix.Verify.*;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import static com.example.choviet.config.API.Prefix.*;
-import static com.example.choviet.config.API.Mid.*;
-import static com.example.choviet.config.API.suffix.Auth.*;
-import static com.example.choviet.config.API.suffix.Order.*;
-import static com.example.choviet.config.API.suffix.Product.*;
-import static com.example.choviet.config.API.suffix.Verify.*;
 @Component
 public class AuthorizationFilter implements Filter {
 
@@ -75,6 +76,11 @@ public class AuthorizationFilter implements Filter {
             if (isUserEndpoint) {
                 // Validate user token and check permissions
                 AuthResponse user = authService.validateTokenUser(token);
+                if (user == null) {
+                    sendUnauthorizedResponse(httpResponse, "Invalid or expired token");
+                    return;
+                }
+                
                 // Check permission for the requested resource and action
                 String[] resourceAction = extractResource(path);
                 if (resourceAction != null) {
@@ -90,15 +96,15 @@ public class AuthorizationFilter implements Filter {
                 httpRequest.setAttribute("currentUser", user);
 
             } else if (isCustomerEndpoint) {
-//                // Validate customer token
-//                Customer customer = customerService.validateToken(token);
-//                if (customer == null || !customer.isActive()) {
-//                    sendUnauthorizedResponse(httpResponse, "Invalid or inactive customer");
-//                    return;
-//                }
-//
-//                // Add customer to request attributes for controllers to use
-//                httpRequest.setAttribute("currentCustomer", customer);
+                // Validate customer token
+                AuthResponse customer = authService.validateTokenCustomer(token);
+                if (customer == null) {
+                    sendUnauthorizedResponse(httpResponse, "Invalid or expired customer token");
+                    return;
+                }
+
+                // Add customer to request attributes for controllers to use
+                httpRequest.setAttribute("currentCustomer", customer);
             }
 
             chain.doFilter(request, response);

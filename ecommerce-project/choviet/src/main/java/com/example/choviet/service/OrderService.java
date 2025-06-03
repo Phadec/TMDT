@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ import java.util.Optional;
 import static com.example.choviet.config.ConfigTopicOrder.ORDER_EXCHANGE;
 import static com.example.choviet.config.ConfigTopicOrder.ORDER_QUEUE;
 import static com.example.choviet.config.Constants.*;
+import static com.example.choviet.config.envent.EventNameConfig.*;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class OrderService {
@@ -39,6 +39,8 @@ public class OrderService {
     public void createOrder(Order order) {
         Event<Order> event = new Event<Order>();
         event.setData(order);
+        event.setAction(ORDER_CREATE);
+        event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, ORDER_EXCHANGE, ORDER_QUEUE);
     }
 
