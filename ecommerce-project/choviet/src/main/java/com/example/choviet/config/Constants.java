@@ -1,22 +1,15 @@
 package com.example.choviet.config;
 
-import com.example.choviet.entity.Order;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import org.springframework.context.annotation.Configuration;
-
 import java.util.List;
 import java.util.Map;
 
-public class Constants {
+import com.example.choviet.entity.Order;
 
-    private Constants() {
-        throw new AssertionError("Cannot instantiate Constants class");
-    }
-    public static final int EMAIL_TOKEN_EXPIRY_MINUTES = 2; // minutes
+public interface Constants {
+    
+    int EMAIL_TOKEN_EXPIRY_MINUTES = 2; // minutes
 
-
-    public static final Map<Order.Status, List<Order.Status>> VALID_TRANSITIONS = Map.ofEntries(
+    Map<Order.Status, List<Order.Status>> VALID_TRANSITIONS = Map.ofEntries(
             Map.entry(Order.Status.READY_TO_PICK, List.of(Order.Status.PICKING, Order.Status.CANCEL)),
             Map.entry(Order.Status.PICKING, List.of(Order.Status.PICKED, Order.Status.CANCEL)),
             Map.entry(Order.Status.PICKED, List.of(Order.Status.STORING, Order.Status.CANCEL)),
@@ -34,8 +27,8 @@ public class Constants {
             Map.entry(Order.Status.CANCEL, List.of())
     );
 
-    public static final int PAGE = 100;
-    public static final int SIZE_15 = 15;
-    public static final int SIZE_25 = 25;
-    public static final int SIZE_35 = 35;
+    int PAGE = 100;
+    int SIZE_15 = 15;
+    int SIZE_25 = 25;
+    int SIZE_35 = 35;
 }

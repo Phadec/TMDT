@@ -1,9 +1,11 @@
 package com.example.choviet.service;
 
+import com.example.choviet.config.ErrorConfig;
 import com.example.choviet.dto.*;
 import com.example.choviet.entity.Customer;
 import com.example.choviet.entity.Role;
 import com.example.choviet.entity.User;
+import com.example.choviet.exception.AppException;
 import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.repository.RoleRepository;
 import com.example.choviet.repository.UserRepository;
@@ -44,7 +46,7 @@ public class AuthService {
     @Transactional
     public AuthResponse loginUser(LoginRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
-            throw new IllegalArgumentException("Email and password are required");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Email và mật khẩu không được để trống");
         }
         // Tìm kiếm trong cả 2 bảng
         Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
@@ -53,11 +55,11 @@ public class AuthService {
             User user = optionalUser.get();
             // Đã lưu kiểm tra trên redis
             if (redisService.isKeyExists(user.getId()))
-                throw new RuntimeException("Session logged in, pls logout first");
+                throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Phiên đăng nhập đã tồn tại, vui lòng đăng xuất trước");
 
             // Tài khoản này bị ban
-            if (user.getStatus().equals(User.Status.INACTIVE))
-                throw new RuntimeException("Not Active");
+            if (    user.getStatus().equals(User.Status.INACTIVE))
+                throw new AppException(ErrorConfig.ACCESS_DENIED, "Tài khoản đã bị vô hiệu hóa");
 
             // Generate access token
             String accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
@@ -82,13 +84,13 @@ public class AuthService {
             return response;
 
         }
-        throw new RuntimeException("Invalid credentials");
+        throw new AppException(ErrorConfig.INVALID_CREDENTIALS);
     }
 
     @Transactional
     public AuthResponse loginCustomer(LoginRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
-            throw new IllegalArgumentException("Email and password are required");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Email và mật khẩu không được để trống");
         }
 
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(request.getEmail());
@@ -96,9 +98,9 @@ public class AuthService {
                 && passwordEncoder.matches(request.getPassword(), optionalCustomer.get().getPasswordHash())) {
             Customer customer = optionalCustomer.get();
             if (redisService.isKeyExists(customer.getId()))
-                throw new RuntimeException("Session logged in, pls logout first");
+                throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Phiên đăng nhập đã tồn tại, vui lòng đăng xuất trước");
             if (customer.getStatus().equals(Customer.Status.INACTIVE))
-                throw new RuntimeException("Not Active");
+                throw new AppException(ErrorConfig.ACCESS_DENIED, "Tài khoản chưa được kích hoạt");
 
             // Generate access token
             String accessToken = jwtUtil.generateToken(customer.getEmail());
@@ -121,7 +123,7 @@ public class AuthService {
             return response;
 
         }
-        throw new RuntimeException("Invalid credentials");
+        throw new AppException(ErrorConfig.INVALID_CREDENTIALS);
     }
 
     // đăng ký tài khoản của nhân viên
@@ -129,7 +131,7 @@ public class AuthService {
     public AuthResponse registerUser(UserRegisterRequest request) {
         // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new AppException(ErrorConfig.EMAIL_ALREADY_EXISTS);
         }
 
         // Create new user
@@ -144,7 +146,7 @@ public class AuthService {
         if (staffRole.isPresent()) {
             user.setRole(staffRole.get());
         } else {
-            throw new RuntimeException("Default role not found");
+            throw new AppException(ErrorConfig.NOT_FOUND, "Không tìm thấy vai trò mặc định");
         }
 
         user.setStatus(User.Status.ACTIVE);
@@ -176,7 +178,7 @@ public class AuthService {
     public AuthResponse registerCustomer(CustomerRegisterRequest request) {
         // Check if email already exists
         if (customerRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new AppException(ErrorConfig.EMAIL_ALREADY_EXISTS);
         }
 
         // Create new user
@@ -209,7 +211,7 @@ public class AuthService {
     public void logout(PersonRequest request) {
         String id = request.getPersonId();
         if (!redisService.isKeyExists(id))
-            throw new RuntimeException("Logged out");
+            throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Người dùng đã đăng xuất");
 
         // Get current token from Redis to add to blacklist
         String currentToken = (String) redisService.get(id);
@@ -224,12 +226,12 @@ public class AuthService {
 
         if (isUser) {
             user = userRepository.findById(id).orElseThrow(
-                    () -> new RuntimeException("User not found"));
+                    () -> new AppException(ErrorConfig.USER_NOT_FOUND));
             idGot = user.getId();
             email = user.getEmail();
         } else if (isCustomer) {
             customer = customerRepository.findById(id).orElseThrow(
-                    () -> new RuntimeException("Customer not found"));
+                    () -> new AppException(ErrorConfig.CUSTOMER_NOT_FOUND));
             idGot = customer.getId();
             email = customer.getEmail();
         }
@@ -270,20 +272,20 @@ public class AuthService {
         String email = changePasswordRequest.getEmail();
 
         if (!newPassword.equals(againNewPassword)) {
-            throw new IllegalArgumentException("New password does not match the confirmation password");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không khớp với xác nhận mật khẩu");
         } else if (newPassword.equals(oldPassword)) {
-            throw new IllegalArgumentException("New password match the old password");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không được trùng với mật khẩu cũ");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RuntimeException("Wrong password");
+            throw new AppException(ErrorConfig.INVALID_CREDENTIALS, "Mật khẩu cũ không chính xác");
         }
 
         if (!user.getEmail().equals(email)) {
-            throw new RuntimeException("Wrong email");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -311,14 +313,14 @@ public class AuthService {
         String email = changePasswordRequest.getEmail();
 
         if (!newPassword.equals(againNewPassword)) {
-            throw new IllegalArgumentException("New password does not match the confirmation password");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không khớp với xác nhận mật khẩu");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
         if (!user.getEmail().equals(email)) {
-            throw new RuntimeException("Wrong email");
+            throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -340,7 +342,7 @@ public class AuthService {
     // cập nhật trạng thái của khách hàng
     public AuthResponse updateStatus(String id, String status) {
         Customer customer = customerRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("User not found"));
+                () -> new AppException(ErrorConfig.CUSTOMER_NOT_FOUND));
 
         Customer.Status newStatus = Customer.Status.valueOf(status);
 
