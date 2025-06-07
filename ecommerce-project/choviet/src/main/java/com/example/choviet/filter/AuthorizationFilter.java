@@ -1,49 +1,45 @@
 package com.example.choviet.filter;
 
-import com.example.choviet.config.PermissionConfig;
-import com.example.choviet.dto.AuthResponse;
-import com.example.choviet.entity.Role;
-import com.example.choviet.entity.User;
-import com.example.choviet.service.AuthService;
-import com.example.choviet.service.CustomerService;
-import com.example.choviet.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import static com.example.choviet.config.api.Mid.*;
+import static com.example.choviet.config.api.Prefix.*;
+import static com.example.choviet.config.api.suffix.Auth.*;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import static com.example.choviet.config.api.Mid.*;
-import static com.example.choviet.config.api.Prefix.*;
-import static com.example.choviet.config.api.suffix.Auth.*;
-import static com.example.choviet.config.api.suffix.Order.*;
-import static com.example.choviet.config.api.suffix.Product.*;
-import static com.example.choviet.config.api.suffix.Verify.*;
+import com.example.choviet.config.PermissionConfig;
+import com.example.choviet.dto.AuthResponse;
+import com.example.choviet.service.AuthService;
+import com.example.choviet.service.CustomerService;
+import com.example.choviet.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.experimental.FieldDefaults;
 @Component
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class AuthorizationFilter implements Filter {
 
     @Autowired
-    private PermissionConfig permissionConfig;
+    PermissionConfig permissionConfig;
     @Autowired
-    private AuthService authService;
+    AuthService authService;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CustomerService customerService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

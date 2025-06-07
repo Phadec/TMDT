@@ -20,11 +20,11 @@ public class AuthClientController {
     @Autowired
     AuthService authService;
 
-    @GetMapping(LOGIN)
+    @PostMapping(LOGIN)
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthResponse response = authService.loginCustomer(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
-    }
+    }   
 
     @PostMapping(REGISTER)
     public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody CustomerRegisterRequest request) {

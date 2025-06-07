@@ -33,13 +33,45 @@ public class NotificationConsumer {
     @RabbitListener(queues = REGISTER_QUEUE_LISTENER)
     public void handleRegisterEvent(Event<AuthResponse> event) {
         try {
-            String title = "Đăng ký thành công Chợ Việt";
-            String content = "Chào bạn, bạn đã đăng ký thành công Chợ Việt\n" + "Ngày: " + getDate(event.getCreatedAt())+ "\nLúc: " + getTime(event.getCreatedAt()) + "\nHãy thỏa sức tiêu tiền với chúng tôi cùng với trải nghiệm tuyệt vời";
-
-            emailService.sendNotification(event.getData().getEmail(), title, content);
+            // Validate event data
+            if (event == null || event.getData() == null || event.getData().getEmail() == null) {
+                System.err.println("Invalid registration event data");
+                return;
+            }
+            
+            String title = "Chào mừng đến với Chợ Việt - Đăng ký thành công!";
+            
+            // Get customer information
+            String customerEmail = event.getData().getEmail();
+            String customerName = event.getData().getFullname() != null ? 
+                                 event.getData().getFullname() : "Quý khách";
+            
+            // Format the date and time
+            String registrationDate = getDate(event.getCreatedAt()) + " " + getTime(event.getCreatedAt());
+            
+            System.out.println("Sending registration email to: " + customerEmail);
+            System.out.println("With name: " + customerName);
+            
+            // Prepare template data
+            java.util.Map<String, String> templateData = java.util.Map.of(
+                "email", customerEmail,
+                "fullName", customerName,
+                "registrationDate", registrationDate
+            );
+            
+            // Send HTML email with template
+            emailService.sendHtmlEmail(
+                customerEmail,
+                title,
+                "templates/email/registration-success.html",
+                templateData
+            );
+            
+            System.out.println("Registration email sent successfully to: " + customerEmail);
         } catch (Exception e) {
-            // Log lỗi nếu cần
-            System.err.println("Failed to send email: " + e.getMessage());
+            // Log the error in detail
+            System.err.println("Failed to send registration email: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

@@ -16,14 +16,14 @@ API được tổ chức theo 3 nhóm chính:
 - `PUT /forgot` - Quên mật khẩu
 
 ### Client Auth (`/api/v1/client/auth`)
-- `GET /login` - Đăng nhập khách hàng
+- `POST /login` - Đăng nhập khách hàng
 - `POST /register` - Đăng ký khách hàng
 - `PUT /{id}/status` - Cập nhật trạng thái tài khoản
 - `GET /exist` - Kiểm tra email đã tồn tại
 
 ### Admin Auth (`/api/v1/admin/auth`)
-- `GET /login` - Đăng nhập admin/user
-- `POST /register` - Đăng ký user mới
+- `POST /login` - Đăng nhập admin/user
+- `POST /register` - Đăng ký user mới (mặc định role STAFF nếu không truyền role)
 
 ---
 

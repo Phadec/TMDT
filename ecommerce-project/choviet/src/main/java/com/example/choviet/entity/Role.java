@@ -28,6 +28,6 @@ public class Role {
     }
 
     public enum RoleName{
-        SUPER_ADMIN, ADMIN, STAFF_MANAGEMENT, STAFF_CHAT, STAFF_NEWS
+        SUPER_ADMIN, ADMIN, STAFF, STAFF_MANAGEMENT, STAFF_CHAT, STAFF_NEWS
     }
 }

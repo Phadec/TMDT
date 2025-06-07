@@ -99,11 +99,10 @@ public class AuthService {
             Customer customer = optionalCustomer.get();
             if (redisService.isKeyExists(customer.getId()))
                 throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Phiên đăng nhập đã tồn tại, vui lòng đăng xuất trước");
-            if (customer.getStatus().equals(Customer.Status.INACTIVE))
-                throw new AppException(ErrorConfig.ACCESS_DENIED, "Tài khoản chưa được kích hoạt");
+            // Removed account activation check since all accounts are now active by default
 
             // Generate access token
-            String accessToken = jwtUtil.generateToken(customer.getEmail());
+            String accessToken = jwtUtil.generateToken(customer.getId());
 
             redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
 
@@ -139,14 +138,15 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Assign default staff role
-        Optional<Role> staffRole = roleRepository.findByRoleName(request.getRole());
+        // Assign role - nếu không có role thì mặc định là STAFF
+        Role.RoleName roleName = request.getRole() != null ? request.getRole() : Role.RoleName.STAFF;
+        Optional<Role> roleOptional = roleRepository.findByRoleName(roleName);
 
-        System.out.println("staffRole: " + staffRole);
-        if (staffRole.isPresent()) {
-            user.setRole(staffRole.get());
+        System.out.println("Assigned role: " + roleName);
+        if (roleOptional.isPresent()) {
+            user.setRole(roleOptional.get());
         } else {
-            throw new AppException(ErrorConfig.NOT_FOUND, "Không tìm thấy vai trò mặc định");
+            throw new AppException(ErrorConfig.NOT_FOUND, "Không tìm thấy vai trò: " + roleName);
         }
 
         user.setStatus(User.Status.ACTIVE);
@@ -174,18 +174,36 @@ public class AuthService {
         return response;
     }
 
+    @Autowired
+    EmailService emailService;
+    
     @Transactional
     public AuthResponse registerCustomer(CustomerRegisterRequest request) {
+        // Validate required fields
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new AppException(ErrorConfig.INVALID_DATA, "Email không được để trống");
+        }
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu không được để trống");
+        }
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new AppException(ErrorConfig.INVALID_DATA, "Họ tên không được để trống");
+        }
+        
         // Check if email already exists
         if (customerRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorConfig.EMAIL_ALREADY_EXISTS);
         }
 
-        // Create new user
+        // Create new customer
         Customer customer = new Customer();
         customer.setEmail(request.getEmail());
         customer.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        customer.setStatus(Customer.Status.INACTIVE);
+        customer.setFullName(request.getFullName());
+        customer.setPhone(request.getPhone());
+        customer.setAddresses(request.getAddresses());
+        customer.setSeller(request.isSeller());
+        customer.setStatus(Customer.Status.ACTIVE); // Set status to ACTIVE by default (removed activation requirement)
         customer.setCreatedAt(LocalDateTime.now());
         customer.setUpdateAt(LocalDateTime.now());
 
@@ -195,8 +213,9 @@ public class AuthService {
         // Create and return UserDto
         AuthResponse response = new AuthResponse();
         response.setEmail(savedCustomer.getEmail());
+        response.setFullname(savedCustomer.getFullName());
 
-        // đẩy vào queue
+        // đẩy vào queue để gửi email
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
         event.setAction(USER_REGISTER);

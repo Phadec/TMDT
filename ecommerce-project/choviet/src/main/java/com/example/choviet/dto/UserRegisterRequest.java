@@ -9,5 +9,5 @@ import lombok.experimental.FieldDefaults;
 public class UserRegisterRequest {
     String email;
     String password;
-    Role.RoleName role;
+    Role.RoleName role; // Có thể null, mặc định sẽ là STAFF
 }

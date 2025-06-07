@@ -61,6 +61,10 @@ public class DataSeeder implements CommandLineRunner {
                         "product.delete", "order.read", "order.write", "order.delete", 
                         "customer.read", "customer.write", "customer.delete"});
                         
+        createRoleIfNotExists(Role.RoleName.STAFF, Role.PermissionScope.CUSTOM,
+            "Nhân viên", 
+            new String[]{"product.read", "order.read", "customer.read"});
+                        
         createRoleIfNotExists(Role.RoleName.STAFF_MANAGEMENT, Role.PermissionScope.CUSTOM,
             "Nhân viên quản lý", 
             new String[]{"product.read", "product.write", "order.read", "order.write", "customer.read"});
@@ -71,7 +75,7 @@ public class DataSeeder implements CommandLineRunner {
             
         createRoleIfNotExists(Role.RoleName.STAFF_NEWS, Role.PermissionScope.CUSTOM,
             "Nhân viên quản lý tin tức", 
-            new String[]{"news.read", "news.write", "news.delete"});
+            new String[]{"news.read ", "news.write", "news.delete"});
     }
 
     private void seedAdminUsersIfNeeded() {
