@@ -1,23 +1,124 @@
+import { useState, useEffect } from "react";
 import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
+import useAuth from "~/hooks/useAuth";
 
 function Register() {
   return <AuthComponent children={<FormRegister />} />;
 }
 
 function FormRegister() {
+  const [formData, setFormData] = useState({
+    email: "",
+    fullName: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const { register, loading, error, registerSuccess, clearErrors } = useAuth();
+
+  // Xóa lỗi cũ khi component mount
+  useEffect(() => {
+    clearErrors();
+  }, [clearErrors]);
+
+  // Xử lý thay đổi input
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    
+    // Xóa lỗi của trường đang nhập
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: "",
+      });
+    }
+  };
+
+  // Xác thực form trước khi submit
+  const validateForm = () => {
+    const errors = {};
+    let isValid = true;
+    
+    // Kiểm tra email
+    if (!formData.email) {
+      errors.email = "Email không được để trống";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = "Email không đúng định dạng";
+      isValid = false;
+    }
+    
+    // Kiểm tra họ tên
+    if (!formData.fullName) {
+      errors.fullName = "Họ tên không được để trống";
+      isValid = false;
+    } else if (formData.fullName.length < 2) {
+      errors.fullName = "Họ tên phải có ít nhất 2 ký tự";
+      isValid = false;
+    }
+    
+    // Kiểm tra mật khẩu
+    if (!formData.password) {
+      errors.password = "Mật khẩu không được để trống";
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      errors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      isValid = false;
+    }
+    
+    // Kiểm tra xác nhận mật khẩu
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Mật khẩu xác nhận không khớp";
+      isValid = false;
+    }
+    
+    setFormErrors(errors);
+    return isValid;
+  };
+
+  // Xử lý submit form
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra form trước khi gửi
+    if (!validateForm()) {
+      return;
+    }
+    
+    try {
+      // Chuẩn bị dữ liệu để gửi API
+      const userData = {
+        email: formData.email,
+        fullName: formData.fullName,
+        password: formData.password,
+      };
+      
+      // Gọi hàm register từ useAuth hook
+      await register(userData);
+    } catch (err) {
+      console.error("Register error:", err);
+    }
+  };
+
   return (
     <Form
-      title="Bạn đang ở đăng ký nè"
+      title="Đăng ký tài khoản mới"
       formInput={
         <>
           <AnimatedInput
             label="Email"
             type="email"
             name="email"
+            value={formData.email}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -31,15 +132,22 @@ function FormRegister() {
               </svg>
             }
           />
+          {formErrors.email && (
+            <div className="mb-2 -mt-4 text-sm text-red-500">
+              {formErrors.email}
+            </div>
+          )}
 
           <AnimatedInput
-            label="Tên cậu là gì ha?"
+            label="Họ và tên"
             type="text"
-            name="fullname"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -53,15 +161,22 @@ function FormRegister() {
               </svg>
             }
           />
+          {formErrors.fullName && (
+            <div className="mb-2 -mt-4 text-sm text-red-500">
+              {formErrors.fullName}
+            </div>
+          )}
 
           <AnimatedInput
             label="Password"
             type="password"
             name="password"
+            value={formData.password}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -75,15 +190,22 @@ function FormRegister() {
               </svg>
             }
           />
+          {formErrors.password && (
+            <div className="mb-2 -mt-4 text-sm text-red-500">
+              {formErrors.password}
+            </div>
+          )}
 
           <AnimatedInput
-            label="Thêm lần nữa cho an tâm"
-            type="re-password"
-            name="re-password"
+            label="Xác nhận mật khẩu"
+            type="password"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
             icon={
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -97,8 +219,22 @@ function FormRegister() {
               </svg>
             }
           />
+          {formErrors.confirmPassword && (
+            <div className="mb-2 -mt-4 text-sm text-red-500">
+              {formErrors.confirmPassword}
+            </div>
+          )}
+
+          {/* Hiển thị lỗi từ API nếu có */}
+          {error && (
+            <div className="p-2 mt-2 mb-4 text-sm text-red-500 border border-red-200 rounded-md bg-red-50">
+              {error.message || "Có lỗi xảy ra khi đăng ký."}
+            </div>
+          )}
         </>
       }
+      onSubmit={handleSubmit}
+      isSubmitting={loading}
     />
   );
 }

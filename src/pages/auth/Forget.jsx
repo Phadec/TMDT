@@ -7,12 +7,12 @@ function Forget() {
 function FormForget() {
   return (
     <Form
-      title="Bạn đang ở đăng nhập á"
+      title="Khôi phục mật khẩu"
       isShow3LoginButton={false}
       formInput={
         <>
           <AnimatedInput
-            label="Cho mình xin email để tìm nha"
+            label="Nhập email đã đăng ký"
             type="email"
             name="email"
             icon={
