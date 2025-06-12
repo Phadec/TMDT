@@ -1,13 +1,11 @@
-import { useEffect } from 'react';
+
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { 
   loginCustomer, 
   registerCustomer, 
   logoutCustomer, 
-  fetchCurrentUser, 
   forgotPassword,
-  changePassword,
   clearAuthError,
   clearRegisterSuccess
 } from '~/store/slices/authSlice';
@@ -30,12 +28,7 @@ export const useAuth = () => {
     registerSuccess 
   } = useSelector((state) => state.auth);
 
-  // Kiểm tra token và lấy thông tin người dùng khi component mount
-  useEffect(() => {
-    if (isAuthenticated && !user) {
-      dispatch(fetchCurrentUser());
-    }
-  }, [dispatch, isAuthenticated, user]);
+
 
   /**
    * Đăng nhập người dùng
@@ -108,21 +101,6 @@ export const useAuth = () => {
   };
 
   /**
-   * Đổi mật khẩu
-   * @param {Object} passwordData - Dữ liệu mật khẩu (oldPassword, newPassword)
-   * @returns {Promise<boolean>} - True nếu đổi mật khẩu thành công
-   */
-  const changePasswordRequest = async (passwordData) => {
-    try {
-      const resultAction = await dispatch(changePassword(passwordData));
-      return changePassword.fulfilled.match(resultAction);
-    } catch (error) {
-      console.error('Change password error:', error);
-      return false;
-    }
-  };
-
-  /**
    * Xóa lỗi xác thực
    */
   const clearErrors = () => {
@@ -150,7 +128,6 @@ export const useAuth = () => {
     register,
     logout,
     forgotPasswordRequest,
-    changePasswordRequest,
     clearErrors,
     clearRegisterState
   };

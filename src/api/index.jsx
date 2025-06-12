@@ -1,3 +1,4 @@
-import { apiAdmin, userApi, commonApi } from "./api.js";
+import { adminApi, clientApi, commonApi } from "./api";
+import { adminUrl, clientUrl, commonUrl } from "./endpoint";
 
-export { apiAdmin, userApi, commonApi };
+export { adminApi, clientApi, commonApi, adminUrl, clientUrl, commonUrl };

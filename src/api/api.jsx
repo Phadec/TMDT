@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import Code from "./code";
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
 
 // Định nghĩa endpoint paths theo tài liệu API
@@ -30,7 +32,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Trả về data từ format API: { code, message, data }
-    if (response.data && response.data.code === "OK") {
+    if (response.data && response.data.code === Code.OK) {
       return response.data.data;
     }
     return response.data;
@@ -80,9 +82,5 @@ const adminApi = createApiService(ENDPOINTS.ADMIN);
 const clientApi = createApiService(ENDPOINTS.CLIENT);
 const commonApi = createApiService(ENDPOINTS.COMMON);
 
-// Export default
-export default {
-  adminApi,
-  clientApi,
-  commonApi,
-};
+// Export named exports
+export { adminApi, clientApi, commonApi };

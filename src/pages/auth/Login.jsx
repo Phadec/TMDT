@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+
 import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
-import useAuth from "~/hooks/useAuth";
+import { useAuth } from "~/hooks";
+import { PUBLIC_URL } from "~/path";
 
 function Login() {
   return <AuthComponent children={<FormLogin />} />;
@@ -15,10 +17,10 @@ function FormLogin() {
   const [formErrors, setFormErrors] = useState({});
   const { login, loading, error, clearErrors } = useAuth();
   const location = useLocation();
-  
+
   // Lấy địa chỉ redirect sau khi đăng nhập thành công (nếu có)
-  const from = location.state?.from || "/";
-  
+  const from = location.state?.from || PUBLIC_URL.HOME;
+
   // Xóa lỗi cũ khi component mount
   useEffect(() => {
     clearErrors();
@@ -31,7 +33,7 @@ function FormLogin() {
       ...formData,
       [name]: value,
     });
-    
+
     // Xóa lỗi của trường đang nhập
     if (formErrors[name]) {
       setFormErrors({
@@ -45,7 +47,7 @@ function FormLogin() {
   const validateForm = () => {
     const errors = {};
     let isValid = true;
-    
+
     // Kiểm tra email
     if (!formData.email) {
       errors.email = "Email không được để trống";
@@ -54,13 +56,13 @@ function FormLogin() {
       errors.email = "Email không đúng định dạng";
       isValid = false;
     }
-    
+
     // Kiểm tra mật khẩu
     if (!formData.password) {
       errors.password = "Mật khẩu không được để trống";
       isValid = false;
     }
-    
+
     setFormErrors(errors);
     return isValid;
   };
@@ -68,12 +70,12 @@ function FormLogin() {
   // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra form trước khi gửi
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       // Gọi hàm login từ useAuth hook
       await login(formData);

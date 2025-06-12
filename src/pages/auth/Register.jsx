@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
-import useAuth from "~/hooks/useAuth";
+import {useAuth} from "~/hooks";
 
 function Register() {
   return <AuthComponent children={<FormRegister />} />;

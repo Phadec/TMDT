@@ -17,8 +17,7 @@ const store = configureStore({
         // Bỏ qua các action types cụ thể
         ignoredActions: [
           'auth/loginCustomer/fulfilled',
-          'auth/registerCustomer/fulfilled',
-          'auth/fetchCurrentUser/fulfilled'
+          'auth/registerCustomer/fulfilled'
         ],
         // Bỏ qua các field paths trong tất cả các actions
         ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
@@ -27,7 +26,7 @@ const store = configureStore({
       },
     }),
   // Bật Redux DevTools trong môi trường phát triển
-  devTools: process.env.NODE_ENV !== 'production',
+  devTools: import.meta.env.MODE !== 'production',
 });
 
 export default store;
