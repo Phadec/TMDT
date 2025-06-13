@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
+import AuthComponent, { Form, AnimatedInput, showAlert } from "./AuthComponent";
 import {useAuth} from "~/hooks";
 
 function Register() {
@@ -13,13 +13,23 @@ function FormRegister() {
     password: "",
     confirmPassword: "",
   });
-  const [formErrors, setFormErrors] = useState({});
   const { register, loading, error, registerSuccess, clearErrors } = useAuth();
 
   // Xóa lỗi cũ khi component mount
   useEffect(() => {
     clearErrors();
   }, [clearErrors]);
+  
+  // Hiển thị lỗi từ API bằng Swal nếu có
+  useEffect(() => {
+    if (error) {
+      showAlert(
+        "error",
+        "Đăng ký thất bại",
+        error?.message || "Có lỗi xảy ra khi đăng ký."
+      );
+    }
+  }, [error]);
 
   // Xử lý thay đổi input
   const handleChange = (e) => {
@@ -28,56 +38,44 @@ function FormRegister() {
       ...formData,
       [name]: value,
     });
-    
-    // Xóa lỗi của trường đang nhập
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: "",
-      });
-    }
   };
 
   // Xác thực form trước khi submit
   const validateForm = () => {
-    const errors = {};
-    let isValid = true;
-    
     // Kiểm tra email
     if (!formData.email) {
-      errors.email = "Email không được để trống";
-      isValid = false;
+      showAlert("error", "Lỗi", "Email không được để trống");
+      return false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "Email không đúng định dạng";
-      isValid = false;
+      showAlert("error", "Lỗi", "Email không đúng định dạng");
+      return false;
     }
     
     // Kiểm tra họ tên
     if (!formData.fullName) {
-      errors.fullName = "Họ tên không được để trống";
-      isValid = false;
+      showAlert("error", "Lỗi", "Họ tên không được để trống");
+      return false;
     } else if (formData.fullName.length < 2) {
-      errors.fullName = "Họ tên phải có ít nhất 2 ký tự";
-      isValid = false;
+      showAlert("error", "Lỗi", "Họ tên phải có ít nhất 2 ký tự");
+      return false;
     }
     
     // Kiểm tra mật khẩu
     if (!formData.password) {
-      errors.password = "Mật khẩu không được để trống";
-      isValid = false;
+      showAlert("error", "Lỗi", "Mật khẩu không được để trống");
+      return false;
     } else if (formData.password.length < 6) {
-      errors.password = "Mật khẩu phải có ít nhất 6 ký tự";
-      isValid = false;
+      showAlert("error", "Lỗi", "Mật khẩu phải có ít nhất 6 ký tự");
+      return false;
     }
     
     // Kiểm tra xác nhận mật khẩu
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Mật khẩu xác nhận không khớp";
-      isValid = false;
+      showAlert("error", "Lỗi", "Mật khẩu xác nhận không khớp");
+      return false;
     }
     
-    setFormErrors(errors);
-    return isValid;
+    return true;
   };
 
   // Xử lý submit form
@@ -101,16 +99,22 @@ function FormRegister() {
       await register(userData);
     } catch (err) {
       console.error("Register error:", err);
+      // Hiển thị lỗi bằng Swal nếu có lỗi không được xử lý bởi authSlice
+      showAlert(
+        "error",
+        "Đăng ký thất bại",
+        err?.message || "Có lỗi xảy ra khi đăng ký."
+      );
     }
   };
 
   return (
     <Form
-      title="Đăng ký tài khoản mới"
+      title="Tạo tài khoản để mua sắm"
       formInput={
         <>
           <AnimatedInput
-            label="Email"
+            label="Địa chỉ email"
             type="email"
             name="email"
             value={formData.email}
@@ -132,11 +136,6 @@ function FormRegister() {
               </svg>
             }
           />
-          {formErrors.email && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.email}
-            </div>
-          )}
 
           <AnimatedInput
             label="Họ và tên"
@@ -161,14 +160,9 @@ function FormRegister() {
               </svg>
             }
           />
-          {formErrors.fullName && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.fullName}
-            </div>
-          )}
 
           <AnimatedInput
-            label="Password"
+            label="Mật khẩu"
             type="password"
             name="password"
             value={formData.password}
@@ -190,11 +184,6 @@ function FormRegister() {
               </svg>
             }
           />
-          {formErrors.password && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.password}
-            </div>
-          )}
 
           <AnimatedInput
             label="Xác nhận mật khẩu"
@@ -219,18 +208,6 @@ function FormRegister() {
               </svg>
             }
           />
-          {formErrors.confirmPassword && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.confirmPassword}
-            </div>
-          )}
-
-          {/* Hiển thị lỗi từ API nếu có */}
-          {error && (
-            <div className="p-2 mt-2 mb-4 text-sm text-red-500 border border-red-200 rounded-md bg-red-50">
-              {error.message || "Có lỗi xảy ra khi đăng ký."}
-            </div>
-          )}
         </>
       }
       onSubmit={handleSubmit}

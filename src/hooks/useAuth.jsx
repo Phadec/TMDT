@@ -8,7 +8,7 @@ import {
   forgotPassword,
   clearAuthError,
   clearRegisterSuccess
-} from '~/store/slices/authSlice';
+} from '~/store/slices/authCustomerSlice';
 import { PUBLIC_URL } from '~/path';
 
 /**
@@ -78,7 +78,6 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       // Lấy customerId từ thông tin user hiện tại
-      console.log('Logging out user:', user);
       const customerId = user?.id || user?.customerId;
 
       const resultAction = await dispatch(logoutCustomer(customerId));

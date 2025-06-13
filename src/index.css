@@ -82,3 +82,27 @@
     clip-path: circle(50% at 50% 50%);
   }
 }
+
+/* SweetAlert2 custom styles */
+.swal2-popup {
+  font-family: inherit !important;
+}
+
+/* Fix icon alignment issue */
+.swal2-icon {
+  margin: 1.25em auto 0.6em !important;
+  justify-content: center !important;
+  display: flex !important;
+}
+
+/* Ensure icon is centered */
+.swal2-icon .swal2-icon-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Fix container alignment */
+.swal-container .swal2-html-container {
+  text-align: center !important;
+}

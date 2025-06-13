@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
-import AuthComponent, { Form, AnimatedInput } from "./AuthComponent";
+import AuthComponent, { Form, AnimatedInput,showAlert } from "./AuthComponent";
 import { useAuth } from "~/hooks";
-import { PUBLIC_URL } from "~/path";
 
 function Login() {
   return <AuthComponent children={<FormLogin />} />;
@@ -14,17 +12,23 @@ function FormLogin() {
     email: "",
     password: "",
   });
-  const [formErrors, setFormErrors] = useState({});
   const { login, loading, error, clearErrors } = useAuth();
-  const location = useLocation();
-
-  // Lấy địa chỉ redirect sau khi đăng nhập thành công (nếu có)
-  const from = location.state?.from || PUBLIC_URL.HOME;
 
   // Xóa lỗi cũ khi component mount
   useEffect(() => {
     clearErrors();
   }, [clearErrors]);
+
+  // Hiển thị lỗi từ API bằng Swal nếu có
+  useEffect(() => {
+    if (error) {
+      showAlert(
+        "error",
+        "Đăng nhập thất bại",
+        error?.message || "Có lỗi xảy ra khi đăng nhập."
+      );
+    }
+  }, [error]);
 
   // Cập nhật state khi người dùng nhập liệu
   const handleChange = (e) => {
@@ -33,38 +37,26 @@ function FormLogin() {
       ...formData,
       [name]: value,
     });
-
-    // Xóa lỗi của trường đang nhập
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: "",
-      });
-    }
   };
 
   // Xác thực form trước khi submit
   const validateForm = () => {
-    const errors = {};
-    let isValid = true;
-
     // Kiểm tra email
     if (!formData.email) {
-      errors.email = "Email không được để trống";
-      isValid = false;
+      showAlert("error", "Lỗi", "Email không được để trống");
+      return false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = "Email không đúng định dạng";
-      isValid = false;
+      showAlert("error", "Lỗi", "Email không đúng định dạng");
+      return false;
     }
 
     // Kiểm tra mật khẩu
     if (!formData.password) {
-      errors.password = "Mật khẩu không được để trống";
-      isValid = false;
+      showAlert("error", "Lỗi", "Mật khẩu không được để trống");
+      return false;
     }
 
-    setFormErrors(errors);
-    return isValid;
+    return true;
   };
 
   // Xử lý submit form
@@ -81,16 +73,22 @@ function FormLogin() {
       await login(formData);
     } catch (err) {
       console.error("Login error:", err);
+      // Hiển thị lỗi bằng Swal nếu có lỗi không được xử lý bởi authSlice
+      showAlert(
+        "error",
+        "Đăng nhập thất bại",
+        err?.message || "Có lỗi xảy ra khi đăng nhập."
+      );
     }
   };
 
   return (
     <Form
-      title="Đăng nhập tài khoản"
+      title="Đăng nhập để tiếp tục mua sắm"
       formInput={
         <>
           <AnimatedInput
-            label="Email"
+            label="Địa chỉ email"
             type="email"
             name="email"
             value={formData.email}
@@ -112,14 +110,9 @@ function FormLogin() {
               </svg>
             }
           />
-          {formErrors.email && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.email}
-            </div>
-          )}
 
           <AnimatedInput
-            label="Password"
+            label="Mật khẩu"
             type="password"
             name="password"
             value={formData.password}
@@ -141,18 +134,8 @@ function FormLogin() {
               </svg>
             }
           />
-          {formErrors.password && (
-            <div className="mb-2 -mt-4 text-sm text-red-500">
-              {formErrors.password}
-            </div>
-          )}
 
-          {/* Hiển thị thông báo lỗi từ API nếu có */}
-          {error && (
-            <div className="p-2 mt-2 mb-4 text-sm text-red-500 border border-red-200 rounded-md bg-red-50">
-              {error.message || "Có lỗi xảy ra khi đăng nhập."}
-            </div>
-          )}
+
         </>
       }
       onSubmit={handleSubmit}

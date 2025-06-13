@@ -41,7 +41,9 @@ export const logoutCustomer = createAsyncThunk(
   async (customerId, { rejectWithValue }) => {
     try {
       // Sử dụng endpoint common auth logout theo tài liệu API
-      const response = await commonApi.post(commonUrl.auth.logout, {personId: customerId});
+      const response = await commonApi.post(commonUrl.auth.logout, {
+        personId: customerId,
+      });
       // Xóa token từ localStorage
       localStorage.removeItem("accessToken");
       return response;
@@ -76,7 +78,7 @@ const initialState = {
   registerSuccess: false,
 };
 
-const authSlice = createSlice({
+const authCustomerSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
@@ -212,5 +214,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuthError, clearRegisterSuccess } = authSlice.actions;
-export default authSlice.reducer;
+export const { clearAuthError, clearRegisterSuccess } =
+  authCustomerSlice.actions;
+export default authCustomerSlice.reducer;

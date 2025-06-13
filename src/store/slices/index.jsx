@@ -1,4 +1,4 @@
-import authReducer from './authSlice';
+import authCustomerReducer from './authCustomerSlice';
 
 // Export các reducers
-export { authReducer };
+export { authCustomerReducer };

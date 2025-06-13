@@ -5,6 +5,7 @@ import { OrbitControls, Float } from "@react-three/drei";
 import { Link } from "react-router-dom";
 import * as THREE from "three";
 import { cva } from 'class-variance-authority';
+import Swal from "sweetalert2";
 
 import { PUBLIC_URL } from "~/path";
 
@@ -38,6 +39,15 @@ const socialButton = cva(
         },
     }
 );
+
+// Hàm hiển thị thông báo Swal chung
+const showAlert = (icon, title, text) => {
+  return Swal.fire({
+    icon,
+    title,
+    text,
+  });
+};
 
 // Vietnam Flag 3D component
 function VietnamFlag() {
@@ -288,7 +298,7 @@ function Form({
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-3xl font-bold text-primary">
-            Chợ Việt Xin Chào
+            Chợ Việt
           </h1>
           <p className="text-content-secondary">{title}</p>
         </div>
@@ -303,7 +313,7 @@ function Form({
                 to={PUBLIC_URL.LOGIN}
                 className={authLink()}
               >
-                Đăng nhập nhe 😗
+                Đăng nhập
               </Link>
             </div>
 
@@ -312,7 +322,7 @@ function Form({
                 to={PUBLIC_URL.FORGET}
                 className={authLink()}
               >
-                Quên mật khẩu đúng hong 🫠
+                Quên mật khẩu
               </Link>
             </div>
           </div>
@@ -333,18 +343,18 @@ function Form({
                 Đang xử lý...
               </span>
             ) : (
-              "Được rồi"
+              "Đăng nhập"
             )}
           </button>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-content-secondary">
-              Cùng kết nối với chúng mình nha 😍{" "}
+              Chưa có tài khoản?{" "}
               <Link
                 to={PUBLIC_URL.REGISTER}
                 className={authLink({ color: 'primary' })}
               >
-                Quất luôn 😎
+                Đăng ký ngay
               </Link>
             </p>
           </div>
@@ -421,4 +431,4 @@ function Form({
 }
 
 export default AuthComponent;
-export { AnimatedInput, Form };
+export { AnimatedInput, Form, showAlert };
