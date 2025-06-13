@@ -1,8 +1,10 @@
+const AUTH =  '/auth'
+
 const clientUrl = {
     auth: {
-        login: `auth/login`,
-        register: `auth/register`,
-        forget: `auth/forget`,
+        login: `${AUTH}/login`,
+        register: `${AUTH}/register`,
+        forget: `${AUTH}/forget`,
     }
 };
 
@@ -10,7 +12,7 @@ const adminUrl = {};
 
 const commonUrl = {
     auth: {
-        logout: `auth/logout`,
+        logout: `${AUTH}/logout`,
     }
 };
 

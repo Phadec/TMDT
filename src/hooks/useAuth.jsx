@@ -33,13 +33,14 @@ export const useAuth = () => {
   /**
    * Đăng nhập người dùng
    * @param {Object} credentials - Thông tin đăng nhập (email, password)
+   * @param {string} redirectTo - Đường dẫn chuyển hướng sau khi đăng nhập thành công
    * @returns {Promise<boolean>} - True nếu đăng nhập thành công
    */
-  const login = async (credentials) => {
+  const login = async (credentials, redirectTo = PUBLIC_URL.HOME) => {
     try {
       const resultAction = await dispatch(loginCustomer(credentials));
       if (loginCustomer.fulfilled.match(resultAction)) {
-        navigate(PUBLIC_URL.HOME);
+        navigate(redirectTo);
         return true;
       }
       return false;
@@ -76,9 +77,18 @@ export const useAuth = () => {
    */
   const logout = async () => {
     try {
-      await dispatch(logoutCustomer());
-      navigate(PUBLIC_URL.LOGIN);
-      return true;
+      // Lấy customerId từ thông tin user hiện tại
+      console.log('Logging out user:', user);
+      const customerId = user?.id || user?.customerId;
+
+      const resultAction = await dispatch(logoutCustomer(customerId));
+     if(logoutCustomer.fulfilled.match(resultAction)) {
+        // Chuyển hướng về trang chủ hoặc trang đăng nhập sau khi đăng xuất
+        localStorage.removeItem('accessToken'); // Xóa token khỏi localStorage
+        navigate(PUBLIC_URL.LOGIN);
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Logout error:', error);
       return false;

@@ -38,13 +38,13 @@ export const registerCustomer = createAsyncThunk(
 
 export const logoutCustomer = createAsyncThunk(
   "auth/logoutCustomer",
-  async (_, { rejectWithValue }) => {
+  async (customerId, { rejectWithValue }) => {
     try {
       // Sử dụng endpoint common auth logout theo tài liệu API
-      await commonApi.post(commonUrl.auth.logout);
+      const response = await commonApi.post(commonUrl.auth.logout, {personId: customerId});
       // Xóa token từ localStorage
       localStorage.removeItem("accessToken");
-      return { success: true };
+      return response;
     } catch (error) {
       // Vẫn xóa token dù API có lỗi
       localStorage.removeItem("accessToken");
@@ -98,7 +98,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.token = action.payload.token;
-        state.user = action.payload.user;
+        state.user = action.payload;
 
         Swal.fire({
           icon: "success",
@@ -135,7 +135,7 @@ const authSlice = createSlice({
         Swal.fire({
           icon: "success",
           title: "Đăng ký thành công!",
-          text: "Vui lòng kiểm tra email để xác nhận tài khoản",
+          text: "Chào mừng bạn tới Chợ Việt 🫂",
           timer: 3000,
           showConfirmButton: false,
         });
@@ -169,7 +169,7 @@ const authSlice = createSlice({
           icon: "success",
           title: "Đăng xuất thành công!",
           text: "Hẹn gặp lại bạn tại Chợ Việt",
-          timer: 2000,
+          timer: 1000,
           showConfirmButton: false,
         });
       })

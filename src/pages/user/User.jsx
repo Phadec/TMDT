@@ -4,6 +4,7 @@ import Avatar from "./Avatar";
 import Profile from "./Profile";
 import Transfer from "./Transfer";
 import Setting from "./Setting";
+import { useAuth } from "~/hooks/useAuth";
 
 const tabs = [
   {
@@ -36,46 +37,33 @@ const tabContents = {
   settings: (
     <Setting />
   ),
-  logout: (
-    <div className="text-center">
-      <h2 className="section-title">Đăng xuất</h2>
-      <p className="mb-6">Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?</p>
-      <div className="flex justify-center space-x-4">
-        <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Hủy
-        </button>
-        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-          Đăng xuất
-        </button>
-      </div>
-    </div>
-  )
+  logout: null // Sẽ được xử lý riêng
 };
 
 function User() {
   const [activeTab, setActiveTab] = useState("profile");
+  const { logout } = useAuth();
 
   const handleTabClick = (tabId) => {
     setActiveTab(tabId);
   };
 
-  const handleLogout = () => {
-    // Xử lý đăng xuất ở đây
-    console.log("Đăng xuất");
+  const handleLogout = async () => {
+    await logout();
   };
 
   return (
     <div className="h-full flex items-center justify-center lg:px-2 px-4 pt-[530px] lg:pt-0">
       <div className="flex flex-col md:flex-row w-full max-w-5xl h-auto md:h-[600px]">
         {/* Bên trái */}
-        <div className="w-full md:w-1/3 bg-white p-4 sm:p-6 shadow-md rounded-lg h-auto md:h-full overflow-auto mb-4 md:mb-0">
+        <div className="w-full h-auto p-4 mb-4 overflow-auto bg-white rounded-lg shadow-md md:w-1/3 sm:p-6 md:h-full md:mb-0">
           {/* Avatar và tên người dùng */}
           <div className="flex flex-col items-center">
             <Avatar name="Nguyễn Văn A" username="nguyenvana" />
           </div>
 
           {/* Danh sách tính năng */}
-          <div className="mt-8 sm:mt-10 space-y-3 sm:space-y-4">
+          <div className="mt-8 space-y-3 sm:mt-10 sm:space-y-4">
             {
               tabs.map((tab) => (
                 <button 
@@ -91,9 +79,9 @@ function User() {
         </div>
 
         {/* Bên phải */}
-        <div className="w-full md:w-2/3 md:pl-6 h-auto md:h-full flex flex-col mb-32 lg:mb-0">
-          <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Chi tiết</h1>
-          <div className="bg-white rounded shadow p-4 sm:p-6 flex-1 overflow-y-auto">
+        <div className="flex flex-col w-full h-auto mb-32 md:w-2/3 md:pl-6 md:h-full lg:mb-0">
+          <h1 className="mb-3 text-xl font-bold sm:text-2xl sm:mb-4">Chi tiết</h1>
+          <div className="flex-1 p-4 overflow-y-auto bg-white rounded shadow sm:p-6">
             {tabContents[activeTab]}
           </div>
         </div>

@@ -43,14 +43,17 @@ const publicRoutes = [
   {
     path: PUBLIC_URL.LOGIN,
     element: Login,
+    publicOnly: true,
   },
   {
     path: PUBLIC_URL.REGISTER,
     element: Register,
+    publicOnly: true,
   },
   {
     path: PUBLIC_URL.FORGET,
     element: Forget,
+    publicOnly: true,
   },
 ];
 

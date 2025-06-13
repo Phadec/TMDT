@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, X, Menu } from "lucide-react";
+import { ArrowLeft, X, Menu, LogOut } from "lucide-react";
 import { tabVariants } from "~/pages/dashboard/StyleVariants";
+import { useAuth } from "~/hooks/useAuth";
 
 // Mobile Menu Button Component
 export const MobileMenuButton = ({ sidebarOpen, setSidebarOpen }) => {
@@ -63,15 +64,30 @@ export const SidebarTabs = ({ tabs, activeTab, setActiveTab, isMobile, setSideba
 
 // User Profile Component
 export const UserProfile = () => {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <div className="p-4 mt-auto border-t border-gray-200">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
         <div>
           <div className="font-medium">Người dùng</div>
           <div className="text-sm text-gray-500">Seller</div>
         </div>
       </div>
+      
+      {/* Nút đăng xuất */}
+      <button
+        onClick={handleLogout}
+        className="flex items-center w-full gap-2 px-3 py-2 text-sm text-red-600 transition-colors duration-200 rounded-lg hover:bg-red-50"
+      >
+        <LogOut size={16} />
+        <span>Đăng xuất</span>
+      </button>
     </div>
   );
 };

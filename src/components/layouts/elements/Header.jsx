@@ -3,12 +3,14 @@ import {
   HomeIcon,
   ShoppingBagIcon,
   ArrowLeftEndOnRectangleIcon,
+  ArrowRightEndOnRectangleIcon,
   ChatBubbleLeftEllipsisIcon,
   BookOpenIcon,
   UserCircleIcon
 } from "@heroicons/react/24/solid";
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
+import { useAuth } from "~/hooks/useAuth";
 
 const navItems = [
   {
@@ -45,6 +47,11 @@ const navItems = [
 
 function Header() {
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <header
@@ -57,11 +64,22 @@ function Header() {
       `}
     >
       <nav>
-        <ul className="flex flex-row sm:flex-col items-center justify-center gap-4">
+        <ul className="flex flex-row items-center justify-center gap-4 sm:flex-col">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.url;
+            
+            // Ẩn menu "Đăng nhập" nếu đã đăng nhập
+            if (item.url === PUBLIC_URL.LOGIN && isAuthenticated) {
+              return null;
+            }
+            
+            // Ẩn menu "Tài khoản" nếu chưa đăng nhập
+            if (item.url === PRIVATE_URL.USER && !isAuthenticated) {
+              return null;
+            }
+            
             return (
-              <li key={index} className="group relative">
+              <li key={index} className="relative group">
                 <Link
                   to={item.url}
                   className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 
@@ -74,16 +92,30 @@ function Header() {
                   <item.icon className="w-6 h-6" />
                 </Link>
                 <span
-                  className="absolute sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 
-                                sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded 
-                                sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md
-                                hidden sm:inline"
+                  className="absolute hidden sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md sm:inline"
                 >
                   {item.label}
                 </span>
               </li>
             );
           })}
+          
+          {/* Nút đăng xuất - chỉ hiển thị khi đã đăng nhập */}
+          {isAuthenticated && (
+            <li className="relative group">
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 bg-white/80 text-gray-700 hover:bg-red-100 hover:text-red-600"
+              >
+                <ArrowRightEndOnRectangleIcon className="w-6 h-6" />
+              </button>
+              <span
+                className="absolute hidden sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md sm:inline"
+              >
+                Đăng xuất
+              </span>
+            </li>
+          )}
         </ul>
       </nav>
     </header>
