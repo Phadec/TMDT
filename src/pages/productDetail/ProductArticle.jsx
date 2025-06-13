@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getImageFromAssets } from "~/utils/imageUtils";
 import { cva } from 'class-variance-authority';
+import PropTypes from 'prop-types';
 
 const detailImage = cva(['w-full', 'h-full', 'object-cover'], {
   variants: {
@@ -22,24 +23,25 @@ const detailImage = cva(['w-full', 'h-full', 'object-cover'], {
   },
 });
 
-function ProductArticle() {
+function ProductArticle({ productData }) {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-xl space-y-6 my-10">
+    <div className="p-4 my-10 space-y-6 bg-white shadow-md rounded-xl">
       {/* Phần đầu: Tên sản phẩm + mô tả ngắn */}
       <div>
         <h1 className="text-[30px] lg:text-[50px] font-bold text-gray-900 mb-10 text-center">
-          🎉 Tai nghe Bluetooth X100 🎉
+          {productData ? productData.name : "🎉 Tai nghe Bluetooth X100 🎉"}
         </h1>
-        <p className="text-gray-700 mt-2">
-          Âm thanh chất lượng cao, kết nối nhanh, thiết kế gọn nhẹ – lựa chọn lý
-          tưởng cho mọi nhu cầu nghe nhạc.
+        <p className="mt-2 text-gray-700">
+          {productData ? productData.description?.substring(0, 150) : 
+            "Âm thanh chất lượng cao, kết nối nhanh, thiết kế gọn nhẹ – lựa chọn lý tưởng cho mọi nhu cầu nghe nhạc."}
+          {productData && productData.description?.length > 150 && "..."}
         </p>
       </div>
 
       {/* Phần 3D (Demo mô hình sản phẩm) */}
-      <div className="aspect-video bg-gray-100 rounded-lg shadow-inner flex items-center justify-center">
+      <div className="flex items-center justify-center bg-gray-100 rounded-lg shadow-inner aspect-video">
         <iframe
           className="w-full h-full"
           src="https://sketchfab.com/models/0b4ca2a15ba7478db2a42ac9f0e687bf/embed"
@@ -51,20 +53,20 @@ function ProductArticle() {
           mozallowfullscreen="true"
           allowFullScreen 
         >
-          <p className="text-gray-500 italic">
+          <p className="italic text-gray-500">
             [Vùng hiển thị 3D – mô hình Concept Car 038]
           </p>
         </iframe>
       </div>
 
       {/* Dạng 2 cột */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Cột 1: Thông tin người bán */}
         <div className="flex items-center space-x-4">
           <img
             src={getImageFromAssets("2.jpg", "productDetail")}
             alt="Avatar người bán"
-            className="w-14 h-14 rounded-full object-cover"
+            className="object-cover rounded-full w-14 h-14"
           />
           <div>
             <p className="text-lg font-semibold text-gray-900">Nguyễn Văn A</p>
@@ -75,11 +77,11 @@ function ProductArticle() {
         </div>
 
         {/* Cột 2: Đánh giá AI */}
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 className="text-md font-medium text-gray-800 mb-2">
+        <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <h3 className="mb-2 font-medium text-gray-800 text-md">
             Đánh giá nhanh từ AI
           </h3>
-          <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+          <ul className="space-y-1 text-sm text-gray-700 list-disc list-inside">
             <li>Độ tin cậy người bán: Cao</li>
             <li>Chất lượng mô tả: Chính xác, chi tiết</li>
             <li>Tương tác người dùng: Tốt</li>
@@ -97,14 +99,13 @@ function ProductArticle() {
             }`}
           >
             <p>
-              Thiết kế tai nghe ôm sát tai, đem lại cảm giác thoải mái ngay cả
-              khi sử dụng liên tục trong nhiều giờ. Chất liệu nhựa ABS kết hợp
-              kim loại nhẹ giúp sản phẩm vừa bền, vừa tinh tế.
+              {productData ? productData.description?.substring(0, 200) : 
+                "Thiết kế tai nghe ôm sát tai, đem lại cảm giác thoải mái ngay cả khi sử dụng liên tục trong nhiều giờ. Chất liệu nhựa ABS kết hợp kim loại nhẹ giúp sản phẩm vừa bền, vừa tinh tế."}
             </p>
             {!showFullDescription && (
               <button
                 onClick={() => setShowFullDescription(true)}
-                className="flex items-center text-sm font-medium text-blue-600 hover:underline focus:outline-none mt-2"
+                className="flex items-center mt-2 text-sm font-medium text-blue-600 hover:underline focus:outline-none"
               >
                 <span>Xem thêm mô tả</span>
                 <svg
@@ -162,5 +163,19 @@ function ProductArticle() {
     </div>
   );
 }
+
+ProductArticle.propTypes = {
+  productData: PropTypes.shape({
+    id: PropTypes.string,
+    name: PropTypes.string,
+    description: PropTypes.string,
+    brand: PropTypes.object,
+    productCategory: PropTypes.object,
+    specs: PropTypes.object,
+    images: PropTypes.object,
+    status: PropTypes.string,
+    variant: PropTypes.object
+  })
+};
 
 export default ProductArticle;
