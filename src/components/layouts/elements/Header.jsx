@@ -6,13 +6,16 @@ import {
   ArrowRightEndOnRectangleIcon,
   ChatBubbleLeftEllipsisIcon,
   BookOpenIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  ShoppingCartIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/solid";
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
 import { useAuth } from "~/hooks/useAuth";
 
-const navItems = [
+// Các mục menu công khai (hiển thị cho tất cả người dùng)
+const publicNavItems = [
   {
     icon: HomeIcon,
     url: PUBLIC_URL.HOME,
@@ -38,10 +41,24 @@ const navItems = [
     url: PUBLIC_URL.LOGIN,
     label: "Đăng nhập",
   },
+];
+
+// Các mục menu chỉ hiển thị khi đã đăng nhập
+const privateNavItems = [
   {
     icon: UserCircleIcon,
     url: PRIVATE_URL.USER,
     label: "Tài khoản",
+  },
+  {
+    icon: ShoppingCartIcon,
+    url: PRIVATE_URL.CART,
+    label: "Giỏ hàng",
+  },
+  {
+    icon: ChartBarIcon,
+    url: PRIVATE_URL.DASHBOARD,
+    label: "Bán hàng",
   },
 ];
 
@@ -65,7 +82,8 @@ function Header() {
     >
       <nav>
         <ul className="flex flex-row items-center justify-center gap-4 sm:flex-col">
-          {navItems.map((item, index) => {
+          {/* Hiển thị các mục menu công khai */}
+          {publicNavItems.map((item, index) => {
             const isActive = location.pathname === item.url;
             
             // Ẩn menu "Đăng nhập" nếu đã đăng nhập
@@ -73,13 +91,34 @@ function Header() {
               return null;
             }
             
-            // Ẩn menu "Tài khoản" nếu chưa đăng nhập
-            if (item.url === PRIVATE_URL.USER && !isAuthenticated) {
-              return null;
-            }
+            return (
+              <li key={`public-${index}`} className="relative group">
+                <Link
+                  to={item.url}
+                  className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 
+                    ${
+                      isActive
+                        ? "bg-white text-primary shadow-md scale-110"
+                        : "bg-white/80 text-gray-700 hover:bg-white hover:text-blue-600"
+                    }`}
+                >
+                  <item.icon className="w-6 h-6" />
+                </Link>
+                <span
+                  className="absolute hidden sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md sm:inline"
+                >
+                  {item.label}
+                </span>
+              </li>
+            );
+          })}
+          
+          {/* Hiển thị các mục menu riêng tư khi đã đăng nhập */}
+          {isAuthenticated && privateNavItems.map((item, index) => {
+            const isActive = location.pathname === item.url;
             
             return (
-              <li key={index} className="relative group">
+              <li key={`private-${index}`} className="relative group">
                 <Link
                   to={item.url}
                   className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 
@@ -105,7 +144,7 @@ function Header() {
             <li className="relative group">
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 bg-white/80 text-gray-700 hover:bg-red-100 hover:text-red-600"
+                className="flex items-center justify-center w-10 h-10 text-gray-700 transition-all duration-300 rounded-full bg-white/80 hover:bg-red-100 hover:text-red-600"
               >
                 <ArrowRightEndOnRectangleIcon className="w-6 h-6" />
               </button>
