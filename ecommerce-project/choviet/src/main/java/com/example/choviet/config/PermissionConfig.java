@@ -29,9 +29,6 @@ public class PermissionConfig {
         }
 
         String action = permission.substring(permission.indexOf(".")+1, permission.length());
-        System.out.println("resource: " + resource);
-        System.out.println("action: " + action);
-        System.out.println("permission: " + Arrays.toString(permissions));
 
         if(action.contains("*")) return true;
 

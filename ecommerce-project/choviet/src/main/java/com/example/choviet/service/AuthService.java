@@ -58,17 +58,17 @@ public class AuthService {
                 throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Phiên đăng nhập đã tồn tại, vui lòng đăng xuất trước");
 
             // Tài khoản này bị ban
-            if (    user.getStatus().equals(User.Status.INACTIVE))
+            if (user.getStatus().equals(User.Status.INACTIVE))
                 throw new AppException(ErrorConfig.ACCESS_DENIED, "Tài khoản đã bị vô hiệu hóa");
 
             // Generate access token
-            String accessToken = jwtUtil.generateTokenWithRole(user.getEmail(), user.getRole().getRoleName().name());
-            
+            String accessToken = jwtUtil.generateTokenWithRole(user.getId(), user.getRole().getRoleName().name());
+
             redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
 
             // Create response
             AuthResponse response = new AuthResponse();
-            response.setEmail(user.getEmail());
+            response.setId(user.getId());
             response.setToken(accessToken);
             response.setRoleName(user.getRole().getRoleName());
             response.setPermission(user.getRole().getPermissions());
@@ -108,7 +108,7 @@ public class AuthService {
 
             // đẩy vào queue
             AuthResponse response = new AuthResponse();
-            response.setEmail(customer.getEmail());
+            response.setId(customer.getId());
             response.setToken(accessToken);
             response.setUserType("CUSTOMER");
             response.setCreatedAt(LocalDateTime.now());
@@ -158,7 +158,7 @@ public class AuthService {
 
         // Create and return UserDto
         AuthResponse response = new AuthResponse();
-        response.setEmail(savedUser.getEmail());
+        response.setId(savedUser.getId());
 
         if (savedUser.getRole() != null) {
             response.setRoleName(savedUser.getRole().getRoleName());
@@ -176,7 +176,7 @@ public class AuthService {
 
     @Autowired
     EmailService emailService;
-    
+
     @Transactional
     public AuthResponse registerCustomer(CustomerRegisterRequest request) {
         // Validate required fields
@@ -189,7 +189,7 @@ public class AuthService {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
             throw new AppException(ErrorConfig.INVALID_DATA, "Họ tên không được để trống");
         }
-        
+
         // Check if email already exists
         if (customerRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorConfig.EMAIL_ALREADY_EXISTS);
@@ -229,38 +229,19 @@ public class AuthService {
     @Transactional
     public void logout(PersonRequest request) {
         String id = request.getPersonId();
+        System.out.println("user id: " + id);
         if (!redisService.isKeyExists(id))
             throw new AppException(ErrorConfig.BUSINESS_RULE_VIOLATION, "Người dùng đã đăng xuất");
 
         // Get current token from Redis to add to blacklist
-        String currentToken = (String) redisService.get(id);
-
-        boolean isUser = userRepository.existsById(id);
-        boolean isCustomer = customerRepository.existsById(id);
-
-        String idGot = "";
-        String email = "";
-        User user = null;
-        Customer customer = null;
-
-        if (isUser) {
-            user = userRepository.findById(id).orElseThrow(
-                    () -> new AppException(ErrorConfig.USER_NOT_FOUND));
-            idGot = user.getId();
-            email = user.getEmail();
-        } else if (isCustomer) {
-            customer = customerRepository.findById(id).orElseThrow(
-                    () -> new AppException(ErrorConfig.CUSTOMER_NOT_FOUND));
-            idGot = customer.getId();
-            email = customer.getEmail();
-        }
+        String token = (String) redisService.get(id);
 
         // Add token to blacklist with remaining expiration time
-        if (currentToken != null) {
+        if (token != null) {
             try {
-                long remainingTime = jwtUtil.extractExpiration(currentToken).getTime() - System.currentTimeMillis();
+                long remainingTime = jwtUtil.extractExpiration(token).getTime() - System.currentTimeMillis();
                 if (remainingTime > 0) {
-                    redisService.set("blacklist:" + currentToken, "true", (int) (remainingTime / 1000),
+                    redisService.set("blacklist:" + token, "true", (int) (remainingTime / 1000),
                             TimeUnit.SECONDS);
                 }
             } catch (Exception e) {
@@ -272,7 +253,7 @@ public class AuthService {
 
         // đẩy vào queue
         AuthResponse response = new AuthResponse();
-        response.setEmail(email);
+        response.setId(id);
 
         Event<AuthResponse> event = new Event<>();
         event.setData(response);
@@ -311,7 +292,7 @@ public class AuthService {
         userRepository.save(user);
 
         AuthResponse response = new AuthResponse();
-        response.setEmail(user.getEmail());
+        response.setId(user.getId());
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
@@ -346,7 +327,7 @@ public class AuthService {
         userRepository.save(user);
 
         AuthResponse response = new AuthResponse();
-        response.setEmail(user.getEmail());
+        response.setId(user.getId());
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
@@ -370,7 +351,7 @@ public class AuthService {
         customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
-        response.setEmail(customer.getEmail());
+        response.setId(customer.getId());
         response.setUserType("CUSTOMER");
         response.setCreatedAt(LocalDateTime.now());
 
@@ -390,7 +371,7 @@ public class AuthService {
                 () -> new RuntimeException("User not found"));
 
         AuthResponse response = new AuthResponse();
-        response.setEmail(customer.getEmail());
+        response.setId(customer.getId());
         response.setUserType("CUSTOMER");
         response.setCreatedAt(LocalDateTime.now());
 

@@ -18,8 +18,6 @@ public class AuthController {
     @Autowired
     AuthService authService;
 
-
-
     @PostMapping(LOGOUT)
     public ResponseEntity<?> logout(@RequestBody PersonRequest request) {
         authService.logout(request);

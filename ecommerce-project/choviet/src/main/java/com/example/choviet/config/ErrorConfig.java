@@ -36,7 +36,7 @@ public class ErrorConfig {
     public static final int PHONE_ALREADY_EXISTS = 1015;
     
     // ==================== ERROR MESSAGES ====================
-    public static final Map<Integer, String> ERROR_MESSAGES = new HashMap<Integer, String>() {{
+    public static final Map<Integer, String> ERROR_MESSAGES = new HashMap<>() {{
         // HTTP Status Messages
         put(BAD_REQUEST, "Yêu cầu không hợp lệ");
         put(UNAUTHORIZED, "Chưa xác thực");
@@ -79,14 +79,5 @@ public class ErrorConfig {
      */
     public static boolean isBusinessError(int code) {
         return code >= 1001 && code <= 1999;
-    }
-    
-    /**
-     * Kiểm tra xem code có phải là HTTP status code không
-     * @param code Error code
-     * @return true nếu là HTTP status code
-     */
-    public static boolean isHttpStatusCode(int code) {
-        return code >= 200 && code <= 599;
     }
 }

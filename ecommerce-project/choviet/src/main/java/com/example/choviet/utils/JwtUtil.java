@@ -93,10 +93,10 @@ public class JwtUtil {
         return createToken(claims, email);
     }
 
-    public String generateTokenWithRole(String username, String role) {
+    public String generateTokenWithRole(String id, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-        return createToken(claims, username);
+        return createToken(claims, id);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

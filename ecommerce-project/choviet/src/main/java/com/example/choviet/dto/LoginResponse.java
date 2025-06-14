@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 public class LoginResponse {
     String id;
     String email;
-    String refreshToken;
+    String token;
     String tokenType = "Bearer";
     String roleName;
     String[] permissions;

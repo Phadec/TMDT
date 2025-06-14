@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class AuthResponse {
     String token;
     String userType; // "USER" or "CUSTOMER"
+    String id;
     String email;
     String fullname;
     String phone;
