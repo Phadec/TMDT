@@ -2,19 +2,27 @@ package com.example.choviet.service;
 
 import com.example.choviet.dto.Event;
 import com.example.choviet.entity.Product;
+import com.example.choviet.entity.ProductCategory;
+import com.example.choviet.repository.ProductCategoryRepository;
 import com.example.choviet.repository.ProductRepository;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import java.util.function.Function;
+
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import static com.example.choviet.config.ConfigTopicProduct.*;
-import static com.example.choviet.config.envent.EventNameConfig.*;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.example.choviet.config.ConfigTopicProduct.ADD_PRODUCTS_QUEUE;
+import static com.example.choviet.config.ConfigTopicProduct.PRODUCT_EXCHANGE;
+import static com.example.choviet.config.envent.EventNameConfig.PRODUCT_CREATE_BATCH;
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
 public class ProductService {
@@ -24,20 +32,43 @@ public class ProductService {
     RabbitMQService eventPublisher;
     @Autowired
     PagingService pagingService;
+    @Autowired
+    ProductCategoryRepository categoryRepository;
 
     // Lấy tất cả sản phẩm theo trang
     public Page<Product> getProductsPaging(int page, int size) {
-        // Tạo Pageable và lấy dữ liệu
         Pageable pageable = pagingService.createPageable(page, size);
         Page<Product> result = productRepository.findAll(pageable);
 
-        // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
         if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
             pageable = pagingService.createPageable(result.getTotalPages() - 1, size);
             result = productRepository.findAll(pageable);
         }
 
-        return result;
+        Set<String> categoryIds = result.getContent().stream()
+                .map(Product::getCategoryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<String, ProductCategory> categoryMap = categoryRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(ProductCategory::getId, Function.identity()));
+
+        List<Product> enriched = result.getContent().stream()
+                .peek(product -> {
+                    ProductCategory category = categoryMap.get(product.getCategoryId());
+                    if (category != null) {
+                        product.setProductCategory(
+                                ProductCategory.builder()
+                                        .id(category.getId())
+                                        .name(category.getName())
+                                        .build()
+                        );
+                    }
+                })
+                .toList();
+
+
+        return new PageImpl<>(enriched, pageable, result.getTotalElements());
     }
 
     // Lấy sản phẩm theo loại
@@ -52,11 +83,29 @@ public class ProductService {
 
         // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
         if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
-            pageable = pagingService.createPageable(result.getTotalPages() -1, size);
+            pageable = pagingService.createPageable(result.getTotalPages() - 1, size);
             result = productRepository.findAllByProductCategoryId(categoryId, pageable);
         }
 
-        return result;
+        // ✨ Enrich mỗi product với category object
+        List<Product> enriched = result.getContent().stream()
+                .map(product -> {
+                    if (product.getCategoryId() != null) {
+                        categoryRepository.findById(product.getCategoryId())
+                                .ifPresent(category -> {
+                                    product.setProductCategory(
+                                            ProductCategory.builder()
+                                                    .id(category.getId())
+                                                    .name(category.getName())
+                                                    .build()
+                                    );
+                                });
+                    }
+                    return product;
+                })
+                .toList();
+
+        return new PageImpl<>(enriched, pageable, result.getTotalElements());
     }
 
     // Xem chi tiết sản phẩm

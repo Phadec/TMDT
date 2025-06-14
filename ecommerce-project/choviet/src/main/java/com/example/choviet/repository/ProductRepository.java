@@ -1,13 +1,10 @@
 package com.example.choviet.repository;
-import com.example.choviet.entity.Product;
-import com.example.choviet.entity.ProductCategory;
-import com.example.choviet.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.example.choviet.entity.Product;
 
 @Repository
 public interface ProductRepository extends MongoRepository<Product, String> {
