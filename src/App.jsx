@@ -1,7 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 
 import { publicRoutes, privateRoutes, adminRoute } from "~/routes";
-import { DefaultLayout } from "~/components/layouts";
+import { DefaultLayout, EmptyLayout } from "~/components/layouts";
+import { NotFound } from "~/pages/NotFound";
 
 import ProtectedRoute, { PublicOnlyRoute } from "~/middlewares/ProtectedRoute";
 
@@ -54,7 +55,7 @@ function renderProtectedRoutes(routes) {
         key={index}
         path={route.path}
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole={route.requiredRole}>
             <Layout>
               <Page />
             </Layout>
@@ -76,6 +77,16 @@ function App() {
 
       {/* Nhóm route dành cho admin */}
       {renderProtectedRoutes(adminRoute)}
+
+      {/* Catch-all route cho trang không tồn tại */}
+      <Route
+        path="*"
+        element={
+          <EmptyLayout>
+            <NotFound />
+          </EmptyLayout>
+        }
+      />
     </Routes>
   );
 }

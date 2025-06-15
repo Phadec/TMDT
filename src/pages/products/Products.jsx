@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { cva } from "class-variance-authority";
+import { useNavigate } from "react-router-dom";
 
 import { Search } from "~/components/items";
 import { apiServices } from "~/api";
+import { commonUrl } from "~/api";
 
 // Fallback image nếu API không trả về hình ảnh
 const FALLBACK_IMAGE = "/assets/home/demo/demo.jpg";
@@ -58,6 +60,8 @@ const paginationButtonStyles = cva(
 );
 
 export default function Products() {
+  const navigate = useNavigate(); // Hook để điều hướng trang
+
   // State cho dữ liệu sản phẩm
   const [products, setProducts] = useState([]); // Sản phẩm từ API
   const [loading, setLoading] = useState(true);
@@ -97,13 +101,15 @@ export default function Products() {
           id: product.id || Math.random().toString(36).substring(2, 11),
           name: product.name || "Sản phẩm không tên",
           shortDescription: product.shortDes || "Không có mô tả",
-          price: product.price
-            ? `${product.price.toLocaleString("vi-VN")}đ`
-            : "Liên hệ",
-          image:
-            product.images && product.images.length > 0
-              ? product.images[0]
-              : FALLBACK_IMAGE,
+          review: product.imageReview || FALLBACK_IMAGE,
+          price:
+            product.price && product.price > 0
+              ? `${Number(product.price).toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                  minimumFractionDigits: 0,
+                })}`
+              : "Liên hệ để biết thêm thông tin",
           location: product.location || "Không xác định",
           condition: product.status || "Mới",
           category: product.productCategory.name || "Khác",
@@ -131,6 +137,11 @@ export default function Products() {
 
   // Sản phẩm hiển thị là những sản phẩm đã được lấy từ server cho trang hiện tại
   const paginatedProducts = products;
+
+  // Hàm xử lý khi người dùng click vào sản phẩm
+  const handleProductClick = (productId) => {
+    navigate(commonUrl.product.detail(productId));
+  };
 
   return (
     <div className="min-h-screen px-4 py-6 pt-12 w-90 sm:px-8 lg:px-14 bg-gradient-to-br from-purple-100 via-white to-indigo-100">
@@ -170,10 +181,11 @@ export default function Products() {
                 <motion.div
                   key={product.id}
                   whileHover={{ scale: 1.03 }}
-                  className="overflow-hidden transition bg-white border border-gray-200 shadow-md rounded-3xl hover:shadow-xl"
+                  className="overflow-hidden transition bg-white border border-gray-200 shadow-md cursor-pointer rounded-3xl hover:shadow-xl"
+                  onClick={() => handleProductClick(product.id)}
                 >
                   <img
-                    src={product.image}
+                    src={product.review}
                     alt={product.name}
                     className="object-cover w-full h-48"
                     onError={(e) => {
@@ -194,7 +206,7 @@ export default function Products() {
                       {renderTags(product.shortDescription)}
                     </div>
                     <p className="mb-1 font-semibold text-purple-700">
-                      Giá của sản phẩm này: {product.price}
+                      Giá: {product.price}
                     </p>
                     <p className="text-sm text-gray-500">
                       📍 {product.location} | 🛠️ {product.condition}

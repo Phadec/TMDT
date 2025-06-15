@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { getImageFromAssets } from "~/utils/imageUtils";
-import { cva } from 'class-variance-authority';
-import PropTypes from 'prop-types';
+import { cva } from "class-variance-authority";
+import PropTypes from "prop-types";
 
-const detailImage = cva(['w-full', 'h-full', 'object-cover'], {
+const detailImage = cva(["w-full", "h-full", "object-cover"], {
   variants: {
     rounded: {
-      xl: 'rounded-2xl',
+      xl: "rounded-2xl",
     },
     shadow: {
-      lg: 'shadow-lg hover:shadow-2xl',
+      lg: "shadow-lg hover:shadow-2xl",
     },
     transform: {
-      true: 'transform hover:scale-105 transition duration-300 ease-in-out',
-      false: '',
+      true: "transform hover:scale-105 transition duration-300 ease-in-out",
+      false: "",
     },
   },
   defaultVariants: {
-    rounded: 'xl',
-    shadow: 'lg',
+    rounded: "xl",
+    shadow: "lg",
     transform: true,
   },
 });
@@ -31,17 +31,14 @@ function ProductArticle({ productData }) {
       {/* Phần đầu: Tên sản phẩm + mô tả ngắn */}
       <div>
         <h1 className="text-[30px] lg:text-[50px] font-bold text-gray-900 mb-10 text-center">
-          {productData ? productData.name : "🎉 Tai nghe Bluetooth X100 🎉"}
+          {productData ? productData.name : "🎉 Tên sản phẩm 🎉"}
         </h1>
-        <p className="mt-2 text-gray-700">
-          {productData ? productData.description?.substring(0, 150) : 
-            "Âm thanh chất lượng cao, kết nối nhanh, thiết kế gọn nhẹ – lựa chọn lý tưởng cho mọi nhu cầu nghe nhạc."}
-          {productData && productData.description?.length > 150 && "..."}
-        </p>
+        <span>{productData}</span>
+        <p className="mt-2 text-gray-700">{productData.shortDes ?? 'Mô tả ngắn'}</p>
       </div>
 
       {/* Phần 3D (Demo mô hình sản phẩm) */}
-      <div className="flex items-center justify-center bg-gray-100 rounded-lg shadow-inner aspect-video">
+      {/* <div className="flex items-center justify-center bg-gray-100 rounded-lg shadow-inner aspect-video">
         <iframe
           className="w-full h-full"
           src="https://sketchfab.com/models/0b4ca2a15ba7478db2a42ac9f0e687bf/embed"
@@ -57,7 +54,7 @@ function ProductArticle({ productData }) {
             [Vùng hiển thị 3D – mô hình Concept Car 038]
           </p>
         </iframe>
-      </div>
+      </div> */}
 
       {/* Dạng 2 cột */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -99,8 +96,9 @@ function ProductArticle({ productData }) {
             }`}
           >
             <p>
-              {productData ? productData.description?.substring(0, 200) : 
-                "Thiết kế tai nghe ôm sát tai, đem lại cảm giác thoải mái ngay cả khi sử dụng liên tục trong nhiều giờ. Chất liệu nhựa ABS kết hợp kim loại nhẹ giúp sản phẩm vừa bền, vừa tinh tế."}
+              {productData
+                ? productData.description?.substring(0, 200)
+                : "Mô tả chi tiết nhưng không hết"}
             </p>
             {!showFullDescription && (
               <button
@@ -129,32 +127,9 @@ function ProductArticle({ productData }) {
           {showFullDescription && (
             <div className="mt-4 space-y-4">
               <p>
-                Chất lượng âm thanh vượt trội với driver 40mm, dải tần rộng, hỗ
-                trợ âm bass sâu và treble trong trẻo. Tối ưu cho cả nghe nhạc,
-                chơi game và học online.
-              </p>
-              <p>
-                Sản phẩm có khả năng chống nước chuẩn IPX4, dễ dàng sử dụng
-                ngoài trời hoặc khi luyện tập thể thao. Hỗ trợ kết nối Bluetooth
-                5.2 với độ trễ cực thấp.
-              </p>
-              <div className="flex justify-center my-6">
-                <div className="w-[40%] aspect-square">
-                  <img
-                    src={getImageFromAssets("1.jpg", "productDetail")}
-                    alt="Chi tiết sản phẩm"
-                    className={detailImage()}
-                  />
-                </div>
-              </div>
-              <p>
-                Đi kèm hộp sạc thông minh, có thể sạc đầy tai nghe trong vòng 1
-                giờ. Sản phẩm tương thích tốt với hầu hết smartphone, laptop,
-                máy tính bảng.
-              </p>
-              <p>
-                Chính sách bảo hành lên đến 12 tháng, hỗ trợ đổi mới trong vòng
-                7 ngày nếu sản phẩm bị lỗi từ nhà sản xuất.
+                {productData
+                  ? productData.description?.substring(200)
+                  : "Phần còn lại"}
               </p>
             </div>
           )}
@@ -169,13 +144,14 @@ ProductArticle.propTypes = {
     id: PropTypes.string,
     name: PropTypes.string,
     description: PropTypes.string,
+    shortDes: PropTypes.string,
     brand: PropTypes.object,
     productCategory: PropTypes.object,
     specs: PropTypes.object,
     images: PropTypes.object,
     status: PropTypes.string,
-    variant: PropTypes.object
-  })
+    variant: PropTypes.object,
+  }),
 };
 
 export default ProductArticle;

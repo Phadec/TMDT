@@ -71,6 +71,7 @@ const privateRoutes = [
     path: PRIVATE_URL.DASHBOARD,
     element: Dashboard,
     layout: DashboardLayout,
+    requiredRole: 'SELLER', // Yêu cầu quyền người bán
   },
 ];
 
@@ -80,6 +81,7 @@ const adminRoute = [
     path: ADMIN_URL.DASHBOARD,
     element: DashboardAdmin,
     layout: DashboardLayout,
+    requiredRole: 'ADMIN', // Yêu cầu quyền admin
   }
 ];
 

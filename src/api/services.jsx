@@ -1,5 +1,5 @@
-import { commonApi, clientApi, adminApi } from './api';
-import { commonUrl, clientUrl, adminUrl } from './endpoint';
+import { commonApi} from './api';
+import { commonUrl } from './endpoint';
 
 /**
  * Service API chung cho toàn bộ ứng dụng
@@ -17,15 +17,8 @@ const apiServices = {
      * @returns {Promise} - Promise chứa danh sách sản phẩm
      */
     getProducts: async (page = 0, size = 10) => {
-      try {
-        // Thêm endpoint vào commonUrl nếu chưa có
-        if (!commonUrl.products) {
-          commonUrl.products = {
-            getAll: '/products'
-          };
-        }
-        
-        const response = await commonApi.get(commonUrl.products.getAll, {
+      try {        
+        const response = await commonApi.get(commonUrl.product.getAll, {
           params: { page, size }
         });
         return response;
@@ -42,16 +35,7 @@ const apiServices = {
      */
     getProductById: async (id) => {
       try {
-        // Thêm endpoint vào commonUrl nếu chưa có
-        if (!commonUrl.products) {
-          commonUrl.products = {};
-        }
-        
-        if (!commonUrl.products.getById) {
-          commonUrl.products.getById = (productId) => `/products/${productId}`;
-        }
-        
-        const response = await commonApi.get(commonUrl.products.getById(id));
+        const response = await commonApi.get(commonUrl.product.detail(id));
         return response;
       } catch (error) {
         console.error(`Error fetching product with ID ${id}:`, error);
@@ -87,55 +71,6 @@ const apiServices = {
       }
     }
   },
-
-  /**
-   * API liên quan đến xác thực người dùng
-   */
-  auth: {
-    /**
-     * Đăng nhập
-     * @param {Object} credentials - Thông tin đăng nhập
-     * @returns {Promise} - Promise chứa thông tin người dùng và token
-     */
-    login: async (credentials) => {
-      try {
-        const response = await clientApi.post(clientUrl.auth.login, credentials);
-        return response;
-      } catch (error) {
-        console.error('Error during login:', error);
-        throw error;
-      }
-    },
-
-    /**
-     * Đăng ký
-     * @param {Object} userData - Thông tin người dùng đăng ký
-     * @returns {Promise} - Promise chứa kết quả đăng ký
-     */
-    register: async (userData) => {
-      try {
-        const response = await clientApi.post(clientUrl.auth.register, userData);
-        return response;
-      } catch (error) {
-        console.error('Error during registration:', error);
-        throw error;
-      }
-    },
-
-    /**
-     * Đăng xuất
-     * @returns {Promise} - Promise chứa kết quả đăng xuất
-     */
-    logout: async () => {
-      try {
-        const response = await commonApi.post(commonUrl.auth.logout);
-        return response;
-      } catch (error) {
-        console.error('Error during logout:', error);
-        throw error;
-      }
-    }
-  }
 };
 
 export default apiServices;

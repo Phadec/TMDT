@@ -21,7 +21,6 @@ function ProductDetail() {
       try {
         setLoading(true);
         const data = await apiServices.products.getProductById(id);
-        console.log("Product data:", data);
         setProduct(data);
         setLoading(false);
       } catch (err) {

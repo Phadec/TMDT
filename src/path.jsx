@@ -3,7 +3,7 @@ const PUBLIC_URL = {
   PRODUCTS: "/products",
   POLICY: "/policy",
   CONNECT: "/connect",
-  PRODUCT_DETIAL: "/product-detail/:id",
+  PRODUCT_DETIAL: "/products/:id",
   LOGIN: "/login",
   REGISTER: "/register",
   FORGET: "/forget",

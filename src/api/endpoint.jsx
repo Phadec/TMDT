@@ -1,4 +1,5 @@
-const AUTH =  '/auth'
+const AUTH =  '/auth';
+const PRODUCT = '/products';
 
 const clientUrl = {
     auth: {
@@ -13,6 +14,10 @@ const adminUrl = {};
 const commonUrl = {
     auth: {
         logout: `${AUTH}/logout`,
+    },
+    product: {
+        getAll: `${PRODUCT}`,
+        detail: (id) => `${PRODUCT}/${id}`,
     }
 };
 
