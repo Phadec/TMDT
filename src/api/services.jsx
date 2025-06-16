@@ -87,6 +87,25 @@ const apiServices = {
         console.error(`Error fetching similar products for product ${productId}:`, error);
         throw error;
       }
+    },
+
+    /**
+     * Lấy danh sách đánh giá của sản phẩm
+     * @param {string} productId - ID của sản phẩm cần lấy đánh giá
+     * @param {number} page - Số trang (bắt đầu từ 0)
+     * @param {number} size - Số lượng đánh giá mỗi trang
+     * @returns {Promise} - Promise chứa danh sách đánh giá sản phẩm
+     */
+    getProductReviews: async (productId, page = 0, size = 10) => {
+      try {
+        const response = await commonApi.get(commonUrl.product.reviews(productId), {
+          params: { page, size }
+        });
+        return response;
+      } catch (error) {
+        console.error(`Error fetching reviews for product ${productId}:`, error);
+        throw error;
+      }
     }
   },
 };

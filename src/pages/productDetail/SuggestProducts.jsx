@@ -19,29 +19,22 @@ function SuggestProducts({ categoryId, productId }) {
         let similarProducts = [];
         let allProducts = [];
         
-        console.log("SuggestProducts - Bắt đầu lấy sản phẩm liên quan");
-        console.log("SuggestProducts - categoryId:", categoryId);
-        console.log("SuggestProducts - productId:", productId);
         
         // Lấy song song các loại sản phẩm để tối ưu thời gian
         const fetchPromises = [];
         
         // 1. Lấy sản phẩm theo danh mục nếu có categoryId
         if (categoryId) {
-          console.log("SuggestProducts - Đang lấy sản phẩm theo danh mục:", categoryId);
           fetchPromises.push(
             apiServices.products.getProductsByCategory(categoryId, 0, 6)
               .then(data => {
-                console.log("SuggestProducts - Kết quả sản phẩm theo danh mục:", data);
                 if (data && data.content) {
                   categoryProducts = data.content.filter(p => p.id !== productId); // Loại bỏ sản phẩm hiện tại
                 } else if (Array.isArray(data)) {
                   categoryProducts = data.filter(p => p.id !== productId).slice(0, 6);
                 }
-                console.log("SuggestProducts - Số sản phẩm theo danh mục:", categoryProducts.length);
               })
               .catch(error => {
-                console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
               })
           );
         }
@@ -50,35 +43,28 @@ function SuggestProducts({ categoryId, productId }) {
         fetchPromises.push(
           apiServices.products.getProducts(0, 10)
             .then(data => {
-              console.log("SuggestProducts - Kết quả tất cả sản phẩm:", data);
               if (data && data.content) {
                 allProducts = data.content.filter(p => p.id !== productId); // Loại bỏ sản phẩm hiện tại
               } else if (Array.isArray(data)) {
                 allProducts = data.filter(p => p.id !== productId).slice(0, 10);
               }
-              console.log("SuggestProducts - Số sản phẩm tổng:", allProducts.length);
             })
             .catch(error => {
-              console.error("Lỗi khi lấy tất cả sản phẩm:", error);
             })
         );
         
         // 3. Lấy sản phẩm tương đồng bằng transformer nếu có productId
         if (productId) {
-          console.log("SuggestProducts - Đang lấy sản phẩm tương đồng cho:", productId);
           fetchPromises.push(
             apiServices.products.getSimilarProducts(productId, 6)
               .then(data => {
-                console.log("SuggestProducts - Kết quả sản phẩm tương đồng:", data);
                 if (data && data.content) {
                   similarProducts = data.content;
                 } else if (Array.isArray(data)) {
                   similarProducts = data.slice(0, 6);
                 }
-                console.log("SuggestProducts - Số sản phẩm tương đồng:", similarProducts.length);
               })
               .catch(error => {
-                console.error("Lỗi khi lấy sản phẩm tương đồng:", error);
               })
           );
         }
@@ -93,7 +79,6 @@ function SuggestProducts({ categoryId, productId }) {
         
         // Bắt đầu với sản phẩm tương đồng
         let combinedProducts = [...similarProducts];
-        console.log("SuggestProducts - Sản phẩm tương đồng ban đầu:", combinedProducts.length);
         
         // Thêm sản phẩm theo danh mục nếu chưa đủ 6 sản phẩm
         if (combinedProducts.length < 6) {
@@ -103,7 +88,6 @@ function SuggestProducts({ categoryId, productId }) {
             }
           });
         }
-        console.log("SuggestProducts - Sau khi thêm sản phẩm theo danh mục:", combinedProducts.length);
         
         // Nếu vẫn chưa đủ 6 sản phẩm, thêm từ danh sách tất cả sản phẩm
         if (combinedProducts.length < 6) {
@@ -114,7 +98,6 @@ function SuggestProducts({ categoryId, productId }) {
           });
         }
         
-        console.log("SuggestProducts - Tổng số sản phẩm cuối cùng:", combinedProducts.length);
         
         // Đảm bảo không hiển thị sản phẩm hiện tại
         combinedProducts = combinedProducts.filter(product => product.id !== productId);
@@ -123,7 +106,6 @@ function SuggestProducts({ categoryId, productId }) {
         setRelatedProducts(combinedProducts.slice(0, 6));
         setLoading(false);
       } catch (error) {
-        console.error("Lỗi khi lấy sản phẩm liên quan:", error);
         setLoading(false);
         
         // Nếu có lỗi, thử lấy sản phẩm ngẫu nhiên
@@ -138,7 +120,6 @@ function SuggestProducts({ categoryId, productId }) {
             setRelatedProducts([]);
           }
         } catch (fallbackError) {
-          console.error("Không thể lấy sản phẩm dự phòng:", fallbackError);
           setRelatedProducts([]);
         }
       }
