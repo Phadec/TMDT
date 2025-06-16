@@ -69,6 +69,24 @@ const apiServices = {
         console.error(`Error fetching products for category ${categoryId}:`, error);
         throw error;
       }
+    },
+
+    /**
+     * Lấy danh sách sản phẩm tương đồng dựa trên mô hình transformer
+     * @param {string} productId - ID của sản phẩm cần tìm sản phẩm tương đồng
+     * @param {number} limit - Số lượng sản phẩm tương đồng cần lấy
+     * @returns {Promise} - Promise chứa danh sách sản phẩm tương đồng
+     */
+    getSimilarProducts: async (productId, limit = 6) => {
+      try {
+        const response = await commonApi.get(commonUrl.product.similar(productId), {
+          params: { limit }
+        });
+        return response;
+      } catch (error) {
+        console.error(`Error fetching similar products for product ${productId}:`, error);
+        throw error;
+      }
     }
   },
 };

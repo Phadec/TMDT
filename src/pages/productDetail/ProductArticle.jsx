@@ -123,9 +123,9 @@ function ProductArticle({ productData }) {
             className="object-cover rounded-full w-14 h-14"
           />
           <div>
-            <p className="text-lg font-semibold text-gray-900">Nguyễn Văn A</p>
+            <p className="text-lg font-semibold text-gray-900">{productData?.customer?.fullName ?? "Họ tên người dùng"}</p>
             <p className="text-sm text-gray-600">
-              TP. HCM · Online 2 giờ trước
+              {productData?.customer?.email ?? "Thông tin thêm"}
             </p>
           </div>
         </div>
@@ -207,6 +207,7 @@ ProductArticle.propTypes = {
     specs: PropTypes.object,
     status: PropTypes.string,
     variant: PropTypes.object,
+    customer: PropTypes.object,
   }),
 };
 

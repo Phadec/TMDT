@@ -79,9 +79,12 @@ function ProductDetail() {
         <ProductVote />
       </div>
 
-      {/* Các sản phẩm liên quan */}
+      {/* Các sản phẩm liên quan - kết hợp cả sản phẩm cùng loại và sản phẩm tương đồng */}
       <div className="lg:mx-20">
-        <SuggestProducts categoryId={product?.productCategory?.id} />
+        <SuggestProducts 
+          categoryId={product?.productCategory?.id} 
+          productId={product?.id} 
+        />
       </div>
     </div>
   );

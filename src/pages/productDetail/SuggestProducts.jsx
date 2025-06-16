@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { apiServices } from "~/api";
 
-function SuggestProducts({ categoryId }) {
+// Fallback image nếu API không trả về hình ảnh hoặc ảnh bị lỗi
+const FALLBACK_IMAGE = "/assets/home/demo/demo.jpg";
+
+function SuggestProducts({ categoryId, productId }) {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -12,35 +15,137 @@ function SuggestProducts({ categoryId }) {
     const fetchRelatedProducts = async () => {
       try {
         setLoading(true);
-        let data;
+        let categoryProducts = [];
+        let similarProducts = [];
+        let allProducts = [];
         
+        console.log("SuggestProducts - Bắt đầu lấy sản phẩm liên quan");
+        console.log("SuggestProducts - categoryId:", categoryId);
+        console.log("SuggestProducts - productId:", productId);
+        
+        // Lấy song song các loại sản phẩm để tối ưu thời gian
+        const fetchPromises = [];
+        
+        // 1. Lấy sản phẩm theo danh mục nếu có categoryId
         if (categoryId) {
-          // Nếu có categoryId, lấy sản phẩm theo danh mục
-          data = await apiServices.products.getProductsByCategory(categoryId, 0, 6);
-        } else {
-          // Nếu không có categoryId, lấy tất cả sản phẩm
-          data = await apiServices.products.getProducts(0, 6);
+          console.log("SuggestProducts - Đang lấy sản phẩm theo danh mục:", categoryId);
+          fetchPromises.push(
+            apiServices.products.getProductsByCategory(categoryId, 0, 6)
+              .then(data => {
+                console.log("SuggestProducts - Kết quả sản phẩm theo danh mục:", data);
+                if (data && data.content) {
+                  categoryProducts = data.content.filter(p => p.id !== productId); // Loại bỏ sản phẩm hiện tại
+                } else if (Array.isArray(data)) {
+                  categoryProducts = data.filter(p => p.id !== productId).slice(0, 6);
+                }
+                console.log("SuggestProducts - Số sản phẩm theo danh mục:", categoryProducts.length);
+              })
+              .catch(error => {
+                console.error("Lỗi khi lấy sản phẩm theo danh mục:", error);
+              })
+          );
         }
         
-        // Kiểm tra dữ liệu trả về
-        if (data && data.content) {
-          setRelatedProducts(data.content);
-        } else if (Array.isArray(data)) {
-          setRelatedProducts(data.slice(0, 6)); // Giới hạn 6 sản phẩm
-        } else {
-          setRelatedProducts([]);
+        // 2. Lấy tất cả sản phẩm (dự phòng nếu không có sản phẩm theo danh mục)
+        fetchPromises.push(
+          apiServices.products.getProducts(0, 10)
+            .then(data => {
+              console.log("SuggestProducts - Kết quả tất cả sản phẩm:", data);
+              if (data && data.content) {
+                allProducts = data.content.filter(p => p.id !== productId); // Loại bỏ sản phẩm hiện tại
+              } else if (Array.isArray(data)) {
+                allProducts = data.filter(p => p.id !== productId).slice(0, 10);
+              }
+              console.log("SuggestProducts - Số sản phẩm tổng:", allProducts.length);
+            })
+            .catch(error => {
+              console.error("Lỗi khi lấy tất cả sản phẩm:", error);
+            })
+        );
+        
+        // 3. Lấy sản phẩm tương đồng bằng transformer nếu có productId
+        if (productId) {
+          console.log("SuggestProducts - Đang lấy sản phẩm tương đồng cho:", productId);
+          fetchPromises.push(
+            apiServices.products.getSimilarProducts(productId, 6)
+              .then(data => {
+                console.log("SuggestProducts - Kết quả sản phẩm tương đồng:", data);
+                if (data && data.content) {
+                  similarProducts = data.content;
+                } else if (Array.isArray(data)) {
+                  similarProducts = data.slice(0, 6);
+                }
+                console.log("SuggestProducts - Số sản phẩm tương đồng:", similarProducts.length);
+              })
+              .catch(error => {
+                console.error("Lỗi khi lấy sản phẩm tương đồng:", error);
+              })
+          );
         }
         
+        // Đợi tất cả các promise hoàn thành
+        await Promise.all(fetchPromises);
+        
+        // Chiến lược kết hợp sản phẩm:
+        // 1. Ưu tiên sản phẩm tương đồng từ transformer
+        // 2. Bổ sung bằng sản phẩm cùng danh mục
+        // 3. Nếu vẫn thiếu, bổ sung bằng sản phẩm ngẫu nhiên
+        
+        // Bắt đầu với sản phẩm tương đồng
+        let combinedProducts = [...similarProducts];
+        console.log("SuggestProducts - Sản phẩm tương đồng ban đầu:", combinedProducts.length);
+        
+        // Thêm sản phẩm theo danh mục nếu chưa đủ 6 sản phẩm
+        if (combinedProducts.length < 6) {
+          categoryProducts.forEach(product => {
+            if (!combinedProducts.some(p => p.id === product.id) && combinedProducts.length < 6) {
+              combinedProducts.push(product);
+            }
+          });
+        }
+        console.log("SuggestProducts - Sau khi thêm sản phẩm theo danh mục:", combinedProducts.length);
+        
+        // Nếu vẫn chưa đủ 6 sản phẩm, thêm từ danh sách tất cả sản phẩm
+        if (combinedProducts.length < 6) {
+          allProducts.forEach(product => {
+            if (!combinedProducts.some(p => p.id === product.id) && combinedProducts.length < 6) {
+              combinedProducts.push(product);
+            }
+          });
+        }
+        
+        console.log("SuggestProducts - Tổng số sản phẩm cuối cùng:", combinedProducts.length);
+        
+        // Đảm bảo không hiển thị sản phẩm hiện tại
+        combinedProducts = combinedProducts.filter(product => product.id !== productId);
+        
+        // Giới hạn tổng số sản phẩm là 6
+        setRelatedProducts(combinedProducts.slice(0, 6));
         setLoading(false);
       } catch (error) {
         console.error("Lỗi khi lấy sản phẩm liên quan:", error);
         setLoading(false);
-        setRelatedProducts([]);
+        
+        // Nếu có lỗi, thử lấy sản phẩm ngẫu nhiên
+        try {
+          const randomProducts = await apiServices.products.getProducts(0, 6);
+          if (randomProducts && (randomProducts.content || Array.isArray(randomProducts))) {
+            const products = randomProducts.content || randomProducts;
+            // Loại bỏ sản phẩm hiện tại nếu có
+            const filteredProducts = products.filter(p => p.id !== productId);
+            setRelatedProducts(filteredProducts.slice(0, 6));
+          } else {
+            setRelatedProducts([]);
+          }
+        } catch (fallbackError) {
+          console.error("Không thể lấy sản phẩm dự phòng:", fallbackError);
+          setRelatedProducts([]);
+        }
       }
     };
 
     fetchRelatedProducts();
-  }, [categoryId]);
+  }, [categoryId, productId]);
 
   // Hiển thị skeleton loading khi đang tải dữ liệu
   if (loading) {
@@ -81,9 +186,7 @@ function SuggestProducts({ categoryId }) {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {relatedProducts.map((product) => {
           // Lấy ảnh đầu tiên từ danh sách ảnh (nếu có)
-          const firstImage = product.images && Object.values(product.images)[0] 
-            ? Object.values(product.images)[0] 
-            : "https://placehold.co/150";
+          const firstImage = product.imageReview ?? FALLBACK_IMAGE;
           
           // Lấy giá từ variant (nếu có)
           const price = product.variant && product.variant.price 
@@ -100,6 +203,10 @@ function SuggestProducts({ categoryId }) {
                   src={firstImage}
                   alt={product.name}
                   className="object-cover w-full h-48 rounded-md"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = FALLBACK_IMAGE;
+                  }}
                 />
                 <div className="mt-4">
                   <h3 className="text-xl font-semibold">{product.name}</h3>
@@ -121,7 +228,8 @@ function SuggestProducts({ categoryId }) {
 }
 
 SuggestProducts.propTypes = {
-  categoryId: PropTypes.string
+  categoryId: PropTypes.string,
+  productId: PropTypes.string
 };
 
 export default SuggestProducts;

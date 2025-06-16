@@ -28,7 +28,6 @@ const geometry = new THREE.BufferGeometry().setFromPoints([
 // 🖼️ MAIN COMPONENT
 // Thành phần chính của ứng dụng, nơi hiển thị Canvas với các ảnh 3D
 function ProductImages({imageUrls}) {
-  console.log("ProductImages component rendered with images:", imageUrls);
   const urls = useMemo(
     () => {
       // Nếu có imageUrls được truyền vào, sử dụng chúng

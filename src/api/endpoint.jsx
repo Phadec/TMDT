@@ -18,6 +18,7 @@ const commonUrl = {
     product: {
         getAll: `${PRODUCT}`,
         detail: (id) => `${PRODUCT}/${id}`,
+        similar: (id) => `${PRODUCT}/${id}/similar`,
     }
 };
 
