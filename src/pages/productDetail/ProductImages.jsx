@@ -6,6 +6,7 @@ import { Image, ScrollControls, Scroll, useScroll, Html } from "@react-three/dre
 import { proxy, useSnapshot } from "valtio"; // Quản lý state toàn cục với valtio
 import { easing } from "maath"; // Các hàm hỗ trợ easing chuyển động
 import { Suspense } from "react"; // Để lazy load các component trong React
+import PropTypes from "prop-types";
 
 import { getImageFromAssets } from "~/utils/imageUtils"; // Hàm tiện ích để lấy ảnh từ thư mục assets
 
@@ -26,13 +27,24 @@ const geometry = new THREE.BufferGeometry().setFromPoints([
 
 // 🖼️ MAIN COMPONENT
 // Thành phần chính của ứng dụng, nơi hiển thị Canvas với các ảnh 3D
-function ProductImages() {
+function ProductImages({imageUrls}) {
+  console.log("ProductImages component rendered with images:", imageUrls);
   const urls = useMemo(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
-        (u) => getImageFromAssets(`${u}.jpg`, "productDetail") // Lấy các ảnh sản phẩm từ assets
-      ),
-    []
+    () => {
+      // Nếu có imageUrls được truyền vào, sử dụng chúng
+      if (imageUrls && imageUrls.length > 0) {
+        // Sử dụng proxy server để tránh lỗi CORS
+        return imageUrls.map(url => 
+          `/api/proxy/image?url=${encodeURIComponent(url)}`
+        );
+      } else {
+        // Fallback: Sử dụng ảnh cố định nếu không có imageUrls được truyền vào
+        return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
+          (u) => getImageFromAssets(`${u}.jpg`, "productDetail")
+        );
+      }
+    },
+    [imageUrls]
   );
 
   useEffect(() => {
@@ -254,5 +266,9 @@ function ImageFullscreen() {
     />
   );
 }
+
+ProductImages.propTypes = {
+  imageUrls: PropTypes.arrayOf(PropTypes.string),
+};
 
 export default ProductImages;

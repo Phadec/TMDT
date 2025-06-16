@@ -26,15 +26,72 @@ const detailImage = cva(["w-full", "h-full", "object-cover"], {
 function ProductArticle({ productData }) {
   const [showFullDescription, setShowFullDescription] = useState(false);
 
+  // Mảng các màu sắc cho tag
+  const tagColors = [
+    { bg: "bg-blue-100", text: "text-blue-700", hover: "hover:bg-blue-200" },
+    { bg: "bg-green-100", text: "text-green-700", hover: "hover:bg-green-200" },
+    { bg: "bg-red-100", text: "text-red-700", hover: "hover:bg-red-200" },
+    {
+      bg: "bg-purple-100",
+      text: "text-purple-700",
+      hover: "hover:bg-purple-200",
+    },
+    {
+      bg: "bg-yellow-100",
+      text: "text-yellow-700",
+      hover: "hover:bg-yellow-200",
+    },
+    { bg: "bg-pink-100", text: "text-pink-700", hover: "hover:bg-pink-200" },
+    {
+      bg: "bg-indigo-100",
+      text: "text-indigo-700",
+      hover: "hover:bg-indigo-200",
+    },
+    { bg: "bg-teal-100", text: "text-teal-700", hover: "hover:bg-teal-200" },
+    {
+      bg: "bg-orange-100",
+      text: "text-orange-700",
+      hover: "hover:bg-orange-200",
+    },
+    { bg: "bg-cyan-100", text: "text-cyan-700", hover: "hover:bg-cyan-200" },
+  ];
+
+  // Hàm hiển thị các tag từ shortDes
+  const renderShortDesTags = () => {
+    if (!productData?.shortDes) {
+      return (
+        <span className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-full">
+          Mô tả ngắn gọn
+        </span>
+      );
+    }
+
+    return productData.shortDes.split("\n").map((tag, index) => {
+      // Chọn màu ngẫu nhiên từ mảng tagColors
+      const randomColor =
+        tagColors[Math.floor(Math.random() * tagColors.length)];
+
+      return (
+        <span
+          key={index}
+          className={`px-3 py-1 text-sm font-medium ${randomColor.text} transition-colors ${randomColor.bg} rounded-full ${randomColor.hover}`}
+        >
+          {tag}
+        </span>
+      );
+    });
+  };
+
   return (
     <div className="p-4 my-10 space-y-6 bg-white shadow-md rounded-xl">
       {/* Phần đầu: Tên sản phẩm + mô tả ngắn */}
       <div>
-        <h1 className="text-[30px] lg:text-[50px] font-bold text-gray-900 mb-10 text-center">
-          {productData ? productData.name : "🎉 Tên sản phẩm 🎉"}
+        <h1 className="text-[40px] lg:text-[72px] p-6 font-extrabold mb-10 text-center bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse">
+          🎉 {productData ? productData.name : "Tên sản phẩm"}
         </h1>
-        <span>{productData}</span>
-        <p className="mt-2 text-gray-700">{productData.shortDes ?? 'Mô tả ngắn'}</p>
+
+        <div className="flex flex-wrap gap-2 mt-2">{renderShortDesTags()}</div>
+        <p className="mt-2 text-gray-700"></p>
       </div>
 
       {/* Phần 3D (Demo mô hình sản phẩm) */}
@@ -148,7 +205,6 @@ ProductArticle.propTypes = {
     brand: PropTypes.object,
     productCategory: PropTypes.object,
     specs: PropTypes.object,
-    images: PropTypes.object,
     status: PropTypes.string,
     variant: PropTypes.object,
   }),
