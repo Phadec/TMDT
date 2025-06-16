@@ -86,7 +86,7 @@ function ProductArticle({ productData }) {
     <div className="p-4 my-10 space-y-6 bg-white shadow-md rounded-xl">
       {/* Phần đầu: Tên sản phẩm + mô tả ngắn */}
       <div>
-        <h1 className="text-[40px] lg:text-[72px] p-6 font-extrabold mb-10 text-center bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse">
+        <h1 className="text-[40px] lg:text-[72px] leading-[1.2] p-8 font-extrabold mb-10 text-center bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg animate-pulse">
           🎉 {productData ? productData.name : "Tên sản phẩm"}
         </h1>
 
@@ -123,7 +123,9 @@ function ProductArticle({ productData }) {
             className="object-cover rounded-full w-14 h-14"
           />
           <div>
-            <p className="text-lg font-semibold text-gray-900">{productData?.customer?.fullName ?? "Họ tên người dùng"}</p>
+            <p className="text-lg font-semibold text-gray-900">
+              {productData?.customer?.fullName ?? "Họ tên người dùng"}
+            </p>
             <p className="text-sm text-gray-600">
               {productData?.customer?.email ?? "Thông tin thêm"}
             </p>
