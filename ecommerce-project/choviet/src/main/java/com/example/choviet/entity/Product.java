@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -42,9 +43,8 @@ public class Product {
 
     public void addImage(String image) {
         if (images == null) {
-            images = List.of(image);
-        } else {
-            images.add(image);
+            images = new ArrayList<>();
         }
+        images.add(image);
     }
 }

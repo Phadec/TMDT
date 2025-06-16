@@ -20,8 +20,6 @@ public class CustomerService {
 
     @Autowired
     JwtUtil jwtUtil;
-
-
     @Autowired
     RedisService redisService;
 
@@ -37,8 +35,6 @@ public class CustomerService {
     // register
     // forgot pass
     // changepass
-
-    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public Page<AuthResponse> getCustomerPaging(int page, int size) {
         Pageable pageable = pagingService.createPageable(page, size);

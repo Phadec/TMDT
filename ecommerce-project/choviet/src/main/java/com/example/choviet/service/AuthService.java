@@ -203,7 +203,7 @@ public class AuthService {
         customer.setPhone(request.getPhone());
         customer.setAddresses(request.getAddresses());
         customer.setSeller(request.isSeller());
-        customer.setStatus(Customer.Status.ACTIVE); // Set status to ACTIVE by default (removed activation requirement)
+        customer.setStatus(Customer.Status.ACTIVE);
         customer.setCreatedAt(LocalDateTime.now());
         customer.setUpdateAt(LocalDateTime.now());
 

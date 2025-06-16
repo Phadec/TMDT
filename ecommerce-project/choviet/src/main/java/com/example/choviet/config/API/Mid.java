@@ -8,4 +8,5 @@ public interface Mid {
     String USER = "/users";
     String CUSTOMER = "/customers";
     String VERIFY = "/verify";
+    String IMAGE_PROXY = "/image-proxy";
 }
