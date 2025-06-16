@@ -13,6 +13,9 @@ import static com.example.choviet.config.Code.OK;
 import static com.example.choviet.config.api.Mid.*;
 import static com.example.choviet.config.api.Prefix.*;
 import static com.example.choviet.config.api.suffix.Product.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController
 @RequestMapping(COMMON + PRODUCT)
@@ -32,6 +35,20 @@ public class ProductController {
         );
         return ResponseEntity.ok(response);
     }
+
+    // Lấy chi tiết sản phẩm
+    @GetMapping(DETAIL)
+    public ResponseEntity<ApiResponse<Product>> getProductDetail(@PathVariable String id) {
+        Product product = productService.detail(id);
+        
+        ApiResponse<Product> response = new ApiResponse<>(
+                OK,
+                "success",
+                product
+        );
+        return ResponseEntity.ok(response);
+    }
+    
 
     // Lấy sản phẩm theo loại
     @GetMapping(GET_PRODUCTS_BY_CATEGORY)

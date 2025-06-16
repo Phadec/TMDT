@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -16,23 +17,20 @@ import java.util.Map;
 public class Product {
     @Id
     String id;
-
     String name;
-
     @Field("des_02")
     String description;
-
     @Field("des_01")
     String shortDes;
-
     @Field("category_id")    
     String categoryId;
+    String price;
+    String imageReview;
+    List<String> images;
 
     Brand brand;
-
     ProductCategory productCategory;
     Map<String, String> specs;
-    Map<String, String> images;
     Type status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
@@ -40,5 +38,13 @@ public class Product {
 
     public enum Type {
         ACTIVE, INACTIVE
+    }
+
+    public void addImage(String image) {
+        if (images == null) {
+            images = List.of(image);
+        } else {
+            images.add(image);
+        }
     }
 }
