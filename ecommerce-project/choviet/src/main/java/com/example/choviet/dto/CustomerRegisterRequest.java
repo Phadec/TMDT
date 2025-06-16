@@ -13,6 +13,6 @@ public class CustomerRegisterRequest {
     String password;
     String fullName;
     String phone;
-    Map<String, String> addresses;
+    String addresses;
     boolean isSeller;
 }

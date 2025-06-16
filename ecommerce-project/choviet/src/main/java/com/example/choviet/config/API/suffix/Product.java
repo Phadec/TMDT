@@ -5,4 +5,6 @@ public interface Product {
     String CREATE_PRODUCTS = "/batch";
     String DETAIL = "/{id}";
     String GET_PRODUCTS_BY_CATEGORY = "/category/{id}";
+    String SIMILAR_PRODUCTS = "/{id}/similar";
+    String REVIEWS = "/{id}/reviews";
 }

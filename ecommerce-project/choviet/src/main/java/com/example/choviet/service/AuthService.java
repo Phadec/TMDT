@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.example.choviet.config.ConfigTopicUser.*;
@@ -197,6 +198,7 @@ public class AuthService {
 
         // Create new customer
         Customer customer = new Customer();
+        customer.setId(UUID.randomUUID().toString());
         customer.setEmail(request.getEmail());
         customer.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         customer.setFullName(request.getFullName());

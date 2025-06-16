@@ -1,25 +1,22 @@
-package com.example.choviet.entity;
-
+package com.example.choviet.dto;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Document(collection = "reviews")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Review {
-    @Id
+public class ReviewResponse {
     String id;
-    @Field("product_id")
     String productId;
-    @Field("customer_id")
     String customerId;
+    String customerName;
     String content;
     int rating;
     LocalDateTime createdAt;

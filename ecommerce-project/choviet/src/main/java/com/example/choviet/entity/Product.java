@@ -19,19 +19,18 @@ public class Product {
     @Id
     String id;
     String name;
-    @Field("des_02")
-    String description;
     @Field("des_01")
     String shortDes;
-    @Field("category_id")    
+    @Field("des_02")
+    String description;
+    @Field("category_id")
     String categoryId;
     String price;
     String imageReview;
     List<String> images;
-
-    Brand brand;
     ProductCategory productCategory;
-    Map<String, String> specs;
+    Customer customer; // seller
+
     Type status;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

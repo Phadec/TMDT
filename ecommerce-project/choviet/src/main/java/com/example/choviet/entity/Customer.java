@@ -18,8 +18,9 @@ public class Customer {
     String fullName;
     String phone;
     Status status;
-    Map<String, String> addresses;
+    String addresses;
     boolean isSeller;
+    
     LocalDateTime createdAt;
     LocalDateTime updateAt;
 

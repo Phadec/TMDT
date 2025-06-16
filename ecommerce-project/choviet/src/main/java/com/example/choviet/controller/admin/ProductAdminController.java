@@ -27,13 +27,6 @@ public class ProductAdminController {
         this.productService = productService;
     }
 
-    // Cập nhật trạng thái sản phẩm
-    @PutMapping(UPDATE_STATUS)
-    public ResponseEntity<ApiResponse<Product>> updateStatus(@PathVariable String id, @RequestParam String status) {
-        Product product = productService.updateStatus(id, status);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "success", product));
-    }
-
     // Thêm sản phẩm
     @PostMapping
     public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody Product product) {

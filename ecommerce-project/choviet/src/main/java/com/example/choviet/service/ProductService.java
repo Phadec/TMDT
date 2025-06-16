@@ -1,12 +1,16 @@
 package com.example.choviet.service;
 
 import com.example.choviet.dto.Event;
+import com.example.choviet.entity.Customer;
 import com.example.choviet.entity.Images;
 import com.example.choviet.entity.Product;
 import com.example.choviet.entity.ProductCategory;
+import com.example.choviet.entity.ProductCustomer;
 import com.example.choviet.entity.ProductImage;
+import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.repository.ImageRepository;
 import com.example.choviet.repository.ProductCategoryRepository;
+import com.example.choviet.repository.ProductCustomerRepository;
 import com.example.choviet.repository.ProductImageRepository;
 import com.example.choviet.repository.ProductRepository;
 import lombok.AccessLevel;
@@ -43,6 +47,10 @@ public class ProductService {
     ProductImageRepository productImageRepository;
     @Autowired
     ImageRepository imageRepository;
+    @Autowired
+    ProductCustomerRepository productCustomerRepository;
+    @Autowired
+    CustomerRepository customerRepository;
 
     // Lấy tất cả sản phẩm theo trang
     public Page<Product> getProductsPaging(int page, int size) {
@@ -206,27 +214,25 @@ public class ProductService {
                 }
             }
         }
+        
+        // Thêm thông tin người bán (customer) với chỉ họ tên và email thông qua bảng ProductCustomer
+        productCustomerRepository.findByProductId(id)
+                .ifPresent(productCustomer -> {
+                    String customerId = productCustomer.getCustomerId();
+                    if (customerId != null) {
+                        customerRepository.findById(customerId)
+                                .ifPresent(seller -> {
+                                    Customer sellerInfo = new Customer();
+                                    sellerInfo.setId(seller.getId());
+                                    sellerInfo.setFullName(seller.getFullName());
+                                    sellerInfo.setEmail(seller.getEmail());
+                                    product.setCustomer(sellerInfo);
+                                });
+                    }
+                });
 
         return product;
     }
-
-    // Cập nhật trạng thái sản phẩm (ACTIVE hoặc INACTIVE)
-    public Product updateStatus(String id, String status) {
-        Product.Type enumStatus;
-        try {
-            enumStatus = Product.Type.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Trạng thái không hợp lệ: " + status);
-        }
-
-        Product product = productRepository.findById(id).orElseThrow(null);
-
-        product.setStatus(enumStatus);
-        productRepository.save(product);
-
-        return product;
-    }
-
     // Thêm một sản phẩm
     public Product createProduct(Product product) {
         return productRepository.save(product);
