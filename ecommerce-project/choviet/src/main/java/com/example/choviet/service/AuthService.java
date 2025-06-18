@@ -109,6 +109,7 @@ public class AuthService {
 
             // đẩy vào queue
             AuthResponse response = new AuthResponse();
+            response.setEmail(customer.getEmail());
             response.setId(customer.getId());
             response.setToken(accessToken);
             response.setUserType("CUSTOMER");

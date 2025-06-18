@@ -7,5 +7,5 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PersonRequest {
-    String personId; // của nhân viên hoặc của khách hàng
+    String personId;
 }

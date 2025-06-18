@@ -64,6 +64,13 @@ API được tổ chức theo 3 nhóm chính:
 
 ---
 
+## 👤 Profile APIs
+
+### Client Profile (`/api/v1/client/profile`)
+- `POST /view` - Xem thông tin cá nhân của khách hàng
+
+---
+
 ## 👥 Customer Management (`/api/v1/admin/customers`)
 - `GET /` - Lấy danh sách khách hàng (có phân trang)
 
@@ -109,6 +116,48 @@ Tất cả API đều trả về format chuẩn:
   "data": {...}
 }
 ```
+
+---
+
+## 📋 API Details
+
+### 👤 Profile - Xem thông tin cá nhân
+**Endpoint**: `POST /api/v1/client/profile/view`
+
+**Description**: Lấy thông tin chi tiết của khách hàng theo ID
+
+**Request Body**:
+```json
+{
+  "personId": "customer_id_here"
+}
+```
+
+**Response**:
+```json
+{
+  "code": "OK",
+  "message": "Lấy thông tin cá nhân thành công",
+  "data": {
+    "token": null,
+    "userType": "CUSTOMER",
+    "id": "customer_id_here",
+    "email": "customer@example.com",
+    "fullname": "Nguyễn Văn A",
+    "phone": "0123456789",
+    "name": null,
+    "roleName": null,
+    "permission": null,
+    "createdAt": "2024-01-01T10:00:00"
+  }
+}
+```
+
+**HTTP Status**: 200 OK
+
+**Notes**: 
+- Yêu cầu authentication
+- Trả về thông tin cá nhân không bao gồm mật khẩu và thông tin nhạy cảm
 
 ## 🚀 Công nghệ sử dụng
 - **Backend**: Spring Boot

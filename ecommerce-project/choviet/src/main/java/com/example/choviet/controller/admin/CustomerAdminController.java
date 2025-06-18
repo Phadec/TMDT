@@ -21,10 +21,4 @@ import static com.example.choviet.config.api.suffix.Customer.*;
 public class CustomerAdminController {
     @Autowired
     CustomerService customerService;
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<Page<AuthResponse>>> getCustomer(@RequestParam int page, @RequestParam int size) {
-        Page<AuthResponse> customerDtos = customerService.getCustomerPaging(page, size);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "success", customerDtos));
-    }
 }

@@ -22,7 +22,6 @@ public class NotificationConsumer {
 
             String content = "Chào bạn, bạn đã đăng nhập thành công Chợ Việt\n" + "Ngày: " + getDate(event.getCreatedAt()) + "\nLúc: " + getTime(event.getCreatedAt()) + "\nNếu không phải bạn vui lòng liên hệ với chúng tôi qua hotline 113";
 
-
             emailService.sendNotification(event.getData().getEmail(), title, content);
         } catch (Exception e) {
             // Log lỗi nếu cần
