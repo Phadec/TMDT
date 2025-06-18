@@ -66,7 +66,6 @@ export const useAuth = () => {
       }
       return false;
     } catch (error) {
-      console.error('Register error:', error);
       return false;
     }
   };
@@ -84,6 +83,7 @@ export const useAuth = () => {
      if(logoutCustomer.fulfilled.match(resultAction)) {
         // Chuyển hướng về trang chủ hoặc trang đăng nhập sau khi đăng xuất
         localStorage.removeItem('accessToken'); // Xóa token khỏi localStorage
+        localStorage.removeItem('userData'); // Xóa user data khỏi localStorage
         navigate(PUBLIC_URL.LOGIN);
         return true;
       }

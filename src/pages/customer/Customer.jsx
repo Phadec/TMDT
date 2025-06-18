@@ -40,7 +40,7 @@ const tabContents = {
   logout: null // Sẽ được xử lý riêng
 };
 
-function User() {
+function Customer() {
   const [activeTab, setActiveTab] = useState("profile");
   const { logout } = useAuth();
 
@@ -59,7 +59,7 @@ function User() {
         <div className="w-full h-auto p-4 mb-4 overflow-auto bg-white rounded-lg shadow-md md:w-1/3 sm:p-6 md:h-full md:mb-0">
           {/* Avatar và tên người dùng */}
           <div className="flex flex-col items-center">
-            <Avatar name="Nguyễn Văn A" username="nguyenvana" />
+            <Avatar name="Nguyễn Văn A" Customername="nguyenvana" />
           </div>
 
           {/* Danh sách tính năng */}
@@ -90,4 +90,4 @@ function User() {
   );
 }
 
-export default User;
+export default Customer;

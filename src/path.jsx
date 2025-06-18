@@ -11,7 +11,7 @@ const PUBLIC_URL = {
 };
 
 const PRIVATE_URL = {
-  USER: "/account",
+  CUSTOMER: "/account",
   CART: "/cart",
   DASHBOARD: "/dashboard"
 };

@@ -47,7 +47,7 @@ const publicNavItems = [
 const privateNavItems = [
   {
     icon: UserCircleIcon,
-    url: PRIVATE_URL.USER,
+    url: PRIVATE_URL.CUSTOMER,
     label: "Tài khoản",
   },
   {

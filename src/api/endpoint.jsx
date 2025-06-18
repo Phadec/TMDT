@@ -1,11 +1,15 @@
 const AUTH =  '/auth';
 const PRODUCT = '/products';
+const PROFILE = '/profile';
 
 const clientUrl = {
     auth: {
         login: `${AUTH}/login`,
         register: `${AUTH}/register`,
         forget: `${AUTH}/forget`,
+    },
+    profile: {
+        view: `${PROFILE}/view`,
     }
 };
 

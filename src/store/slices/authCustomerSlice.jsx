@@ -68,9 +68,20 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
+// Hàm helper để lấy user data từ localStorage
+const getUserFromStorage = () => {
+  try {
+    const userData = localStorage.getItem("userData");
+    return userData ? JSON.parse(userData) : null;
+  } catch (error) {
+    console.error("Error parsing user data from localStorage:", error);
+    return null;
+  }
+};
+
 // Trạng thái ban đầu của auth
 const initialState = {
-  user: null,
+  user: getUserFromStorage(),
   token: localStorage.getItem("accessToken") || null,
   isAuthenticated: !!localStorage.getItem("accessToken"),
   loading: false,
@@ -101,6 +112,9 @@ const authCustomerSlice = createSlice({
         state.isAuthenticated = true;
         state.token = action.payload.token;
         state.user = action.payload;
+
+        // Lưu user data vào localStorage
+        localStorage.setItem("userData", JSON.stringify(action.payload));
 
         Swal.fire({
           icon: "success",
@@ -167,6 +181,9 @@ const authCustomerSlice = createSlice({
         state.token = null;
         state.user = null;
 
+        // Xóa userData khỏi localStorage
+        localStorage.removeItem("userData");
+
         Swal.fire({
           icon: "success",
           title: "Đăng xuất thành công!",
@@ -180,6 +197,9 @@ const authCustomerSlice = createSlice({
         state.isAuthenticated = false;
         state.token = null;
         state.user = null;
+
+        // Xóa userData khỏi localStorage ngay cả khi logout thất bại
+        localStorage.removeItem("userData");
       });
 
     // Forgot password cases

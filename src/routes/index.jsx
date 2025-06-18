@@ -4,7 +4,7 @@ import { Policy } from "~/pages/Policy";
 import { Connect } from "~/pages/Connect";
 import { ProductDetail } from "~/pages/ProductDetail";
 import { Login, Register, Forget } from "~/pages/Auth";
-import { User } from "~/pages/User";
+import { Customer } from "~/pages/Customer";
 import { Cart } from "~/pages/Cart";
 import { NotFound } from "~/pages/NotFound";
 import { Dashboard } from "~/pages/Dashboard";
@@ -60,8 +60,8 @@ const publicRoutes = [
 // Chỉ được xem khi đã đăng nhập
 const privateRoutes = [
   {
-    path: PRIVATE_URL.USER,
-    element: User,
+    path: PRIVATE_URL.CUSTOMER,
+    element: Customer,
   },
   {
     path: PRIVATE_URL.CART,
