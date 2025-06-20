@@ -1,14 +1,14 @@
 import Swal from "sweetalert2";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-import { adminApi, commonApi, adminUrl, commonUrl } from "~/api";
+import { adminServices } from "~/api";
 
-// Async thunk for admin login - accept navigate function as parameter
+// Async thunk for admin login - use adminServices
 export const loginAdmin = createAsyncThunk(
   "authAdmin/loginAdmin",
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await adminApi.post(adminUrl.auth.login, credentials);
+      const response = await adminServices.auth.login(credentials);
 
       if (response && response.token) {
         localStorage.setItem("adminToken", response.token);
@@ -32,9 +32,7 @@ export const logoutAdmin = createAsyncThunk(
   "authAdmin/logoutAdmin",
   async (adminId, { rejectWithValue }) => {
     try {
-      const response = await commonApi.post(commonUrl.auth.logout, {
-        personId: adminId,
-      });
+      const response = await adminServices.auth.logout(adminId);
       localStorage.removeItem("adminToken");
       return response;
     } catch (error) {

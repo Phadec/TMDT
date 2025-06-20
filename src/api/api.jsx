@@ -18,69 +18,81 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Interceptor xử lý request - thêm token vào header
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Tạo function helper để gọi API với token phù hợp
+const createApiService = (baseURL, tokenKey = "accessToken") => {
+  const instance = axios.create({
+    baseURL,
+    timeout: 10000,
+    headers: { "Content-Type": "application/json" },
+  });
 
-// Interceptor xử lý response - trích xuất data từ response format chuẩn
-api.interceptors.response.use(
-  (response) => {
-    // Trả về data từ format API: { code, message, data }
-    if (response.data && response.data.code === Code.OK) {
-      return response.data.data;
-    }
-    return response.data;
-  },
-  (error) => {
-    // Xử lý các lỗi phổ biến
-    if (error.response) {
-      // Lỗi từ server với status code
-      const { status, data } = error.response;
-      
-      // Nếu token hết hạn hoặc không hợp lệ
-      if (status === 401) {
-        localStorage.removeItem("accessToken");
+  // Interceptor xử lý request - thêm token vào header
+  instance.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem(tokenKey);
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  // Interceptor xử lý response
+  instance.interceptors.response.use(
+    (response) => {
+      // Trả về data từ format API: { code, message, data }
+      if (response.data && response.data.code === Code.OK) {
+        return response.data.data;
       }
+      return response.data;
+    },
+    (error) => {
+      // Xử lý các lỗi phổ biến
+      if (error.response) {
+        // Lỗi từ server với status code
+        const { status, data } = error.response;
+        
+        // Nếu token hết hạn hoặc không hợp lệ
+        if (status === 401) {
+          localStorage.removeItem(tokenKey);
+          // Redirect to login if it's admin token
+          if (tokenKey === "adminToken") {
+            window.location.href = "/admin/login";
+          }
+        }
 
-      // Trả về message lỗi từ server nếu có
-      return Promise.reject({
-        status,
-        message: data.message || "Lỗi từ server",
-        data: data
-      });
-    } else if (error.request) {
-      // Không nhận được response
-      return Promise.reject({
-        status: 0,
-        message: "Không thể kết nối đến server",
-      });
-    } else {
-      // Lỗi trong quá trình set up request
-      return Promise.reject({
-        message: error.message || "Có lỗi xảy ra",
-      });
+        // Trả về message lỗi từ server nếu có
+        return Promise.reject({
+          status,
+          message: data.message || "Lỗi từ server",
+          data: data
+        });
+      } else if (error.request) {
+        // Không nhận được response
+        return Promise.reject({
+          status: 0,
+          message: "Không thể kết nối đến server",
+        });
+      } else {
+        // Lỗi trong quá trình set up request
+        return Promise.reject({
+          message: error.message || "Có lỗi xảy ra",
+        });
+      }
     }
-  }
-);
+  );
 
-// Tạo function helper để gọi API
-const createApiService = (baseURL) => ({
-  get: (path, config) => api.get(`${baseURL}${path}`, config),
-  post: (path, data, config) => api.post(`${baseURL}${path}`, data, config),
-  put: (path, data, config) => api.put(`${baseURL}${path}`, data, config),
-  delete: (path, config) => api.delete(`${baseURL}${path}`, config),
-});
+  return {
+    get: (path, config) => instance.get(path, config),
+    post: (path, data, config) => instance.post(path, data, config),
+    put: (path, data, config) => instance.put(path, data, config),
+    delete: (path, config) => instance.delete(path, config),
+  };
+};
 
 // Khởi tạo các service theo phân quyền từ tài liệu API
-const adminApi = createApiService(ENDPOINTS.ADMIN);
-const clientApi = createApiService(ENDPOINTS.CLIENT);
-const commonApi = createApiService(ENDPOINTS.COMMON);
+const adminApi = createApiService(ENDPOINTS.ADMIN, "adminToken");
+const clientApi = createApiService(ENDPOINTS.CLIENT, "accessToken");
+const commonApi = createApiService(ENDPOINTS.COMMON, "accessToken");
 
 // Export named exports
 export { adminApi, clientApi, commonApi };
