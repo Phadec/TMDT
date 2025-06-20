@@ -1,23 +1,20 @@
 package com.example.choviet.service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.example.choviet.config.ErrorConfig;
-import com.example.choviet.dto.AuthResponse;
 import com.example.choviet.dto.ProfileResponse;
 import com.example.choviet.entity.Customer;
 import com.example.choviet.exception.AppException;
 import com.example.choviet.repository.CustomerRepository;
 import com.example.choviet.utils.JwtUtil;
+
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Service
