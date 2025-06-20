@@ -16,7 +16,14 @@ export const loginAdmin = createAsyncThunk(
 
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Đăng nhập thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );
@@ -32,7 +39,15 @@ export const logoutAdmin = createAsyncThunk(
       return response;
     } catch (error) {
       localStorage.removeItem("adminToken");
-      return rejectWithValue(error);
+      
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Đăng xuất thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );

@@ -18,7 +18,14 @@ export const loginCustomer = createAsyncThunk(
 
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Đăng nhập thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );
@@ -31,7 +38,14 @@ export const registerCustomer = createAsyncThunk(
       const response = await clientApi.post(clientUrl.auth.register, userData);
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Đăng ký thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );
@@ -50,7 +64,15 @@ export const logoutCustomer = createAsyncThunk(
     } catch (error) {
       // Vẫn xóa token dù API có lỗi
       localStorage.removeItem("accessToken");
-      return rejectWithValue(error);
+      
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Đăng xuất thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );
@@ -63,7 +85,14 @@ export const forgotPassword = createAsyncThunk(
       const response = await clientApi.put(clientUrl.auth.forget, { email });
       return response;
     } catch (error) {
-      return rejectWithValue(error);
+      // Only return serializable error data
+      const errorMessage = error?.message || error?.data?.message || "Gửi email thất bại";
+      const errorStatus = error?.status || 500;
+      
+      return rejectWithValue({
+        message: errorMessage,
+        status: errorStatus,
+      });
     }
   }
 );

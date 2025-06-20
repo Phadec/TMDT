@@ -13,7 +13,12 @@ const clientUrl = {
     }
 };
 
-const adminUrl = {};
+const adminUrl = {
+    auth: {
+        login: `${AUTH}/login`,
+        logout: `${AUTH}/logout`,
+    },
+};
 
 const commonUrl = {
     auth: {
