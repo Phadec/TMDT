@@ -1,11 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { authCustomerReducer } from './slices';
+import { authCustomerReducer, authAdminReducer } from './slices';
 
 // Khởi tạo Redux store
 const store = configureStore({
   reducer: {
     // Đặt tên auth cho slice để truy cập state.auth trong ứng dụng
     auth: authCustomerReducer,
+    authAdmin: authAdminReducer,
     // Thêm các reducers khác ở đây, ví dụ:
     // cart: cartReducer,
     // product: productReducer,

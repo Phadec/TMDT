@@ -18,6 +18,7 @@ const PRIVATE_URL = {
 
 const ADMIN_URL = {
   DASHBOARD: "/admin/dashboard",
+  LOGIN:"/admin/login",
 };
 
 export { PUBLIC_URL, PRIVATE_URL, ADMIN_URL };
