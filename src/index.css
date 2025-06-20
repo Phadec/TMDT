@@ -1,0 +1,108 @@
+@import "reset-css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Base styles (reset/typography) */
+  html {
+    @apply font-sans text-content-primary bg-surface;
+    line-height: 1.5;
+  }
+  h1 {
+    @apply text-3xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-semibold;
+  }
+  a {
+    @apply text-primary-light text-xs hover:text-primary-dark transition-colors;
+  }
+
+  * {
+    -ms-overflow-style: none !important; /* IE and Edge */
+    scrollbar-width: none !important; /* Firefox */
+  }
+
+  /* Tùy chỉnh thanh cuộn cho toàn bộ trang */
+  ::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari */
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+@layer components {
+  /* Từ plugin */
+  .form-label {
+    @apply block text-gray-700 text-sm font-bold mb-2;
+  }
+  .section-title {
+    @apply text-xl font-semibold mb-4;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-DEFAULT transition-all duration-DEFAULT;
+    &-primary {
+      @apply bg-primary text-on-primary hover:bg-primary-dark;
+    }
+    &-secondary {
+      @apply bg-secondary text-on-secondary hover:bg-secondary-dark;
+    }
+    &-outline {
+      @apply border border-primary text-primary hover:bg-primary/10;
+    }
+  }
+
+  .card {
+    @apply bg-surface rounded-DEFAULT shadow-DEFAULT p-6 border border-border;
+    &-header {
+      @apply text-xl font-bold mb-4;
+    }
+  }
+
+  .alert {
+    @apply p-4 rounded-DEFAULT border;
+    &-success {
+      @apply bg-success/10 border-success text-success;
+    }
+    &-error {
+      @apply bg-danger/10 border-danger text-danger;
+    }
+  }
+}
+
+@layer utilities {
+  /* Custom utilities */
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .clip-circle {
+    clip-path: circle(50% at 50% 50%);
+  }
+}
+
+/* SweetAlert2 custom styles */
+.swal2-popup {
+  font-family: inherit !important;
+}
+
+/* Fix icon alignment issue */
+.swal2-icon {
+  margin: 1.25em auto 0.6em !important;
+  justify-content: center !important;
+  display: flex !important;
+}
+
+/* Ensure icon is centered */
+.swal2-icon .swal2-icon-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Fix container alignment */
+.swal-container .swal2-html-container {
+  text-align: center !important;
+}
