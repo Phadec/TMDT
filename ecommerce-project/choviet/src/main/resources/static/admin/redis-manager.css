@@ -1,0 +1,125 @@
+/* Additional CSS for Redis Manager */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.key-item {
+    cursor: pointer;
+    user-select: none;
+}
+
+.key-item.selected {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+.json-viewer {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.sidebar {
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.stats-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.danger-zone {
+    animation: subtle-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes subtle-glow {
+    from { box-shadow: 0 0 5px rgba(220, 53, 69, 0.3); }
+    to { box-shadow: 0 0 15px rgba(220, 53, 69, 0.5); }
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.key-type-badge, .ttl-badge {
+    font-weight: 500;
+}
+
+.pagination .page-link {
+    color: #007bff;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.modal-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.alert-custom {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 10px;
+    }
+    
+    .danger-zone {
+        margin-top: 20px;
+    }
+    
+    .json-viewer {
+        font-size: 0.8rem;
+        max-height: 200px;
+    }
+    
+    .key-item {
+        padding: 15px 10px;
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Scrollbar styling */
+.sidebar::-webkit-scrollbar,
+.json-viewer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.json-viewer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.json-viewer::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.json-viewer::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

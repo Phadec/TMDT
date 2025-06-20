@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -90,6 +91,19 @@ public class ProductService {
                                     });
                         }
                     });
+        }        // Lấy thông tin customer cho từng sản phẩm
+        Map<String, Customer> productCustomerMap = new HashMap<>();
+        for (String productId : productIds) {
+            productCustomerRepository.findByProductId(productId)
+                    .ifPresent(productCustomer -> {
+                        String customerId = productCustomer.getCustomerId();
+                        if (customerId != null) {
+                            customerRepository.findById(customerId)
+                                    .ifPresent(customer -> {
+                                        productCustomerMap.put(productId, customer);
+                                    });
+                        }
+                    });
         }
 
         List<Product> enriched = result.getContent().stream()
@@ -110,6 +124,12 @@ public class ProductService {
                     if (imagePath != null) {
                         product.setImageReview(imagePath);
                     }
+                    
+                    // Thêm thông tin customer (seller)
+                    Customer customer = productCustomerMap.get(product.getId());
+                    if (customer != null) {
+                        product.setCustomer(customer);
+                    }
                 })
                 .toList();
 
@@ -121,15 +141,13 @@ public class ProductService {
         // Validate categoryId
         if (categoryId == null || categoryId.trim().isEmpty()) {
             throw new IllegalArgumentException("Category ID không được để trống");
-        }
-
-        Pageable pageable = pagingService.createPageable(page, size);
-        Page<Product> result = productRepository.findAllByProductCategoryId(categoryId, pageable);
+        }        Pageable pageable = pagingService.createPageable(page, size);
+        Page<Product> result = productRepository.findByProductCategoryId(categoryId, pageable);
 
         // Nếu page vượt quá totalPages và có dữ liệu, redirect về trang cuối
         if (page >= result.getTotalPages() && result.getTotalPages() > 0) {
             pageable = pagingService.createPageable(result.getTotalPages() - 1, size);
-            result = productRepository.findAllByProductCategoryId(categoryId, pageable);
+            result = productRepository.findByProductCategoryId(categoryId, pageable);
         }
 
         // Lấy danh sách ID sản phẩm để tìm ảnh
@@ -149,6 +167,19 @@ public class ProductService {
                             imageRepository.findById(imageId)
                                     .ifPresent(image -> {
                                         productImageMap.put(productId, image.getImage());
+                                    });
+                        }
+                    });
+        }        // Lấy thông tin customer cho từng sản phẩm
+        Map<String, Customer> productCustomerMap = new HashMap<>();
+        for (String productId : productIds) {
+            productCustomerRepository.findByProductId(productId)
+                    .ifPresent(productCustomer -> {
+                        String customerId = productCustomer.getCustomerId();
+                        if (customerId != null) {
+                            customerRepository.findById(customerId)
+                                    .ifPresent(customer -> {
+                                        productCustomerMap.put(productId, customer);
                                     });
                         }
                     });
@@ -174,6 +205,12 @@ public class ProductService {
                     String imagePath = productImageMap.get(product.getId());
                     if (imagePath != null) {
                         product.setImageReview(imagePath);
+                    }
+                    
+                    // Thêm thông tin customer (seller)
+                    Customer customer = productCustomerMap.get(product.getId());
+                    if (customer != null) {
+                        product.setCustomer(customer);
                     }
 
                     return product;
@@ -246,5 +283,82 @@ public class ProductService {
         event.setAction(PRODUCT_CREATE_BATCH);
         event.setCreatedAt(LocalDateTime.now());
         eventPublisher.pushToQueue(event, PRODUCT_EXCHANGE, ADD_PRODUCTS_QUEUE);
+    }    /**
+     * Lấy tất cả sản phẩm với phân trang
+     */
+    public Page<Product> getAllProductsPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> result = productRepository.findAll(pageable);
+
+        // Lấy danh sách ID sản phẩm để tìm thông tin customer
+        List<String> productIds = result.getContent().stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        // Lấy thông tin customer cho từng sản phẩm
+        Map<String, Customer> productCustomerMap = new HashMap<>();
+        for (String productId : productIds) {
+            productCustomerRepository.findByProductId(productId)
+                    .ifPresent(productCustomer -> {
+                        String customerId = productCustomer.getCustomerId();
+                        if (customerId != null) {
+                            customerRepository.findById(customerId)
+                                    .ifPresent(customer -> {
+                                        productCustomerMap.put(productId, customer);
+                                    });
+                        }
+                    });
+        }
+
+        // Enrich mỗi product với thông tin customer
+        List<Product> enriched = result.getContent().stream()
+                .peek(product -> {
+                    // Thêm thông tin customer (seller)
+                    Customer customer = productCustomerMap.get(product.getId());
+                    if (customer != null) {
+                        product.setCustomer(customer);
+                    }
+                })
+                .toList();
+
+        return new PageImpl<>(enriched, pageable, result.getTotalElements());
+    }/**
+     * Lấy sản phẩm theo ID
+     */
+    public Product getProductById(String id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    }
+
+    /**
+     * Cập nhật sản phẩm
+     */
+    public Product updateProduct(String id, Product product) {
+        Product existingProduct = getProductById(id);
+        
+        // Update fields as needed
+        if (product.getName() != null) {
+            existingProduct.setName(product.getName());
+        }
+        if (product.getDescription() != null) {
+            existingProduct.setDescription(product.getDescription());
+        }
+        if (product.getPrice() != null) {
+            existingProduct.setPrice(product.getPrice());
+        }
+        if (product.getStatus() != null) {
+            existingProduct.setStatus(product.getStatus());
+        }
+        if (product.getProductCategory() != null) {
+            existingProduct.setProductCategory(product.getProductCategory());
+        }
+        
+        return productRepository.save(existingProduct);
+    }    /**
+     * Xóa sản phẩm
+     */
+    public void deleteProduct(String id) {
+        Product product = getProductById(id);
+        productRepository.delete(product);
     }
 }

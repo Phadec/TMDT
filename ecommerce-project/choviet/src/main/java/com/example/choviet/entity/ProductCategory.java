@@ -19,5 +19,34 @@ public class ProductCategory {
     @Field("category_id")
     String id;
     String name;
+    String description;
+    String parentId;
+    String icon;
+    Boolean isActive;
+    Long postCount; // Số lượng bài đăng trong danh mục
     LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+    
+    // Constructor mặc định
+    public ProductCategory() {
+        this.isActive = true;
+        this.postCount = 0L;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+    
+    // Constructor với builder
+    public ProductCategory(String id, String name, String description, String parentId, 
+                          String icon, Boolean isActive, Long postCount, 
+                          LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.parentId = parentId;
+        this.icon = icon;
+        this.isActive = isActive != null ? isActive : true;
+        this.postCount = postCount != null ? postCount : 0L;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
+    }
 }

@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.choviet.config.ErrorConfig;
@@ -94,5 +97,77 @@ public class CustomerService {
                 .createdAt(updatedCustomer.getCreatedAt())
                 .updateAt(updatedCustomer.getUpdateAt())
                 .build();
+    }
+
+    /**
+     * Lấy tất cả khách hàng với phân trang (cho admin)
+     * @param page số trang
+     * @param size kích thước trang
+     * @return Page<Customer>
+     */
+    public Page<Customer> getAllCustomersPaging(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return customerRepository.findAll(pageable);
+    }
+
+    /**
+     * Lấy thông tin Customer entity theo ID (cho admin)
+     * @param customerId ID của customer
+     * @return Customer entity
+     */
+    public Customer getCustomerEntityById(String customerId) {
+        Optional<Customer> customerOptional = customerRepository.findById(customerId);
+        if (customerOptional.isEmpty()) {
+            throw new AppException(ErrorConfig.NOT_FOUND, "Không tìm thấy thông tin khách hàng");
+        }
+        return customerOptional.get();
+    }
+
+    /**
+     * Cập nhật trạng thái khách hàng (cho admin)
+     * @param customerId ID của customer
+     * @param status trạng thái mới
+     * @return Customer đã cập nhật
+     */
+    public Customer updateCustomerStatus(String customerId, String status) {
+        Customer customer = getCustomerEntityById(customerId);
+        
+        try {
+            Customer.Status newStatus = Customer.Status.valueOf(status.toUpperCase());
+            customer.setStatus(newStatus);
+            customer.setUpdateAt(LocalDateTime.now());
+            return customerRepository.save(customer);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorConfig.BAD_REQUEST, "Trạng thái không hợp lệ: " + status);
+        }
+    }
+
+    /**
+     * Xóa khách hàng (cho admin)
+     * @param customerId ID của customer
+     */
+    public void deleteCustomer(String customerId) {
+        Customer customer = getCustomerEntityById(customerId);
+        customerRepository.delete(customer);
+    }
+
+    /**
+     * Đăng ký khách hàng thành người bán và trả về entity (cho admin)
+     * @param customerId ID của customer
+     * @return Customer entity đã cập nhật
+     */
+    public Customer registerAsSellerEntity(String customerId) {
+        Customer customer = getCustomerEntityById(customerId);
+        
+        // Kiểm tra xem khách hàng đã là seller chưa
+        if (customer.isSeller()) {
+            throw new AppException(ErrorConfig.BAD_REQUEST, "Khách hàng đã là người bán");
+        }
+        
+        // Cập nhật trạng thái seller
+        customer.setSeller(true);
+        customer.setUpdateAt(LocalDateTime.now());
+        
+        return customerRepository.save(customer);
     }
 }
