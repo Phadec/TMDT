@@ -14,6 +14,7 @@ public class ConfigTopicUser {
     public static final String REGISTER_QUEUE = "user.register";
     public static final String LOGOUT_QUEUE = "user.logout";
     public static final String VERIFY_EMAIL_QUEUE = "user.verify_email";
+    public static final String CONTACT_EMAIL_QUEUE = "user.contact_email";
     public static final String CHANGE_PASSWORD_QUEUE = "user.change_password";
     public static final String FORGOT_PASSWORD_QUEUE = "user.forgot_password";
 
@@ -24,6 +25,7 @@ public class ConfigTopicUser {
     public static final String REGISTER_QUEUE_LISTENER = "user.register.queue";
     public static final String LOGOUT_QUEUE_LISTENER = "user.logout.queue";
     public static final String VERIFY_EMAIL_QUEUE_LISTENER = "user.verify_email.queue";
+    public static final String CONTACT_EMAIL_QUEUE_LISTENER = "user.contact_email.queue";
     public static final String CHANGE_PASSWORD_QUEUE_LISTENER = "user.change_password.queue";
     public static final String FORGOT_PASSWORD_QUEUE_LISTENER = "user.forgot_password.queue";
 }

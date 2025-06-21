@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.example.choviet.config.api.Prefix.COMMON;
 import static com.example.choviet.config.Code.OK;
 import static com.example.choviet.config.api.Mid.*;
-import static com.example.choviet.config.api.Prefix.*;
 import static com.example.choviet.config.api.suffix.Product.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

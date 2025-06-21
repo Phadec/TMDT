@@ -2,10 +2,12 @@ package com.example.choviet.consumer;
 import static com.example.choviet.config.ConfigTopicUser.*;
 
 import com.example.choviet.dto.AuthResponse;
+import com.example.choviet.dto.EmailRequest;
 import com.example.choviet.dto.Event;
 import com.example.choviet.service.EmailService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +16,8 @@ import java.time.format.DateTimeFormatter;
 public class NotificationConsumer {
     @Autowired
     private EmailService emailService;
+    @Value("${spring.mail.username}")
+    String fromEmail;
 
     @RabbitListener(queues = LOGIN_QUEUE_LISTENER)
     public void handleLoginEvent(Event<AuthResponse> event) {
@@ -108,6 +112,25 @@ public class NotificationConsumer {
             String content = "Đây là mã xác minh: " + event.getAction() + "\nNgày: " + getDate(event.getCreatedAt()) + "\nLúc: " + getTime(event.getCreatedAt()) + "\nHết hạn sau 120s";
 
             emailService.sendNotification(event.getData().getEmail(), title, content);
+        } catch (Exception e) {
+            // Log lỗi nếu cần
+            System.err.println("Failed to send email: " + e.getMessage());
+        }
+    }
+
+    @RabbitListener(queues = CONTACT_EMAIL_QUEUE_LISTENER)
+    public void contactEmail(Event<EmailRequest> event) {
+        try {
+            String title = event.getData().getTitle();
+            String content = event.getData().getContent();
+            String name = event.getData().getName();
+            String email = event.getData().getEmail();
+            String phone = event.getData().getPhone();
+
+            content += "\nEmail: " + email + "\nHọ và tên: " + name + "\nSố điện thoại: " + phone;
+            System.out.println(title);
+            System.out.println(content);
+            emailService.sendUserToAdmin(fromEmail, email, title, content);
         } catch (Exception e) {
             // Log lỗi nếu cần
             System.err.println("Failed to send email: " + e.getMessage());

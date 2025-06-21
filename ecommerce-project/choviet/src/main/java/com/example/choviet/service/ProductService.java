@@ -225,6 +225,8 @@ public class ProductService {
                                     Customer sellerInfo = new Customer();
                                     sellerInfo.setId(seller.getId());
                                     sellerInfo.setFullName(seller.getFullName());
+                                    sellerInfo.setPhone(seller.getPhone());
+                                    sellerInfo.setAddresses(seller.getAddresses());
                                     sellerInfo.setEmail(seller.getEmail());
                                     product.setCustomer(sellerInfo);
                                 });

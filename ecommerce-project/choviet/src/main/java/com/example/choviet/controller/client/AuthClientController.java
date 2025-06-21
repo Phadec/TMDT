@@ -1,10 +1,6 @@
 package com.example.choviet.controller.client;
 
-import com.example.choviet.dto.ApiResponse;
-import com.example.choviet.dto.AuthResponse;
-import com.example.choviet.dto.CustomerRegisterRequest;
-import com.example.choviet.dto.LoginRequest;
-import com.example.choviet.dto.PersonRequest;
+import com.example.choviet.dto.*;
 import com.example.choviet.service.AuthService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -40,5 +36,18 @@ public class AuthClientController {
     public ResponseEntity<ApiResponse<AuthResponse>> updateStatus(@PathVariable String id, @RequestParam String status) {
         AuthResponse response = authService.updateStatus(id, status);
         return ResponseEntity.ok(new ApiResponse<>(OK, "success", response));
+    }
+
+
+    @PutMapping(CHANGE_PASS)
+    public ResponseEntity<ApiResponse<AuthResponse>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        AuthResponse response =  authService.changePassword(changePasswordRequest);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "Đã thay đổi", response));
+    }
+
+    @PutMapping(FORGOT_PASS)
+    public ResponseEntity<ApiResponse<AuthResponse>> forgotPassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        AuthResponse response =  authService.forgotPassword(changePasswordRequest);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
     }
 }

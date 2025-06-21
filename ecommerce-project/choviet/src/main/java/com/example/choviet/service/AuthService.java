@@ -280,22 +280,23 @@ public class AuthService {
             throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không được trùng với mật khẩu cũ");
         }
 
-        User user = userRepository.findById(userId)
+        Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, customer.getPasswordHash())) {
             throw new AppException(ErrorConfig.INVALID_CREDENTIALS, "Mật khẩu cũ không chính xác");
         }
 
-        if (!user.getEmail().equals(email)) {
+        if (!customer.getEmail().equals(email)) {
             throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        customer.setPasswordHash(passwordEncoder.encode(newPassword));
+        customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
-        response.setId(user.getId());
+        response.setId(customer.getId());
+        response.setEmail(email);
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
@@ -319,18 +320,19 @@ public class AuthService {
             throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không khớp với xác nhận mật khẩu");
         }
 
-        User user = userRepository.findById(userId)
+        Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
-        if (!user.getEmail().equals(email)) {
+        if (!customer.getEmail().equals(email)) {
             throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        customer.setPasswordHash(passwordEncoder.encode(newPassword));
+        customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
-        response.setId(user.getId());
+        response.setId(customer.getId());
+        response.setEmail(email);
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();

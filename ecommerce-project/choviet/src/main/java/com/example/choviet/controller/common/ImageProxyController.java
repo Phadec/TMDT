@@ -1,6 +1,5 @@
 package com.example.choviet.controller.common;
 
-import com.example.choviet.dto.ApiResponse;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpHeaders;
@@ -16,10 +15,9 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-import static com.example.choviet.config.Code.OK;
-import static com.example.choviet.config.api.Mid.IMAGE_PROXY;
 import static com.example.choviet.config.api.Prefix.COMMON;
 import static com.example.choviet.config.api.suffix.ImageProxy.GET_IMAGE;
+import static com.example.choviet.config.api.Mid.IMAGE_PROXY;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RestController

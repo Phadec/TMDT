@@ -7,6 +7,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
+import com.example.choviet.dto.EmailRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,5 +77,14 @@ public class VerifyService {
         SecureRandom random = new SecureRandom();
         int otp = random.nextInt(900000) + 100000; // Tạo số ngẫu nhiên từ 100000 đến 999999
         return String.valueOf(otp);
+    }
+
+    public String sendEmail(EmailRequest emailRequest) {
+        Event<EmailRequest> event = new Event<>();
+        event.setData(emailRequest);
+        event.setCreatedAt(LocalDateTime.now());
+        event.setAction(EMAIL_CONTACT);
+        eventPublisher.pushToQueue(event, USER_EXCHANGE, CONTACT_EMAIL_QUEUE);
+        return "Liên hệ thành công. Chúng tôi sẽ phản hồi qua email của bạn";
     }
 }

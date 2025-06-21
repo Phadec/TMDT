@@ -1,5 +1,0 @@
-package com.example.choviet.config.api.suffix;
-
-public interface Customer {
-    String PROFILE = "/profile";
-}

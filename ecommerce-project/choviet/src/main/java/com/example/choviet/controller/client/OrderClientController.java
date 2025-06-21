@@ -24,7 +24,7 @@ public class OrderClientController {
     OrderService orderService;
 
     // lấy tất cả đơn hàng theo trạng thái
-    @GetMapping(GET_ORDERS_BY_CUSTOMER_AND_STATUS)
+    @PostMapping(GET_ORDERS_BY_CUSTOMER_AND_STATUS)
     public ResponseEntity<ApiResponse<Page<Order>>> getOrderByStatus(@RequestBody OrderRequest request, @RequestParam int page, @RequestParam int size){
         Page<Order> orders = orderService.getOrderByCustomerIdAndStatus(request, page, size);
         ApiResponse<Page<Order>> response = new ApiResponse<>( OK, "Success", orders);

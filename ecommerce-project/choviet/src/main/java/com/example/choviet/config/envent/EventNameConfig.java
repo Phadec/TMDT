@@ -12,6 +12,7 @@ public interface EventNameConfig {
     // Email Verification Events
     String EMAIL_VERIFICATION_SENT = "EMAIL_VERIFICATION_SENT";
     String EMAIL_VERIFICATION_SUCCESS = "EMAIL_VERIFICATION_SUCCESS";
+    String EMAIL_CONTACT = "EMAIL_CONTACT";
     
     // Product Events
     String PRODUCT_CREATE_BATCH = "PRODUCT_CREATE_BATCH";

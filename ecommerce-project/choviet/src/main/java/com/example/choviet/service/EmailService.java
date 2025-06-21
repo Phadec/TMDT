@@ -47,6 +47,20 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendUserToAdmin(String fromEmail, String toEmail, String title, String content) throws MessagingException {
+        System.out.println("...sending email notification");
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(toEmail);
+        helper.setSubject(title);
+        helper.setText(String.format(content));
+
+        mailSender.send(message);
+    }
     
     /**
      * Send an HTML email based on a template

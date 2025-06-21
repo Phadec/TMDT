@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.choviet.dto.ApiResponse;
-import com.example.choviet.dto.AuthResponse;
 import com.example.choviet.dto.PersonRequest;
 import com.example.choviet.service.CustomerService;
 
@@ -50,5 +49,16 @@ public class ProfileClientController {
         String customerId = request.getPersonId();
         ProfileResponse profileResponse = customerService.registerAsSeller(customerId);
         return ResponseEntity.ok(new ApiResponse<>(OK, "Đăng ký trở thành người bán thành công", profileResponse));
+    }
+
+    /**
+     * Endpoint để cập nhật thông tin khách hàng
+     * @param request Chứa id, name, email, phone, address
+     * @return thông báo cập nhật thành công
+     */
+    @PostMapping(UPDATE_PROFILE)
+    public ResponseEntity<ApiResponse<String>> updateProfile(@RequestBody PersonRequest request) {
+        customerService.updateProfile(request);
+        return ResponseEntity.ok(new ApiResponse<>(OK, "Cập nhật thông tin thành công", ""));
     }
 }

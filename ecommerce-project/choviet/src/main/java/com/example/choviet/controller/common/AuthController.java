@@ -23,16 +23,4 @@ public class AuthController {
         authService.logout(request);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", "Logout"));
     }
-
-    @PutMapping(CHANGE_PASS)
-    public ResponseEntity<ApiResponse<AuthResponse>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
-        AuthResponse response =  authService.changePassword(changePasswordRequest);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
-    }
-
-    @PutMapping(FORGOT_PASS)
-    public ResponseEntity<ApiResponse<AuthResponse>> forgotPassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
-        AuthResponse response =  authService.forgotPassword(changePasswordRequest);
-        return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
-    }
 }
