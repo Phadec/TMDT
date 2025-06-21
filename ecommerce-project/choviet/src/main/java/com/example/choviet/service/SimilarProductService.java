@@ -48,12 +48,11 @@ public class SimilarProductService {
         }
         
         Product product = productOpt.get();
-        
-        // Lấy danh sách sản phẩm ứng viên (cùng danh mục nếu có)
+          // Lấy danh sách sản phẩm ứng viên (cùng danh mục nếu có)
         List<Product> candidates;
         if (product.getCategoryId() != null) {
             // Lấy sản phẩm cùng danh mục
-            candidates = productRepository.findAllByProductCategoryId(
+            candidates = productRepository.findByProductCategoryId(
                     product.getCategoryId(), 
                     PageRequest.of(0, MAX_CANDIDATE_PRODUCTS)
             ).getContent();
