@@ -7,9 +7,8 @@ import { Login, Register, Forget } from "~/pages/Auth";
 import { Customer } from "~/pages/Customer";
 import { Cart } from "~/pages/Cart";
 import { NotFound } from "~/pages/NotFound";
-import { Dashboard } from "~/pages/Dashboard";
-import { Dashboard as DashboardAdmin } from "~/pages/admin";
-
+import { Dashboard } from "~/pages/dashboard";
+import { Dashboard as DashboardAdmin, Login as LoginAdmin } from "~/pages/admin";
 import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
 import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
@@ -55,6 +54,12 @@ const publicRoutes = [
     element: Forget,
     publicOnly: true,
   },
+    {
+    path: ADMIN_URL.LOGIN,
+    element: LoginAdmin,
+    layout: EmptyLayout,
+    publicOnly: true, // Chỉ cho phép người dùng chưa đăng nhập truy cập
+  },
 ];
 
 // Chỉ được xem khi đã đăng nhập
@@ -82,7 +87,9 @@ const adminRoute = [
     element: DashboardAdmin,
     layout: DashboardLayout,
     requiredRole: 'ADMIN', // Yêu cầu quyền admin
-  }
+  },
+
+  
 ];
 
 export { publicRoutes, privateRoutes, adminRoute };
