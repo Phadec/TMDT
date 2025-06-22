@@ -1,14 +1,20 @@
-import { Home } from "~/pages/Home";
-import { Products } from "~/pages/Products";
-import { Policy } from "~/pages/Policy";
-import { Connect } from "~/pages/Connect";
-import { ProductDetail } from "~/pages/ProductDetail";
-import { Login, Register, Forget } from "~/pages/Auth";
-import { Customer } from "~/pages/Customer";
-import { Cart } from "~/pages/Cart";
-import { NotFound } from "~/pages/NotFound";
-import { Dashboard } from "~/pages/dashboard";
-import { Dashboard as DashboardAdmin, Login as LoginAdmin } from "~/pages/admin";
+import { 
+  Home, 
+  Products, 
+  Policy, 
+  Connect, 
+  ProductDetail, 
+  Login, 
+  Register, 
+  Forget, 
+  Customer, 
+  Cart, 
+  Checkout, 
+  NotFound, 
+  Dashboard, 
+  DashboardAdmin, 
+  LoginAdmin 
+} from "~/pages";
 import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
 import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
@@ -71,6 +77,10 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.CART,
     element: Cart,
+  },
+  {
+    path: PRIVATE_URL.CHECKOUT,
+    element: Checkout,
   },
   {
     path: PRIVATE_URL.DASHBOARD,

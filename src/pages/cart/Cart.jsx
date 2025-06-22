@@ -1,13 +1,15 @@
 import { NotiSale, CardGridProduct } from "~/components/items";
-import { ShoppingCartIcon, FunnelIcon, AdjustmentsHorizontalIcon, ChevronDownIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { ShoppingCartIcon, FunnelIcon, AdjustmentsHorizontalIcon, ChevronDownIcon, TrashIcon, CreditCardIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import { buttonVariant, inputVariant, containerVariant, tagVariant } from "./cartVariant"; // Import CVA
 import { apiServices } from "~/api";
 import { useCart } from "~/contexts/CartContext";
 
 function Cart() {
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { removeFromCart, removeFromCartOnly, refreshCart } = useCart(); // Sử dụng CartContext
   const [showFilters, setShowFilters] = useState(false);
@@ -180,6 +182,55 @@ function Cart() {
   useEffect(() => {
     setCurrentPage(1);
   }, [cartItems.length]);
+
+  // Hàm chuyển đến trang thanh toán
+  const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Giỏ hàng trống',
+        text: 'Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.',
+        confirmButtonText: 'Tiếp tục mua sắm'
+      }).then(() => {
+        navigate('/products');
+      });
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Chưa chọn sản phẩm',
+        text: 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+
+    if (!isAuthenticated) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cần đăng nhập',
+        text: 'Vui lòng đăng nhập để tiếp tục thanh toán.',
+        showCancelButton: true,
+        confirmButtonText: 'Đăng nhập',
+        cancelButtonText: 'Hủy'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+      return;
+    }
+
+    // Lấy thông tin các sản phẩm đã chọn
+    const selectedProducts = cartItems.filter(item => selectedItems.includes(item.productId));
+    
+    // Lưu thông tin sản phẩm đã chọn vào localStorage để truyền sang trang checkout
+    localStorage.setItem('selectedCheckoutItems', JSON.stringify(selectedProducts));
+    
+    navigate('/checkout');
+  };
 
   // Hàm xóa các sản phẩm đã chọn
   const handleRemoveSelectedItems = async () => {
@@ -402,21 +453,47 @@ function Cart() {
                 )}
 
                 {/* Cart summary */}
-                <div className="p-6 bg-gray-50">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-medium">Tổng cộng:</span>
-                    <span className="text-xl font-bold text-purple-600">
-                      {cartItems.reduce((total, item) => total + Number(item.price || 0), 0).toLocaleString('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                        minimumFractionDigits: 0,
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex space-x-4">
-                    <button className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                      Thanh toán
-                    </button>
+                <div className="p-6 bg-gradient-to-r from-gray-50 to-purple-50 border-t border-gray-200">
+                  <div className="space-y-4">
+                    {/* Thông tin tổng tiền */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold text-gray-900">Tổng cộng:</span>
+                        <span className="text-2xl font-bold text-purple-600">
+                          {cartItems.reduce((total, item) => total + Number(item.price || 0), 0).toLocaleString('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND',
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Nút thanh toán */}
+                    <div className="flex space-x-3">
+                      <button 
+                        onClick={() => navigate('/products')}
+                        className="flex-1 px-4 py-3 bg-white text-purple-600 font-medium rounded-lg border-2 border-purple-200 hover:bg-purple-50 hover:border-purple-300 transition-colors duration-200 text-center"
+                      >
+                        Tiếp tục mua sắm
+                      </button>
+                      
+                      <button 
+                        onClick={handleCheckout}
+                        className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center group shadow-lg"
+                      >
+                        <CreditCardIcon className="w-4 h-4 mr-1" />
+                        Thanh toán
+                        <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                      </button>
+                    </div>
+
+                    {/* Thông tin bảo mật */}
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">
+                        🔒 Thanh toán an toàn và bảo mật
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

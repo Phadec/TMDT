@@ -13,6 +13,7 @@ const PUBLIC_URL = {
 const PRIVATE_URL = {
   CUSTOMER: "/account",
   CART: "/cart",
+  CHECKOUT: "/checkout",
   DASHBOARD: "/dashboard"
 };
 
