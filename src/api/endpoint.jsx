@@ -14,6 +14,14 @@ const clientUrl = {
     },
     profile: {
         view: `${PROFILE}/view`,
+    },
+    seller: {
+        dashboard: {
+            overview: `/seller/dashboard/overview`,
+            activities: `/seller/activities`,
+        },
+        products: `/seller/products`,
+        orders: `/seller/orders`,
     }
 };
 
