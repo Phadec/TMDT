@@ -108,6 +108,65 @@ const apiServices = {
       }
     }
   },
+
+  /**
+   * Utility functions for data transformation
+   */
+  utils: {
+    /**
+     * Transform user/customer data from backend to frontend format
+     * @param {Object} backendUser - User data from backend
+     * @param {string} userType - "users" or "customers"
+     * @returns {Object} - Transformed user data
+     */
+    transformUserData: (backendUser, userType = "users") => {
+      return {
+        id: backendUser.id,
+        name: backendUser.fullName || backendUser.name || `User ${backendUser.id}`,
+        email: backendUser.email,
+        phone: backendUser.phone || "Chưa có",
+        role: userType === "users" 
+          ? (backendUser.role?.roleName?.toLowerCase() || "user") 
+          : "customer",
+        status: backendUser.status ? backendUser.status.toLowerCase() : "active",
+        createdAt: backendUser.createdAt,
+        lastLogin: backendUser.lastLogin || backendUser.updatedAt || backendUser.updateAt || backendUser.createdAt,
+        postsCount: backendUser.postsCount || 0,
+        avatar: backendUser.avatar || "https://via.placeholder.com/150",
+        address: backendUser.addresses && backendUser.addresses.length > 0 
+          ? (Array.isArray(backendUser.addresses) ? backendUser.addresses.join(", ") : backendUser.addresses)
+          : "Chưa có địa chỉ",
+        bio: backendUser.bio || "Chưa có thông tin giới thiệu",
+        verified: backendUser.verified || false,
+        isSeller: backendUser.isSeller || false,
+        roleObject: backendUser.role
+      };
+    },
+
+    /**
+     * Handle API errors consistently
+     * @param {Error} error - Error from API call
+     * @param {string} operation - Operation being performed
+     * @returns {string} - User-friendly error message
+     */
+    handleApiError: (error, operation = "thao tác") => {
+      console.error(`Error in ${operation}:`, error);
+      
+      if (error.status === 401) {
+        return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      } else if (error.status === 403) {
+        return "Bạn không có quyền thực hiện thao tác này.";
+      } else if (error.status === 404) {
+        return "Không tìm thấy dữ liệu yêu cầu.";
+      } else if (error.status >= 500) {
+        return "Lỗi hệ thống. Vui lòng thử lại sau.";
+      } else if (error.message) {
+        return error.message;
+      } else {
+        return `Có lỗi xảy ra trong quá trình ${operation}.`;
+      }
+    }
+  }
 };
 
 export default apiServices;

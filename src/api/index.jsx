@@ -1,6 +1,7 @@
 import { adminApi, clientApi, commonApi } from "./api";
 import { adminUrl, clientUrl, commonUrl } from "./endpoint";
 import apiServices from "./services";
+import adminServices from "./adminServices";
 
 export { 
     adminApi, 
@@ -9,5 +10,6 @@ export {
     adminUrl, 
     clientUrl, 
     commonUrl,
-    apiServices 
+    apiServices,
+    adminServices
 };
