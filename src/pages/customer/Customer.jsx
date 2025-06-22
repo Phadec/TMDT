@@ -26,22 +26,9 @@ const tabs = [
   }
 ]
 
-// Nội dung cho từng tab
-const tabContents = {
-  profile: (
-    <Profile />
-  ),
-  history: (
-    <Transfer />
-  ),
-  settings: (
-    <Setting />
-  ),
-  logout: null // Sẽ được xử lý riêng
-};
-
 function Customer() {
   const [activeTab, setActiveTab] = useState("profile");
+  const [userFullName, setUserFullName] = useState("Người dùng");
   const { logout } = useAuth();
 
   const handleTabClick = (tabId) => {
@@ -52,6 +39,26 @@ function Customer() {
     await logout();
   };
 
+  const handleProfileDataChange = (profileData) => {
+    if (profileData.fullname) {
+      setUserFullName(profileData.fullname);
+    }
+  };
+
+  // Nội dung cho từng tab
+  const tabContents = {
+    profile: (
+      <Profile onProfileDataChange={handleProfileDataChange} />
+    ),
+    history: (
+      <Transfer />
+    ),
+    settings: (
+      <Setting />
+    ),
+    logout: null // Sẽ được xử lý riêng
+  };
+
   return (
     <div className="h-full flex items-center justify-center lg:px-2 px-4 pt-[530px] lg:pt-0">
       <div className="flex flex-col md:flex-row w-full max-w-5xl h-auto md:h-[600px]">
@@ -59,7 +66,7 @@ function Customer() {
         <div className="w-full h-auto p-4 mb-4 overflow-auto bg-white rounded-lg shadow-md md:w-1/3 sm:p-6 md:h-full md:mb-0">
           {/* Avatar và tên người dùng */}
           <div className="flex flex-col items-center">
-            <Avatar name="Nguyễn Văn A" Customername="nguyenvana" />
+            <Avatar name={userFullName} username="user" />
           </div>
 
           {/* Danh sách tính năng */}

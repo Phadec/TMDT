@@ -1,5 +1,6 @@
-import { commonApi} from './api';
+import { commonApi, clientApi} from './api';
 import { commonUrl } from './endpoint';
+import { getOrCreateCartId, clearCartId } from '~/utils/cartUtils';
 
 /**
  * Service API chung cho toàn bộ ứng dụng
@@ -106,6 +107,95 @@ const apiServices = {
         console.error(`Error fetching reviews for product ${productId}:`, error);
         throw error;
       }
+    }
+  },
+
+  /**
+   * API liên quan đến giỏ hàng
+   */
+  cart: {
+    /**
+     * Thêm sản phẩm vào giỏ hàng
+     * @param {Object} cartData - Dữ liệu giỏ hàng
+     * @returns {Promise} - Promise chứa kết quả thêm vào giỏ hàng
+     */
+    addToCart: async (cartData) => {
+      try {
+        const response = await clientApi.post('/cart', cartData);
+        return response;
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Thêm sản phẩm vào giỏ hàng với cartId tự động quản lý
+     * @param {Object} productData - Dữ liệu sản phẩm và khách hàng
+     * @returns {Promise} - Promise chứa kết quả thêm vào giỏ hàng
+     */
+    addToCartWithManagedId: async (productData) => {
+      try {
+        // Tự động lấy hoặc tạo cartId với TTL 30 ngày
+        const cartId = getOrCreateCartId();
+        
+        const cartData = {
+          id: cartId,
+          ...productData
+        };
+        
+        const response = await clientApi.post('/cart', cartData);
+        return response;
+      } catch (error) {
+        console.error('Error adding to cart with managed ID:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách sản phẩm trong giỏ hàng
+     * @param {string} cartId - ID của giỏ hàng
+     * @returns {Promise} - Promise chứa danh sách sản phẩm trong giỏ hàng
+     */
+    getCartItems: async (cartId) => {
+      try {
+        const response = await clientApi.get(`/cart?id=${cartId}`);
+        return response;
+      } catch (error) {
+        console.error('Error fetching cart items:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Xóa sản phẩm khỏi giỏ hàng
+     * @param {string} cartId - ID của giỏ hàng
+     * @param {string} productId - ID của sản phẩm cần xóa
+     * @returns {Promise} - Promise chứa kết quả xóa sản phẩm
+     */
+    removeFromCart: async (cartId, productId) => {
+      try {
+        const response = await clientApi.delete(`/cart/delete?cardId=${cartId}&productId=${productId}`);
+        return response;
+      } catch (error) {
+        console.error('Error removing from cart:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy cartId hiện tại từ localStorage
+     * @returns {string|null} - cartId hoặc null nếu không có
+     */
+    getCurrentCartId: () => {
+      return getOrCreateCartId();
+    },
+
+    /**
+     * Xóa cartId khỏi localStorage (khi logout hoặc clear cart)
+     */
+    clearCart: () => {
+      clearCartId();
     }
   },
 
