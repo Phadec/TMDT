@@ -15,6 +15,13 @@ const AddProductForm = () => {
   const [address, setAddress] = useState('');
   const [addressValid, setAddressValid] = useState(true);
   const [checkingAddress, setCheckingAddress] = useState(false);
+  // Thêm state cho validation
+  const [productName, setProductName] = useState('');
+  const [productNameError, setProductNameError] = useState('');
+  const [price, setPrice] = useState('');
+  const [priceError, setPriceError] = useState('');
+  const [description, setDescription] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
 
   useEffect(() => {
     if (tagifyRef.current) {
@@ -149,6 +156,31 @@ const AddProductForm = () => {
     }
   }, []);
 
+  // Hàm kiểm tra ký tự unicode và ký tự lạ cho tên sản phẩm
+  const validateProductName = (name) => {
+    const chars = [...name.trim()];
+    // Không ký tự đặc biệt ngoài chữ, số, khoảng trắng, dấu tiếng Việt
+    const valid = /^[\p{L}\p{N}\s]+$/u.test(name);
+    if (!valid) return 'Tên sản phẩm chỉ được chứa chữ, số và khoảng trắng.';
+    if (chars.length < 10) return 'Tên sản phẩm phải có ít nhất 10 ký tự.';
+    if (chars.length > 50) return 'Tên sản phẩm không được vượt quá 50 ký tự.';
+    return '';
+  };
+
+  // Hàm kiểm tra giá
+  const validatePrice = (val) => {
+    if (!val || isNaN(val)) return 'Giá sản phẩm không hợp lệ.';
+    if (Number(val) < 20000) return 'Giá sản phẩm tối thiểu là 20.000₫.';
+    return '';
+  };
+
+  // Hàm kiểm tra mô tả (tối đa 1000 từ)
+  const validateDescription = (desc) => {
+    const wordCount = desc.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount > 1000) return 'Mô tả sản phẩm không được vượt quá 1000 từ.';
+    return '';
+  };
+
   return (
     <div className="p-4 bg-white shadow-sm rounded-xl md:p-6">
       <h2 className="mb-4 text-xl font-semibold">Đăng sản phẩm mới</h2>
@@ -161,9 +193,24 @@ const AddProductForm = () => {
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  productNameError ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="Nhập tên sản phẩm"
+                value={productName}
+                onChange={e => {
+                  setProductName(e.target.value);
+                  setProductNameError(validateProductName(e.target.value));
+                }}
+                onBlur={e => setProductNameError(validateProductName(e.target.value))}
+                maxLength={60}
               />
+              <div className="mt-1 text-xs text-gray-500">
+                Tối thiểu 10 ký tự, tối đa 50 ký tự. Chỉ chữ, số và khoảng trắng.
+              </div>
+              {productNameError && (
+                <p className="mt-1 text-xs text-red-500">{productNameError}</p>
+              )}
             </div>
             
             <div>
@@ -174,10 +221,25 @@ const AddProductForm = () => {
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₫</span>
                 <input
                   type="number"
-                  className="w-full px-3 py-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={`w-full px-3 py-2 pl-8 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    priceError ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="0"
+                  value={price}
+                  min={20000}
+                  onChange={e => {
+                    setPrice(e.target.value);
+                    setPriceError(validatePrice(e.target.value));
+                  }}
+                  onBlur={e => setPriceError(validatePrice(e.target.value))}
                 />
               </div>
+              <div className="mt-1 text-xs text-gray-500">
+                Giá tối thiểu: 20.000₫
+              </div>
+              {priceError && (
+                <p className="mt-1 text-xs text-red-500">{priceError}</p>
+              )}
             </div>
 
             <div>
@@ -231,10 +293,28 @@ const AddProductForm = () => {
                 Mô tả sản phẩm
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  descriptionError ? 'border-red-500' : 'border-gray-300'
+                }`}
                 rows="5"
                 placeholder="Nhập mô tả chi tiết về sản phẩm"
+                value={description}
+                onChange={e => {
+                  setDescription(e.target.value);
+                  setDescriptionError(validateDescription(e.target.value));
+                }}
+                onBlur={e => setDescriptionError(validateDescription(e.target.value))}
+                maxLength={10000}
               ></textarea>
+              <div className="mt-1 text-xs text-gray-500">
+                Tối đa 1000 từ.
+              </div>
+              {descriptionError && (
+                <p className="mt-1 text-xs text-red-500">{descriptionError}</p>
+              )}
+              <div className="mt-1 text-xs text-right text-gray-500">
+                {description.trim().split(/\s+/).filter(Boolean).length} / 1000 từ
+              </div>
             </div>
           </div>
           
@@ -254,6 +334,22 @@ const AddProductForm = () => {
           </button>
           <button 
             onClick={async () => {
+              // Kiểm tra lại trước khi submit
+              const nameErr = validateProductName(productName);
+              const priceErr = validatePrice(price);
+              const descErr = validateDescription(description);
+              setProductNameError(nameErr);
+              setPriceError(priceErr);
+              setDescriptionError(descErr);
+              if (nameErr || priceErr || descErr) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Thông tin chưa hợp lệ',
+                  text: 'Vui lòng kiểm tra lại các trường thông tin sản phẩm.',
+                  confirmButtonColor: '#EF4444'
+                });
+                return;
+              }
               if (images.length < 10) {
                 Swal.fire({
                   icon: 'warning',
@@ -290,11 +386,18 @@ const AddProductForm = () => {
               // Xử lý submit form ở đây
             }}
             className={`px-6 py-3 font-medium text-white transition-all duration-300 rounded-lg ${
-              images.length >= 10 
+              images.length >= 10 && !productNameError && !priceError && !descriptionError
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 shadow-lg hover:shadow-xl' 
                 : 'bg-gray-400 cursor-not-allowed'
             }`}
-            disabled={images.length < 10 || !addressValid || checkingAddress}
+            disabled={
+              images.length < 10 ||
+              !addressValid ||
+              checkingAddress ||
+              !!productNameError ||
+              !!priceError ||
+              !!descriptionError
+            }
           >
             {images.length >= 10 ? (
               <>
