@@ -7,19 +7,23 @@ import { useAuth } from "~/hooks";
 import FaceVerificationModal from "~/components/FaceVerificationModal.jsx";
 import "~/styles/swal-custom.css";
 
-function Profile() {
+function Profile({ onProfileDataChange }) {
   const [profileData, setProfileData] = useState({
     fullname: "",
     email: "",
     phone: "",
     userType: "",
     createdAt: "",
+    addresses: "",
+    status: "",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSellerRegistering, setIsSellerRegistering] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [showFaceVerification, setShowFaceVerification] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [originalData, setOriginalData] = useState({}); // Lưu dữ liệu gốc để so sánh
   const { user, isAuthenticated } = useAuth();
 
   // Lấy thông tin profile khi component mount hoặc user thay đổi
@@ -35,6 +39,13 @@ function Profile() {
       setLoading(false);
     }
   }, [user, isAuthenticated]);
+
+  // Gọi callback khi profileData thay đổi
+  useEffect(() => {
+    if (onProfileDataChange && profileData.fullname) {
+      onProfileDataChange(profileData);
+    }
+  }, [profileData, onProfileDataChange]);
 
   const fetchProfileData = async () => {
     try {
@@ -53,16 +64,52 @@ function Profile() {
         personId: personId,
       });
 
-      if (response) {
-        const isSellerValue = response.seller || false;
+      if (response && response.data) {
+        const userData = response.data;
+        const isSellerValue = userData.seller || false;
+        
+        const profileInfo = {
+          fullname: userData.fullName || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          userType: isSellerValue ? "Người bán" : "Khách hàng",
+          createdAt: userData.createdAt || "",
+          addresses: userData.addresses || "",
+          status: userData.status || "",
+        };
         
         setIsSeller(isSellerValue);
-        setProfileData({
+        setProfileData(profileInfo);
+        // Lưu dữ liệu gốc để so sánh khi cập nhật
+        setOriginalData({
+          fullname: profileInfo.fullname,
+          email: profileInfo.email,
+          phone: profileInfo.phone,
+          addresses: profileInfo.addresses,
+        });
+        setError(null);
+      } else if (response) {
+        // Fallback cho trường hợp response không có data wrapper
+        const isSellerValue = response.seller || false;
+        
+        const profileInfo = {
           fullname: response.fullName || "",
           email: response.email || "",
           phone: response.phone || "",
           userType: isSellerValue ? "Người bán" : "Khách hàng",
           createdAt: response.createdAt || "",
+          addresses: response.addresses || "",
+          status: response.status || "",
+        };
+        
+        setIsSeller(isSellerValue);
+        setProfileData(profileInfo);
+        // Lưu dữ liệu gốc để so sánh khi cập nhật
+        setOriginalData({
+          fullname: profileInfo.fullname,
+          email: profileInfo.email,
+          phone: profileInfo.phone,
+          addresses: profileInfo.addresses,
         });
         setError(null);
       } else {
@@ -76,8 +123,168 @@ function Profile() {
   };
 
   const handleSaveChanges = async () => {
-    // TODO: Implement save changes functionality
-    console.log("Saving changes:", profileData);
+    try {
+      setIsSaving(true);
+      setError(null);
+      
+      const personId = user?.id;
+      if (!personId) {
+        setError("Không tìm thấy ID người dùng");
+        return;
+      }
+
+      // 1. Validation: Kiểm tra các trường không được bỏ trống nếu trước đó đã có dữ liệu
+      const validationErrors = [];
+
+      // Kiểm tra họ và tên
+      if (!profileData.fullname || !profileData.fullname.trim()) {
+        if (originalData.fullname && originalData.fullname.trim()) {
+          validationErrors.push("Họ và tên không được để trống");
+        } else {
+          validationErrors.push("Vui lòng nhập họ và tên");
+        }
+      }
+
+      // Kiểm tra email
+      if (!profileData.email || !profileData.email.trim()) {
+        if (originalData.email && originalData.email.trim()) {
+          validationErrors.push("Email không được để trống");
+        } else {
+          validationErrors.push("Vui lòng nhập email");
+        }
+      } else {
+        // Kiểm tra format email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(profileData.email.trim())) {
+          validationErrors.push("Email không đúng định dạng");
+        }
+      }
+
+      // Kiểm tra số điện thoại
+      if (!profileData.phone || !profileData.phone.trim()) {
+        if (originalData.phone && originalData.phone.trim()) {
+          validationErrors.push("Số điện thoại không được để trống");
+        } else {
+          validationErrors.push("Vui lòng nhập số điện thoại");
+        }
+      } else {
+        // Kiểm tra format số điện thoại (10-11 số)
+        const phoneRegex = /^[0-9]{10,11}$/;
+        if (!phoneRegex.test(profileData.phone.trim().replace(/\s/g, ''))) {
+          validationErrors.push("Số điện thoại phải có 10-11 chữ số");
+        }
+      }
+
+      // Kiểm tra địa chỉ
+      if (!profileData.addresses || !profileData.addresses.trim()) {
+        if (originalData.addresses && originalData.addresses.trim()) {
+          validationErrors.push("Địa chỉ không được để trống");
+        }
+        // Không bắt buộc nhập địa chỉ nếu trước đó chưa có
+      }
+
+      // Hiển thị lỗi validation nếu có
+      if (validationErrors.length > 0) {
+        await Swal.fire({
+          icon: "warning",
+          title: "Thông tin không hợp lệ",
+          html: `
+            <div class="text-left">
+              <p class="mb-2">Vui lòng kiểm tra lại:</p>
+              <ul class="text-sm list-disc list-inside space-y-1">
+                ${validationErrors.map(error => `<li>${error}</li>`).join('')}
+              </ul>
+            </div>
+          `,
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      // 2. Kiểm tra có thay đổi hay không
+      const hasChanges = (
+        (profileData.fullname || '').trim() !== (originalData.fullname || '').trim() ||
+        (profileData.email || '').trim() !== (originalData.email || '').trim() ||
+        (profileData.phone || '').trim() !== (originalData.phone || '').trim() ||
+        (profileData.addresses || '').trim() !== (originalData.addresses || '').trim()
+      );
+
+      if (!hasChanges) {
+        await Swal.fire({
+          icon: "info",
+          title: "Không có thay đổi",
+          text: "Bạn chưa thay đổi thông tin nào. Vui lòng chỉnh sửa thông tin trước khi lưu.",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      // 3. Gọi API để cập nhật thông tin profile
+      const response = await clientApi.post("/profile/update-profile", {
+        personId: personId,
+        name: (profileData.fullname || '').trim(),
+        email: (profileData.email || '').trim(),
+        phone: (profileData.phone || '').trim(),
+        address: (profileData.addresses || '').trim()
+      });
+
+      console.log("Update profile response:", response);
+
+      // Kiểm tra response - nếu có response thì coi là thành công (vì DB đã update)
+      if (response !== null && response !== undefined) {
+        // Hiển thị thông báo thành công
+        await Swal.fire({
+          icon: "success",
+          title: "Cập nhật thành công!",
+          html: `
+            <div class="text-left">
+              <p class="mb-3">${response.message || "Thông tin cá nhân đã được cập nhật thành công."}</p>
+              <div class="bg-green-50 border border-green-200 rounded p-3">
+                <p class="text-sm"><strong>Thông tin đã cập nhật:</strong></p>
+                <ul class="text-sm mt-1 space-y-1">
+                  <li>• Họ và tên: ${profileData.fullname}</li>
+                  <li>• Email: ${profileData.email}</li>
+                  <li>• Số điện thoại: ${profileData.phone}</li>
+                  <li>• Địa chỉ: ${profileData.addresses || 'Chưa cập nhật'}</li>
+                </ul>
+              </div>
+            </div>
+          `,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#16a34a",
+          customClass: {
+            popup: 'swal-wide'
+          }
+        });
+        
+        // Tải lại thông tin profile để đảm bảo dữ liệu mới nhất
+        await fetchProfileData();
+      } else {
+        // Chỉ hiển thị lỗi khi thực sự không có response
+        console.log("No response received");
+        setError("Không nhận được phản hồi từ server");
+        
+        await Swal.fire({
+          icon: "error",
+          title: "Cập nhật thất bại",
+          text: "Không nhận được phản hồi từ server. Vui lòng thử lại sau.",
+          confirmButtonText: "OK",
+        });
+      }
+    } catch (err) {
+      console.error("Lỗi khi cập nhật profile:", err);
+      setError(err.message || "Có lỗi xảy ra khi cập nhật thông tin");
+      
+      // Hiển thị thông báo lỗi
+      await Swal.fire({
+        icon: "error",
+        title: "Cập nhật thất bại",
+        text: err.message || "Có lỗi xảy ra khi cập nhật thông tin. Vui lòng thử lại sau.",
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleRegisterAsSeller = async () => {
@@ -284,25 +491,42 @@ function Profile() {
             onChange={(e) => handleInputChange("phone", e.target.value)}
           />
         </div>
-        <div>
-          <label className="form-label">Ngày tạo tài khoản</label>
-          <input
-            type="text"
-            className={inputStyles()}
-            value={
-              profileData.createdAt
-                ? new Date(profileData.createdAt).toLocaleDateString("vi-VN")
-                : ""
-            }
-            readOnly
-            disabled
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="form-label">Ngày tạo tài khoản</label>
+            <input
+              type="text"
+              className={inputStyles()}
+              value={
+                profileData.createdAt
+                  ? new Date(profileData.createdAt).toLocaleDateString("vi-VN")
+                  : ""
+              }
+              readOnly
+              disabled
+            />
+          </div>
+          <div>
+            <label className="form-label">Trạng thái tài khoản</label>
+            <div className="flex items-center gap-2">
+              {profileData.status === 'ACTIVE' && (
+                <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Đang hoạt động
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div>
           <label className="form-label">Địa chỉ</label>
           <textarea
             className={inputStyles()}
             placeholder="Nhập địa chỉ của bạn"
+            value={profileData.addresses}
+            onChange={(e) => handleInputChange("addresses", e.target.value)}
           />
         </div>
         <div className="flex items-center justify-between">
@@ -344,9 +568,25 @@ function Profile() {
           
           <button
             onClick={handleSaveChanges}
-            className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline"
+            disabled={isSaving || loading}
+            className="inline-flex items-center px-4 py-2 font-bold text-white transition-colors duration-200 bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Lưu thay đổi
+            {isSaving ? (
+              <>
+                <svg className="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Lưu thay đổi
+              </>
+            )}
           </button>
         </div>
         

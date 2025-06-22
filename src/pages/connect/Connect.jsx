@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cva } from 'class-variance-authority';
+import { clientApi, commonApi } from '~/api/api.jsx';
 
 const formInput = cva(
     ['py-3', 'px-4', 'block', 'w-full', 'shadow-sm', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'border-gray-300', 'rounded-md'],
@@ -61,6 +62,19 @@ function Connect() {
     message: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Tự động ẩn thông báo sau 5 giây
+  useEffect(() => {
+    if (formStatus.submitted) {
+      const timer = setTimeout(() => {
+        setFormStatus({ submitted: false, success: false, message: '' });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [formStatus.submitted]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -69,17 +83,46 @@ function Connect() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Giả lập gửi form thành công
-    setFormStatus({
-      submitted: true,
-      success: true,
-      message: 'Cảm ơn bạn! Chúng tôi đã nhận được thông tin và sẽ liên hệ lại trong thời gian sớm nhất.'
-    });
     
-    // Reset form sau khi gửi thành công
-    setTimeout(() => {
+    // Validation cơ bản
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+      setFormStatus({
+        submitted: true,
+        success: false,
+        message: 'Vui lòng điền đầy đủ các trường bắt buộc.'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormStatus({ submitted: false, success: false, message: '' });
+
+    try {
+      // Chuẩn bị dữ liệu theo format API
+      const apiData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || '',
+        title: formData.subject.trim(),
+        content: formData.message.trim()
+      };
+
+      // Gọi API
+      const response = await commonApi.post('/verify/send-email', apiData);
+      
+      // Với response interceptor, nếu thành công (code=200) thì response sẽ là data trực tiếp
+      // Nếu không thành công thì response sẽ là {code, message, data}
+      
+      // Nếu API call không throw error, nghĩa là thành công
+      setFormStatus({
+        submitted: true,
+        success: true,
+        message: typeof response === 'string' ? response : 'Liên hệ thành công. Chúng tôi sẽ phản hồi qua email của bạn'
+      });
+      
+      // Reset form sau khi gửi thành công
       setFormData({
         name: '',
         email: '',
@@ -87,7 +130,26 @@ function Connect() {
         subject: '',
         message: ''
       });
-    }, 100);
+    } catch (error) {
+      console.error('Error sending contact form:', error);
+      
+      // Error từ response interceptor sẽ có cấu trúc: {status, message, data}
+      let errorMessage = 'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại sau.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
+      setFormStatus({
+        submitted: true,
+        success: false,
+        message: errorMessage
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -305,11 +367,13 @@ function Connect() {
                         className={formInput()}
                       >
                         <option value="">-- Chọn chủ đề --</option>
-                        <option value="general">Thông tin chung</option>
-                        <option value="support">Hỗ trợ kỹ thuật</option>
-                        <option value="billing">Thanh toán & Đơn hàng</option>
-                        <option value="partnership">Hợp tác kinh doanh</option>
-                        <option value="other">Khác</option>
+                        <option value="Thông tin chung">Thông tin chung</option>
+                        <option value="Hỗ trợ kỹ thuật">Hỗ trợ kỹ thuật</option>
+                        <option value="Thanh toán & Đơn hàng">Thanh toán & Đơn hàng</option>
+                        <option value="Hợp tác kinh doanh">Hợp tác kinh doanh</option>
+                        <option value="Báo cáo vấn đề">Báo cáo vấn đề</option>
+                        <option value="Góp ý & Phản hồi">Góp ý & Phản hồi</option>
+                        <option value="Khác">Khác</option>
                       </select>
                     </div>
                   </div>
@@ -349,9 +413,24 @@ function Connect() {
                 <div>
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-300"
+                    disabled={isSubmitting}
+                    className={`w-full inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white transition-colors duration-300 ${
+                      isSubmitting 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                    }`}
                   >
-                    Gửi tin nhắn
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Đang gửi...
+                      </>
+                    ) : (
+                      'Gửi tin nhắn'
+                    )}
                   </button>
                 </div>
               </form>
