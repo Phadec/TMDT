@@ -75,8 +75,7 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.DASHBOARD,
     element: Dashboard,
-    layout: DashboardLayout,
-    requiredRole: 'SELLER', // Yêu cầu quyền người bán
+    layout: DashboardLayout
   },
 ];
 
