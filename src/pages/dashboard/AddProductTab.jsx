@@ -3,6 +3,8 @@ import Tagify from '@yaireo/tagify';
 import '@yaireo/tagify/dist/tagify.css';
 import Swal from 'sweetalert2';
 import ImageUploader from './ImageUploader';
+import { useCohereChat } from '../../hooks/useCohere';
+import { handleContent } from '../../promt';
 
 // Add Product Form Component
 const AddProductForm = () => {
@@ -22,6 +24,8 @@ const AddProductForm = () => {
   const [priceError, setPriceError] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
+  // Thêm hook cohere
+  const { sendMessage } = useCohereChat();
 
   useEffect(() => {
     if (tagifyRef.current) {
@@ -292,20 +296,46 @@ const AddProductForm = () => {
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 Mô tả sản phẩm
               </label>
-              <textarea
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  descriptionError ? 'border-red-500' : 'border-gray-300'
-                }`}
-                rows="5"
-                placeholder="Nhập mô tả chi tiết về sản phẩm"
-                value={description}
-                onChange={e => {
-                  setDescription(e.target.value);
-                  setDescriptionError(validateDescription(e.target.value));
-                }}
-                onBlur={e => setDescriptionError(validateDescription(e.target.value))}
-                maxLength={10000}
-              ></textarea>
+              <div className="flex items-start gap-2">
+                <textarea
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                    descriptionError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  rows="5"
+                  placeholder="Nhập mô tả chi tiết về sản phẩm"
+                  value={description}
+                  onChange={e => {
+                    setDescription(e.target.value);
+                    setDescriptionError(validateDescription(e.target.value));
+                  }}
+                  onBlur={e => setDescriptionError(validateDescription(e.target.value))}
+                  maxLength={10000}
+                ></textarea>
+                {/* Nút đánh giá AI */}
+                <button
+                  type="button"
+                  className="px-3 py-2 ml-2 text-xs text-white transition-all rounded-md shadow bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                  onClick={async () => {
+                    if (!description.trim()) {
+                      Swal.fire({
+                        icon: 'warning',
+                        title: 'Chưa có mô tả',
+                        text: 'Vui lòng nhập mô tả sản phẩm để AI đánh giá.',
+                        confirmButtonColor: '#3B82F6'
+                      });
+                      return;
+                    }
+                    try {
+                      await sendMessage(handleContent(description));
+                    } catch (e) {
+                      // lỗi đã được xử lý trong hook
+                    }
+                  }}
+                  style={{ minWidth: 90 }}
+                >
+                  Đánh giá mô tả AI
+                </button>
+              </div>
               <div className="mt-1 text-xs text-gray-500">
                 Tối đa 1000 từ.
               </div>
