@@ -8,9 +8,13 @@ import ImageUploader from './ImageUploader';
 const AddProductForm = () => {
   const tagifyRef = useRef(null);
   const tagifyInstance = useRef(null);
+  const addressDebounceRef = useRef(null);
   
   // State management
   const [images, setImages] = useState([]);
+  const [address, setAddress] = useState('');
+  const [addressValid, setAddressValid] = useState(true);
+  const [checkingAddress, setCheckingAddress] = useState(false);
 
   useEffect(() => {
     if (tagifyRef.current) {
@@ -55,7 +59,6 @@ const AddProductForm = () => {
   const handleGetTags = () => {
     if (tagifyInstance.current) {
       const tags = tagifyInstance.current.value;
-      console.log('Current tags:', tags);
       return tags;
     }
     return [];
@@ -64,6 +67,88 @@ const AddProductForm = () => {
   const handleImagesChange = (newImages) => {
     setImages(newImages);
   };
+
+  // Debounce kiểm tra địa chỉ realtime, chỉ gọi API khi người dùng ngưng nhập đủ lâu
+  useEffect(() => {
+    if (addressDebounceRef.current) clearTimeout(addressDebounceRef.current);
+    if (!address.trim()) {
+      setAddressValid(true);
+      setCheckingAddress(false);
+      return;
+    }
+    addressDebounceRef.current = setTimeout(() => {
+      checkAddress(address);
+    }, 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
+
+  // Hàm kiểm tra địa chỉ với LocationIQ (dùng search API, không phải reverse)
+  const checkAddress = React.useCallback(async (addr) => {
+    if (!addr.trim()) {
+      setAddressValid(true);
+      setCheckingAddress(false);
+      return;
+    }
+    setCheckingAddress(true);
+    try {
+      const apiKey = import.meta.env.VITE_LOCATION;
+      if (!apiKey) {
+        setAddressValid(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Thiếu API Key',
+          text: 'Không tìm thấy API key cho LocationIQ. Vui lòng kiểm tra cấu hình.',
+          confirmButtonColor: '#EF4444'
+        });
+        setCheckingAddress(false);
+        return;
+      }
+      const url = `https://us1.locationiq.com/v1/search?key=${apiKey}&q=${encodeURIComponent(addr)}&format=json&`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        setAddressValid(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Đại chỉ không phù hợp',
+          text: 'Không tìm thấy địa chỉ này. Vui lòng kiểm tra lại.',
+          confirmButtonColor: '#EF4444'
+        });
+        setCheckingAddress(false);
+        return;
+      }
+      const data = await resp.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setAddressValid(true);
+        Swal.fire({
+          icon: 'success',
+          title: 'Địa chỉ hợp lệ',
+          text: 'Địa chỉ bạn nhập đã tồn tại trên bản đồ.',
+          confirmButtonColor: '#10B981',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        setAddressValid(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Địa chỉ không hợp lệ',
+          text: 'Không tìm thấy địa chỉ này. Vui lòng kiểm tra lại.',
+          confirmButtonColor: '#EF4444'
+        });
+      }
+    } catch (e) {
+      setAddressValid(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi kiểm tra địa chỉ',
+        text: 'Không thể kiểm tra địa chỉ. Vui lòng thử lại.',
+        confirmButtonColor: '#EF4444'
+      });
+    } finally {
+      setCheckingAddress(false);
+    }
+  }, []);
+
   return (
     <div className="p-4 bg-white shadow-sm rounded-xl md:p-6">
       <h2 className="mb-4 text-xl font-semibold">Đăng sản phẩm mới</h2>
@@ -128,10 +213,17 @@ const AddProductForm = () => {
                 Địa chỉ
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  addressValid ? 'border-gray-300' : 'border-red-500'
+                }`}
                 rows="5"
                 placeholder="Nhập đại chỉ lấy hàng"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
               ></textarea>
+              {!addressValid && (
+                <p className="mt-1 text-xs text-red-500">Địa chỉ không hợp lệ hoặc không tìm thấy.</p>
+              )}
             </div>
 
              <div>
@@ -161,7 +253,7 @@ const AddProductForm = () => {
             Hủy
           </button>
           <button 
-            onClick={() => {
+            onClick={async () => {
               if (images.length < 10) {
                 Swal.fire({
                   icon: 'warning',
@@ -172,7 +264,15 @@ const AddProductForm = () => {
                 });
                 return;
               }
-              
+              if (!addressValid) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Địa chỉ không hợp lệ',
+                  text: 'Vui lòng nhập địa chỉ hợp lệ.',
+                  confirmButtonColor: '#EF4444'
+                });
+                return;
+              }
               const tags = handleGetTags();
               console.log('Images:', images);
               console.log('Tags:', tags);
@@ -194,7 +294,7 @@ const AddProductForm = () => {
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 shadow-lg hover:shadow-xl' 
                 : 'bg-gray-400 cursor-not-allowed'
             }`}
-            disabled={images.length < 10}
+            disabled={images.length < 10 || !addressValid || checkingAddress}
           >
             {images.length >= 10 ? (
               <>
