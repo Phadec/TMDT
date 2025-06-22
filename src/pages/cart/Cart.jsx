@@ -24,6 +24,10 @@ function Cart() {
   // State cho checkbox
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // Lấy dữ liệu giỏ hàng khi component mount
   useEffect(() => {
@@ -115,13 +119,25 @@ function Cart() {
     }
   };
 
-  // Hàm xử lý chọn tất cả
+  // Hàm xử lý chọn tất cả (chỉ cho trang hiện tại)
   const handleSelectAll = (checked) => {
     setSelectAll(checked);
     if (checked) {
-      setSelectedItems(cartItems.map(item => item.productId));
+      // Thêm tất cả items trong trang hiện tại vào selectedItems
+      const currentPageIds = currentItems.map(item => item.productId);
+      setSelectedItems(prev => {
+        const newSelected = [...prev];
+        currentPageIds.forEach(id => {
+          if (!newSelected.includes(id)) {
+            newSelected.push(id);
+          }
+        });
+        return newSelected;
+      });
     } else {
-      setSelectedItems([]);
+      // Xóa tất cả items trong trang hiện tại khỏi selectedItems
+      const currentPageIds = currentItems.map(item => item.productId);
+      setSelectedItems(prev => prev.filter(id => !currentPageIds.includes(id)));
     }
   };
 
@@ -135,14 +151,35 @@ function Cart() {
     }
   };
 
-  // Cập nhật selectAll khi selectedItems thay đổi
+  // Tính toán phân trang
+  const totalPages = Math.ceil(cartItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = cartItems.slice(startIndex, endIndex);
+
+  // Cập nhật selectAll khi selectedItems thay đổi (chỉ cho trang hiện tại)
   useEffect(() => {
-    if (cartItems.length > 0 && selectedItems.length === cartItems.length) {
-      setSelectAll(true);
+    if (currentItems.length > 0) {
+      const currentPageIds = currentItems.map(item => item.productId);
+      const allCurrentPageSelected = currentPageIds.every(id => selectedItems.includes(id));
+      setSelectAll(allCurrentPageSelected);
     } else {
       setSelectAll(false);
     }
-  }, [selectedItems, cartItems]);
+  }, [selectedItems, currentItems]);
+
+  // Hàm chuyển trang
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // Reset selected items khi chuyển trang để tránh confusion
+    setSelectedItems([]);
+    setSelectAll(false);
+  };
+
+  // Reset về trang 1 khi cartItems thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [cartItems.length]);
 
   // Hàm xóa các sản phẩm đã chọn
   const handleRemoveSelectedItems = async () => {
@@ -171,6 +208,12 @@ function Cart() {
         await refreshCart(); // Cập nhật số lượng trong context
         setSelectedItems([]);
         setSelectAll(false);
+        
+        // Kiểm tra và điều chỉnh trang hiện tại nếu cần
+        const newTotalPages = Math.ceil((cartItems.length - selectedItems.length) / itemsPerPage);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
         
         Swal.fire({
           icon: 'success',
@@ -201,161 +244,6 @@ function Cart() {
         <NotiSale />
 
         <div className="max-w-7xl mx-auto py-6 px-4 space-y-6">
-          {/* Bộ lọc nâng cao */}
-          <div className={containerVariant({type: 'filter'})}>
-            {/* Phần header của bộ lọc */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <div className="flex items-center space-x-2">
-                <FunnelIcon className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-medium text-gray-800">Bộ lọc sản phẩm</h3>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <input
-                      type="text"
-                      placeholder="Tìm sản phẩm..."
-                      className={inputVariant({ type: 'text' })}
-                  />
-                </div>
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={buttonVariant({ intent: 'filter' })}
-                >
-                  <AdjustmentsHorizontalIcon className="h-5 w-5" />
-                  <span className="text-sm font-medium">Tùy chọn lọc</span>
-                  <ChevronDownIcon className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Phần mở rộng của bộ lọc */}
-            {showFilters && (
-                <div className="p-4 bg-gray-50 border-b border-gray-100">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Lọc theo danh mục */}
-                    <div>
-                      <h4 className="font-medium text-sm text-gray-700 mb-2">Danh mục</h4>
-                      <div className="space-y-1">
-                        {['all', 'electronics', 'clothing', 'books', 'home'].map((category) => (
-                            <div key={category} className="flex items-center">
-                              <input
-                                  type="radio"
-                                  id={`category-${category}`}
-                                  name="category"
-                                  checked={selectedCategory === category}
-                                  onChange={() => setSelectedCategory(category)}
-                                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
-                              />
-                              <label htmlFor={`category-${category}`} className="ml-2 text-sm text-gray-700 capitalize">
-                                {category === 'all' ? 'Tất cả' :
-                                    category === 'electronics' ? 'Điện tử' :
-                                        category === 'clothing' ? 'Quần áo' :
-                                            category === 'books' ? 'Sách' : 'Đồ gia dụng'}
-                              </label>
-                            </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Lọc theo giá */}
-                    <div>
-                      <h4 className="font-medium text-sm text-gray-700 mb-2">Khoảng giá</h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>{priceRange[0].toLocaleString()}₫</span>
-                          <span>{priceRange[1].toLocaleString()}₫</span>
-                        </div>
-                        <input
-                            type="range"
-                            min="0"
-                            max="1000000"
-                            step="50000"
-                            value={priceRange[1]}
-                            onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                            className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer"
-                        />
-                        <div className="flex space-x-2">
-                          <button
-                              className={buttonVariant({ intent: 'price', active: priceRange[1] <= 200000 })}
-                              onClick={() => setPriceRange([0, 200000])}
-                          >
-                            &lt; 200K
-                          </button>
-                          <button
-                              className={buttonVariant({ intent: 'price', active: priceRange[1] > 200000 && priceRange[1] <= 500000 })}
-                              onClick={() => setPriceRange([200000, 500000])}
-                          >
-                            200K - 500K
-                          </button>
-                          <button
-                              className={buttonVariant({ intent: 'price', active: priceRange[1] > 500000 })}
-                              onClick={() => setPriceRange([500000, 1000000])}
-                          >
-                            &gt; 500K
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sắp xếp */}
-                    <div>
-                      <h4 className="font-medium text-sm text-gray-700 mb-2">Sắp xếp theo</h4>
-                      <select
-                          value={sortBy}
-                          onChange={(e) => setSortBy(e.target.value)}
-                          className={inputVariant({ type: 'select' })}
-                      >
-                        <option value="relevance">Phù hợp nhất</option>
-                        <option value="price-asc">Giá: Thấp đến cao</option>
-                        <option value="price-desc">Giá: Cao đến thấp</option>
-                        <option value="newest">Mới nhất</option>
-                        <option value="popular">Phổ biến nhất</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Nút áp dụng và đặt lại */}
-                  <div className="flex justify-end mt-4 space-x-2">
-                    <button className={buttonVariant({intent: 'secondary'})}>
-                      Đặt lại
-                    </button>
-                    <button className={buttonVariant({intent: 'primary'})}>
-                      Áp dụng
-                    </button>
-                  </div>
-                </div>
-            )}
-
-            {/* Thanh trạng thái lọc */}
-            <div className={containerVariant({type: 'status'})}>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>Hiển thị: <b>{cartItems.length}</b> sản phẩm</span>
-                {selectedCategory !== 'all' && (
-                    <div className={tagVariant()}>
-                      Danh mục: {selectedCategory === 'electronics' ? 'Điện tử' :
-                        selectedCategory === 'clothing' ? 'Quần áo' :
-                            selectedCategory === 'books' ? 'Sách' : 'Đồ gia dụng'}
-                      <button className="ml-1 text-gray-500 hover:text-gray-700">×</button>
-                    </div>
-                )}
-                {priceRange[1] < 1000000 && (
-                    <div className={tagVariant()}>
-                      Giá: {priceRange[0].toLocaleString()}₫ - {priceRange[1].toLocaleString()}₫
-                      <button className="ml-1 text-gray-500 hover:text-gray-700">×</button>
-                    </div>
-                )}
-              </div>
-              <div className="flex space-x-4">
-                <button className={buttonVariant({ intent: 'tag', active: selectedCategory === 'all' })}>
-                  Tất cả
-                </button>
-                <button className={buttonVariant({intent: 'tag'})}> 
-                  Đã lưu
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Tính năng nhanh */}
           <div className="flex justify-between items-center px-2">
             <div className="text-sm">
@@ -365,7 +253,7 @@ function Cart() {
                 checked={selectAll}
                 onChange={(e) => handleSelectAll(e.target.checked)}
               /> 
-              Chọn tất cả ({selectedItems.length}/{cartItems.length})
+              Chọn tất cả trang này ({currentItems.filter(item => selectedItems.includes(item.productId)).length}/{currentItems.length})
             </div>
             <button 
               className={`text-sm ${selectedItems.length > 0 ? 'text-red-500 hover:text-red-700' : 'text-gray-400 cursor-not-allowed'}`}
@@ -417,7 +305,7 @@ function Cart() {
             {/* Cart items */}
             {!loading && !error && cartItems.length > 0 && (
               <div className="divide-y divide-gray-200">
-                {cartItems.map((item, index) => (
+                {currentItems.map((item, index) => (
                   <div key={`${item.productId}-${index}`} className="p-6 flex items-center space-x-4">
                     {/* Checkbox */}
                     <input 
@@ -460,6 +348,59 @@ function Cart() {
                   </div>
                 ))}
                 
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="p-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        Hiển thị {startIndex + 1}-{Math.min(endIndex, cartItems.length)} trong tổng số {cartItems.length} sản phẩm
+                      </div>
+                      <div className="flex space-x-2">
+                        {/* Previous button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === 1
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-50'
+                          }`}
+                        >
+                          Trước
+                        </button>
+                        
+                        {/* Page numbers */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              currentPage === page
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        
+                        {/* Next button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === totalPages
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-50'
+                          }`}
+                        >
+                          Sau
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Cart summary */}
                 <div className="p-6 bg-gray-50">
                   <div className="flex justify-between items-center mb-4">
@@ -473,9 +414,6 @@ function Cart() {
                     </span>
                   </div>
                   <div className="flex space-x-4">
-                    <button className="flex-1 px-6 py-3 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors">
-                      Cập nhật giỏ hàng
-                    </button>
                     <button className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                       Thanh toán
                     </button>

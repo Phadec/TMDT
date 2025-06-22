@@ -168,6 +168,25 @@ const apiServices = {
     },
 
     /**
+     * Kiểm tra sản phẩm đã tồn tại trong giỏ hàng
+     * @param {string} cartId - ID của giỏ hàng
+     * @param {string} productId - ID của sản phẩm cần kiểm tra
+     * @returns {Promise<boolean>} - Promise chứa kết quả kiểm tra
+     */
+    checkProductInCart: async (cartId, productId) => {
+      try {
+        const response = await clientApi.get(`/cart?id=${cartId}`);
+        if (response && Array.isArray(response)) {
+          return response.some(item => item.productId === productId);
+        }
+        return false;
+      } catch (error) {
+        console.error('Error checking product in cart:', error);
+        return false;
+      }
+    },
+
+    /**
      * Xóa sản phẩm khỏi giỏ hàng
      * @param {string} cartId - ID của giỏ hàng
      * @param {string} productId - ID của sản phẩm cần xóa
