@@ -5,6 +5,7 @@ public interface Mid {
     String ORDER = "/orders";
     String PRODUCT = "/products";
     String AUTH = "/auth";
+    String CART = "/cart";
     String USER = "/users";
     String CUSTOMER = "/customers";
     String VERIFY = "/verify";
