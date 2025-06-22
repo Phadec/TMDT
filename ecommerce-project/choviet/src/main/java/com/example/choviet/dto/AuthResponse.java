@@ -22,6 +22,7 @@ public class AuthResponse {
     String fullname;
     String phone;
     String name;
+    boolean isSeller;
     Role.RoleName roleName;
     String[] permission;
     LocalDateTime createdAt;
