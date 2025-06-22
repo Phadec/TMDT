@@ -24,4 +24,24 @@ public interface ProductRepository extends MongoRepository<Product, String> {
      * Tìm sản phẩm theo danh mục với phân trang
      */
     Page<Product> findByProductCategoryId(String productCategoryId, Pageable pageable);
+
+    /**
+     * Đếm số lượng sản phẩm theo seller và trạng thái
+     */
+    long countByCustomer_IdAndStatus(String customerId, Product.Type status);
+
+    /**
+     * Tìm sản phẩm theo seller và trạng thái
+     */
+    List<Product> findByCustomer_IdAndStatus(String customerId, Product.Type status);
+
+    /**
+     * Tìm sản phẩm theo seller với phân trang
+     */
+    Page<Product> findByCustomer_Id(String customerId, Pageable pageable);
+
+    /**
+     * Tìm sản phẩm theo seller sắp xếp theo thời gian tạo
+     */
+    List<Product> findByCustomer_IdOrderByCreatedAtDesc(String customerId);
 }
