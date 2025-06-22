@@ -121,32 +121,34 @@ function Cart() {
     }
   };
 
-  // Hàm xử lý chọn tất cả (chỉ cho trang hiện tại)
+  // Hàm xử lý chọn tất cả (vô hiệu hóa vì chỉ cho phép chọn 1 sản phẩm)
   const handleSelectAll = (checked) => {
-    setSelectAll(checked);
+    // Không cho phép chọn tất cả vì chỉ được chọn 1 sản phẩm
     if (checked) {
-      // Thêm tất cả items trong trang hiện tại vào selectedItems
-      const currentPageIds = currentItems.map(item => item.productId);
-      setSelectedItems(prev => {
-        const newSelected = [...prev];
-        currentPageIds.forEach(id => {
-          if (!newSelected.includes(id)) {
-            newSelected.push(id);
-          }
-        });
-        return newSelected;
+      Swal.fire({
+        icon: 'info',
+        title: 'Thông báo',
+        text: 'Chỉ có thể chọn 1 sản phẩm để thanh toán cùng lúc.',
+        confirmButtonText: 'OK'
       });
-    } else {
-      // Xóa tất cả items trong trang hiện tại khỏi selectedItems
-      const currentPageIds = currentItems.map(item => item.productId);
-      setSelectedItems(prev => prev.filter(id => !currentPageIds.includes(id)));
     }
+    setSelectAll(false);
   };
 
-  // Hàm xử lý chọn từng item
+  // Hàm xử lý chọn từng item (chỉ cho phép chọn 1 sản phẩm)
   const handleSelectItem = (productId, checked) => {
     if (checked) {
-      setSelectedItems(prev => [...prev, productId]);
+      // Kiểm tra nếu đã có sản phẩm được chọn
+      if (selectedItems.length > 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Thông báo',
+          text: 'Chỉ có thể chọn 1 sản phẩm để thanh toán cùng lúc. Vui lòng bỏ chọn sản phẩm khác trước.',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+      setSelectedItems([productId]); // Chỉ cho phép chọn 1 sản phẩm
     } else {
       setSelectedItems(prev => prev.filter(id => id !== productId));
       setSelectAll(false);
@@ -159,22 +161,17 @@ function Cart() {
   const endIndex = startIndex + itemsPerPage;
   const currentItems = cartItems.slice(startIndex, endIndex);
 
-  // Cập nhật selectAll khi selectedItems thay đổi (chỉ cho trang hiện tại)
+  // Vô hiệu hóa selectAll vì chỉ cho phép chọn 1 sản phẩm
   useEffect(() => {
-    if (currentItems.length > 0) {
-      const currentPageIds = currentItems.map(item => item.productId);
-      const allCurrentPageSelected = currentPageIds.every(id => selectedItems.includes(id));
-      setSelectAll(allCurrentPageSelected);
-    } else {
-      setSelectAll(false);
-    }
+    // Luôn giữ selectAll = false vì chỉ cho phép chọn 1 sản phẩm
+    setSelectAll(false);
   }, [selectedItems, currentItems]);
 
   // Hàm chuyển trang
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Reset selected items khi chuyển trang để tránh confusion
-    setSelectedItems([]);
+    // Giữ nguyên selectedItems khi chuyển trang vì chỉ có 1 sản phẩm được chọn
+    // setSelectedItems([]); // Bỏ comment này để reset khi chuyển trang
     setSelectAll(false);
   };
 
@@ -201,7 +198,7 @@ function Cart() {
       Swal.fire({
         icon: 'warning',
         title: 'Chưa chọn sản phẩm',
-        text: 'Vui lòng chọn ít nhất một sản phẩm để thanh toán.',
+        text: 'Vui lòng chọn 1 sản phẩm để thanh toán.',
         confirmButtonText: 'OK'
       });
       return;
@@ -295,26 +292,7 @@ function Cart() {
         <NotiSale />
 
         <div className="max-w-7xl mx-auto py-6 px-4 space-y-6">
-          {/* Tính năng nhanh */}
-          <div className="flex justify-between items-center px-2">
-            <div className="text-sm">
-              <input 
-                type="checkbox" 
-                className="mr-2" 
-                checked={selectAll}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-              /> 
-              Chọn tất cả trang này ({currentItems.filter(item => selectedItems.includes(item.productId)).length}/{currentItems.length})
-            </div>
-            <button 
-              className={`text-sm ${selectedItems.length > 0 ? 'text-red-500 hover:text-red-700' : 'text-gray-400 cursor-not-allowed'}`}
-              onClick={handleRemoveSelectedItems}
-              disabled={selectedItems.length === 0}
-            >
-              Xóa sản phẩm đã chọn ({selectedItems.length})
-            </button>
-          </div>
-
+          
           {/* Danh sách sản phẩm trong giỏ hàng */}
           <div className="bg-white rounded-lg shadow-sm">
             {/* Loading state */}
@@ -455,19 +433,6 @@ function Cart() {
                 {/* Cart summary */}
                 <div className="p-6 bg-gradient-to-r from-gray-50 to-purple-50 border-t border-gray-200">
                   <div className="space-y-4">
-                    {/* Thông tin tổng tiền */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-gray-900">Tổng cộng:</span>
-                        <span className="text-2xl font-bold text-purple-600">
-                          {cartItems.reduce((total, item) => total + Number(item.price || 0), 0).toLocaleString('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND',
-                            minimumFractionDigits: 0,
-                          })}
-                        </span>
-                      </div>
-                    </div>
 
                     {/* Nút thanh toán */}
                     <div className="flex space-x-3">

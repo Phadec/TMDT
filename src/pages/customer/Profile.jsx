@@ -779,15 +779,6 @@ function Profile({ onProfileDataChange }) {
             />
           </div>
 
-          {/* Hiển thị địa chỉ đầy đủ */}
-          {profileData.addresses && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <label className="form-label text-blue-800">Địa chỉ hoàn chỉnh:</label>
-              <p className="text-sm text-blue-700 mt-1 font-medium">
-                {profileData.addresses}
-              </p>
-            </div>
-          )}
         </div>
         <div className="flex items-center justify-between">
           {/* Nút đăng ký làm người bán nếu chưa phải seller */}

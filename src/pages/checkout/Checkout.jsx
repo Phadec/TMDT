@@ -14,16 +14,35 @@ import {
 import Swal from 'sweetalert2';
 import { apiServices } from "~/api";
 import { useCart } from "~/contexts/CartContext";
+import vnpayService from "~/services/vnpayService";
+import { ghnService } from "~/services/ghnService";
+import { getOrCreateCartId } from "~/utils/cartUtils";
 
 function Checkout() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { clearCart } = useCart();
+  const { clearCart, removeFromCartOnly, fetchCartItemCount } = useCart();
   
   // State cho giỏ hàng
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  // State cho shipping fee
+  const [shippingFee, setShippingFee] = useState(0);
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
+  
+  // State cho discount
+  const [discountCode, setDiscountCode] = useState('');
+  const [discount, setDiscount] = useState({ code: '', percentage: 0 });
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+  
+  // State cho thông tin người bán
+  const [sellerInfo, setSellerInfo] = useState({
+    address: '',
+    districtId: '',
+    wardCode: ''
+  });
   
   // State cho địa chỉ GHN
   const [provinces, setProvinces] = useState([]);
@@ -32,6 +51,16 @@ function Checkout() {
   const [loadingProvinces, setLoadingProvinces] = useState(false);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
+  
+  // State cho thông tin địa chỉ đã parse
+  const [parsedAddress, setParsedAddress] = useState({
+    provinceName: '',
+    districtName: '',
+    wardName: '',
+    provinceId: '',
+    districtId: '',
+    wardCode: ''
+  });
   
   // State cho thông tin thanh toán
   const [checkoutData, setCheckoutData] = useState({
@@ -122,7 +151,7 @@ function Checkout() {
     }
   }, [user, checkoutData.fullName, checkoutData.email, checkoutData.phone]);
 
-  // Lấy dữ liệu sản phẩm đã chọn từ cart
+  // Lấy dữ liệu sản phẩm đã chọn từ cart và thông tin người bán
   useEffect(() => {
     const fetchSelectedItems = async () => {
       try {
@@ -133,6 +162,80 @@ function Checkout() {
           const selectedProducts = JSON.parse(selectedItemsData);
           if (Array.isArray(selectedProducts) && selectedProducts.length > 0) {
             setCartItems(selectedProducts);
+            
+            // Lấy thông tin chi tiết sản phẩm đầu tiên để có thông tin người bán
+            const firstProduct = selectedProducts[0];
+            if (firstProduct && (firstProduct.productId || firstProduct.id)) {
+              try {
+                const productId = firstProduct.productId || firstProduct.id;
+                
+                const productDetail = await apiServices.products.getProductWithSellerInfo(productId);
+                
+                
+                if (productDetail) {
+                  console.log('Product data:', productDetail);
+                  if (productDetail.customer) {
+                    console.log('Customer info:', productDetail.customer);
+                    
+                    // Lấy địa chỉ từ customer.addresses
+                    const sellerAddress = productDetail.customer.addresses;
+                    console.log('Raw seller address:', sellerAddress);
+                    
+                    if (sellerAddress && sellerAddress.trim()) {
+                      // Kiểm tra xem địa chỉ có đúng format Việt Nam không (có dấu phẩy)
+                      if (sellerAddress.includes(',') && sellerAddress.split(',').length >= 3) {
+                        console.log('Address has Vietnamese format, parsing...');
+                        
+                        // Parse địa chỉ người bán để lấy district_id và ward_code
+                        const parsedSellerAddress = await ghnService.parseAddressToGHNIds(sellerAddress);
+                        console.log('Parsed seller address result:', parsedSellerAddress);
+                        
+                        if (parsedSellerAddress) {
+                          setSellerInfo({
+                            address: sellerAddress,
+                            districtId: parsedSellerAddress.districtId,
+                            wardCode: parsedSellerAddress.wardCode
+                          });
+                          console.log('✅ Successfully set seller info:', {
+                            address: sellerAddress,
+                            districtId: parsedSellerAddress.districtId,
+                            wardCode: parsedSellerAddress.wardCode
+                          });
+                          return; // Exit early on success
+                        } else {
+                          console.warn('❌ Failed to parse Vietnamese address format');
+                        }
+                      } else {
+                        console.warn('❌ Address not in Vietnamese format (missing commas or insufficient parts):', sellerAddress);
+                      }
+                    } else {
+                      console.warn('❌ Seller address is empty or null');
+                    }
+                  } else {
+                    console.warn('❌ No customer info in product data');
+                  }
+                } else {
+                  console.warn('❌ No product data in response');
+                }
+                
+                // Fallback: sử dụng địa chỉ mặc định
+                console.warn('🔄 Using default seller address');
+                setSellerInfo({
+                  address: "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
+                  districtId: "1454", // Quận 1, TP.HCM
+                  wardCode: "21211" // Phường Bến Nghé, Quận 1
+                });
+                
+              } catch (error) {
+                console.error('❌ Error fetching product detail:', error);
+                // Fallback: sử dụng địa chỉ mặc định
+                setSellerInfo({
+                  address: "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM",
+                  districtId: "1454", // Quận 1, TP.HCM
+                  wardCode: "21211" // Phường Bến Nghé, Quận 1
+                });
+              }
+            }
           } else {
             // Nếu không có sản phẩm đã chọn, quay về cart
             Swal.fire({
@@ -180,25 +283,116 @@ function Checkout() {
 
   // Tính tổng tiền
   const totalAmount = cartItems.reduce((total, item) => total + Number(item.price || 0), 0);
-  const shippingFee = totalAmount > 500000 ? 0 : 30000; // Miễn phí ship cho đơn hàng trên 500k
-  const finalAmount = totalAmount + shippingFee;
+  const discountAmount = discount.percentage > 0 ? (totalAmount * discount.percentage / 100) : 0;
+  const finalAmount = totalAmount - discountAmount + shippingFee;
+
+  // Function để parse địa chỉ
+  const parseAddress = (addressString) => {
+    if (!addressString) return null;
+    
+    // Tách địa chỉ theo dấu phẩy
+    const parts = addressString.split(',').map(part => part.trim());
+    
+    if (parts.length < 3) return null;
+    
+    // Lấy tỉnh (phần cuối cùng)
+    const provinceName = parts[parts.length - 1];
+    
+    // Lấy quận/huyện (phần thứ 2 từ cuối)
+    const districtName = parts[parts.length - 2];
+    
+    // Lấy phường/xã (phần thứ 3 từ cuối)
+    const wardName = parts[parts.length - 3];
+    
+    return {
+      provinceName: provinceName,
+      districtName: districtName,
+      wardName: wardName
+    };
+  };
+
+  // Function để tìm ID từ tên địa chỉ
+  const findLocationIds = async (parsedAddr) => {
+    try {
+      // Tìm province ID từ danh sách provinces đã load
+      const province = provinces.find(p => 
+        p.ProvinceName.toLowerCase().includes(parsedAddr.provinceName.toLowerCase()) ||
+        parsedAddr.provinceName.toLowerCase().includes(p.ProvinceName.toLowerCase())
+      );
+      
+      if (!province) {
+        console.error('Không tìm thấy tỉnh:', parsedAddr.provinceName);
+        return;
+      }
+
+      // Load districts cho province này
+      const currentDistricts = await ghnService.getDistricts(province.ProvinceID);
+      
+      // Tìm district ID
+      const district = currentDistricts.find(d => 
+        d.DistrictName.toLowerCase().includes(parsedAddr.districtName.toLowerCase()) ||
+        parsedAddr.districtName.toLowerCase().includes(d.DistrictName.toLowerCase())
+      );
+      
+      if (!district) {
+        console.error('Không tìm thấy quận/huyện:', parsedAddr.districtName);
+        return;
+      }
+
+      // Load wards cho district này
+      const currentWards = await ghnService.getWards(district.DistrictID);
+      
+      // Tìm ward code
+      const ward = currentWards.find(w => 
+        w.WardName.toLowerCase().includes(parsedAddr.wardName.toLowerCase()) ||
+        parsedAddr.wardName.toLowerCase().includes(w.WardName.toLowerCase())
+      );
+      
+      if (!ward) {
+        console.error('Không tìm thấy phường/xã:', parsedAddr.wardName);
+        return;
+      }
+
+      // Cập nhật parsed address với IDs
+      setParsedAddress({
+        provinceName: province.ProvinceName,
+        districtName: district.DistrictName,
+        wardName: ward.WardName,
+        provinceId: province.ProvinceID.toString(),
+        districtId: district.DistrictID.toString(),
+        wardCode: ward.WardCode
+      });
+
+      // Cập nhật checkout data
+      setCheckoutData(prev => ({
+        ...prev,
+        provinceId: province.ProvinceID.toString(),
+        provinceName: province.ProvinceName,
+        districtId: district.DistrictID.toString(),
+        districtName: district.DistrictName,
+        wardCode: ward.WardCode,
+        wardName: ward.WardName
+      }));
+      
+    } catch (error) {
+      console.error('Error finding location IDs:', error);
+    }
+  };
 
   // API GHN functions
   const fetchProvinces = async () => {
     try {
       setLoadingProvinces(true);
-      const response = await fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/province', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      const data = await response.json();
-      if (data.code === 200) {
-        setProvinces(data.data);
-      }
+      const response = await ghnService.getProvinces();
+      setProvinces(response);
     } catch (error) {
       console.error('Error fetching provinces:', error);
+      // Fallback: sử dụng mock data nếu GHN API không hoạt động
+      setProvinces([
+        { ProvinceID: 252, ProvinceName: "Cà Mau" },
+        { ProvinceID: 201, ProvinceName: "Hồ Chí Minh" },
+        { ProvinceID: 203, ProvinceName: "Hà Nội" }
+      ]);
     } finally {
       setLoadingProvinces(false);
     }
@@ -207,21 +401,17 @@ function Checkout() {
   const fetchDistricts = async (provinceId) => {
     try {
       setLoadingDistricts(true);
-      const response = await fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/district', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          province_id: parseInt(provinceId)
-        })
-      });
-      const data = await response.json();
-      if (data.code === 200) {
-        setDistricts(data.data);
-      }
+      const response = await ghnService.getDistricts(provinceId);
+      setDistricts(response);
     } catch (error) {
       console.error('Error fetching districts:', error);
+      // Fallback: mock data cho Cà Mau
+      if (provinceId == 252) {
+        setDistricts([
+          { DistrictID: 1782, DistrictName: "Huyện Thới Bình" },
+          { DistrictID: 1783, DistrictName: "Huyện Cái Nước" }
+        ]);
+      }
     } finally {
       setLoadingDistricts(false);
     }
@@ -230,21 +420,17 @@ function Checkout() {
   const fetchWards = async (districtId) => {
     try {
       setLoadingWards(true);
-      const response = await fetch('https://online-gateway.ghn.vn/shiip/public-api/master-data/ward', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          district_id: parseInt(districtId)
-        })
-      });
-      const data = await response.json();
-      if (data.code === 200) {
-        setWards(data.data);
-      }
+      const response = await ghnService.getWards(districtId);
+      setWards(response);
     } catch (error) {
       console.error('Error fetching wards:', error);
+      // Fallback: mock data cho Huyện Thới Bình
+      if (districtId == 1782) {
+        setWards([
+          { WardCode: "610208", WardName: "Xã Tân Lộc Đông" },
+          { WardCode: "610209", WardName: "Xã Thới Bình" }
+        ]);
+      }
     } finally {
       setLoadingWards(false);
     }
@@ -255,19 +441,134 @@ function Checkout() {
     fetchProvinces();
   }, []);
 
-  // Load districts khi có provinceId
+  // Parse địa chỉ khi có dữ liệu address
   useEffect(() => {
-    if (checkoutData.provinceId && provinces.length > 0) {
-      fetchDistricts(checkoutData.provinceId);
+    if (checkoutData.address && provinces.length > 0) {
+      const parsed = parseAddress(checkoutData.address);
+      if (parsed) {
+        findLocationIds(parsed);
+      }
     }
-  }, [checkoutData.provinceId, provinces.length]);
+  }, [checkoutData.address, provinces.length]);
 
-  // Load wards khi có districtId
+  // Không cần load districts và wards tự động nữa vì sẽ parse từ địa chỉ
+
+  // Tính phí ship khi có đủ thông tin địa chỉ và sản phẩm
   useEffect(() => {
-    if (checkoutData.districtId && districts.length > 0) {
-      fetchWards(checkoutData.districtId);
+    const calculateShipping = async () => {
+      if (
+        parsedAddress.districtId && 
+        parsedAddress.wardCode && 
+        cartItems.length > 0 &&
+        sellerInfo.districtId &&
+        sellerInfo.wardCode
+      ) {
+        try {
+          setCalculatingShipping(true);
+          
+          const shippingData = {
+            insurance_value: totalAmount, // Giá sản phẩm không tính giảm giá
+            from_district_id: parseInt(sellerInfo.districtId), // Quận của người bán (từ API)
+            from_ward_code: sellerInfo.wardCode, // Phường của người bán (từ API)
+            to_district_id: parseInt(parsedAddress.districtId),
+            to_ward_code: parsedAddress.wardCode,
+            height: cartItems[0]?.height || 50,
+            length: cartItems[0]?.length || 20,
+            weight: cartItems[0]?.weight || 200,
+            width: cartItems[0]?.width || 20,
+          };
+
+          console.log('Calculating shipping with seller info:', {
+            from_district_id: shippingData.from_district_id,
+            from_ward_code: shippingData.from_ward_code,
+            to_district_id: shippingData.to_district_id,
+            to_ward_code: shippingData.to_ward_code,
+            seller_address: sellerInfo.address
+          });
+
+          const feeResponse = await ghnService.calculateShippingFee(shippingData);
+          setShippingFee(feeResponse.total || 0);
+        } catch (error) {
+          console.error('Error calculating shipping fee:', error);
+          
+          // Kiểm tra nếu là lỗi 401 (Unauthorized)
+          if (error.response?.status === 401) {
+            console.warn('GHN API token không hợp lệ, sử dụng phí ship mặc định');
+          }
+          
+          // Fallback: tính phí ship theo khoảng cách (mock)
+          const mockShippingFee = totalAmount > 500000 ? 0 : 35000; // Miễn phí ship cho đơn hàng trên 500k
+          setShippingFee(mockShippingFee);
+        } finally {
+          setCalculatingShipping(false);
+        }
+      }
+    };
+
+    calculateShipping();
+  }, [parsedAddress.districtId, parsedAddress.wardCode, cartItems, totalAmount, sellerInfo.districtId, sellerInfo.wardCode]);
+
+  // Function để apply discount code
+  const applyDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Vui lòng nhập mã giảm giá',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      return;
     }
-  }, [checkoutData.districtId, districts.length]);
+
+    try {
+      setApplyingDiscount(true);
+      
+      // Mock discount codes - trong thực tế sẽ call API
+      const mockDiscounts = {
+        'NEWUSER10': { code: 'NEWUSER10', percentage: 10 },
+        'SALE20': { code: 'SALE20', percentage: 20 },
+        'VIP30': { code: 'VIP30', percentage: 30 }
+      };
+
+      const foundDiscount = mockDiscounts[discountCode.toUpperCase()];
+      
+      if (foundDiscount) {
+        setDiscount(foundDiscount);
+        Swal.fire({
+          icon: 'success',
+          title: 'Áp dụng mã giảm giá thành công!',
+          text: `Bạn được giảm ${foundDiscount.percentage}%`,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Mã giảm giá không hợp lệ',
+          text: 'Vui lòng kiểm tra lại mã giảm giá',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error('Error applying discount:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Không thể áp dụng mã giảm giá. Vui lòng thử lại.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } finally {
+      setApplyingDiscount(false);
+    }
+  };
+
+  // Function để remove discount
+  const removeDiscount = () => {
+    setDiscount({ code: '', percentage: 0 });
+    setDiscountCode('');
+  };
 
   // Cập nhật thông tin trong localStorage (tùy chọn)
   const updateUserDataInStorage = (field, value) => {
@@ -307,28 +608,7 @@ function Checkout() {
         newData.cardName = prev.fullName.toUpperCase();
       }
       
-      // Xử lý khi thay đổi tỉnh/thành phố
-      if (field === 'provinceId' && value) {
-        // Reset district và ward khi thay đổi province
-        newData.districtId = '';
-        newData.districtName = '';
-        newData.wardCode = '';
-        newData.wardName = '';
-        setDistricts([]);
-        setWards([]);
-        // Fetch districts cho province mới
-        fetchDistricts(value);
-      }
-      
-      // Xử lý khi thay đổi quận/huyện
-      if (field === 'districtId' && value) {
-        // Reset ward khi thay đổi district
-        newData.wardCode = '';
-        newData.wardName = '';
-        setWards([]);
-        // Fetch wards cho district mới
-        fetchWards(value);
-      }
+      // Không cần xử lý thay đổi province/district nữa vì parse tự động từ address
       
       // Cập nhật thông tin quan trọng vào localStorage (tùy chọn)
       if (['fullName', 'phone', 'address'].includes(field) && value.trim()) {
@@ -360,6 +640,29 @@ function Checkout() {
     return true;
   };
 
+  // Hàm xóa chỉ những sản phẩm đã đặt hàng khỏi giỏ hàng
+  const removeOrderedItemsFromCart = async (orderedItems) => {
+    try {
+      const cartId = getOrCreateCartId();
+      
+      // Xóa từng sản phẩm đã đặt hàng khỏi giỏ hàng
+      for (const item of orderedItems) {
+        const productId = item.productId || item.id;
+        if (productId) {
+          await removeFromCartOnly(cartId, productId);
+        }
+      }
+      
+      // Refresh lại giỏ hàng sau khi xóa xong tất cả
+      await fetchCartItemCount();
+      
+      console.log('✅ Đã xóa các sản phẩm đã đặt hàng khỏi giỏ hàng');
+    } catch (error) {
+      console.error('❌ Lỗi khi xóa sản phẩm khỏi giỏ hàng:', error);
+      // Không throw error để không ảnh hưởng đến flow đặt hàng thành công
+    }
+  };
+
   // Xử lý đặt hàng
   const handleSubmitOrder = async () => {
     if (!validateForm()) {
@@ -388,27 +691,76 @@ function Checkout() {
         },
         paymentMethod: checkoutData.paymentMethod,
         totalAmount: finalAmount,
-        shippingFee: shippingFee
+        shippingFee: shippingFee,
+        orderId: `TMDT${Date.now()}` // Tạo mã đơn hàng unique
       };
 
-      // Gọi API tạo đơn hàng (giả lập)
-      // const response = await apiServices.order.createOrder(orderData);
-      
-      // Giả lập thành công
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Xóa giỏ hàng
-      await clearCart();
-      
-      // Hiển thị thông báo thành công
-      Swal.fire({
-        icon: 'success',
-        title: 'Đặt hàng thành công!',
-        text: 'Cảm ơn bạn đã mua hàng. Chúng tôi sẽ liên hệ với bạn sớm nhất.',
-        confirmButtonText: 'Về trang chủ'
-      }).then(() => {
-        navigate('/');
-      });
+      // Xử lý theo phương thức thanh toán
+      if (checkoutData.paymentMethod === 'bank_transfer') {
+        // Thanh toán qua VNPay
+        const paymentData = vnpayService.preparePaymentData(orderData, 'VNBANK', 'vn');
+        
+        // Lưu thông tin đơn hàng vào localStorage để xử lý sau khi thanh toán
+        localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+        
+        // Chuyển hướng đến VNPay
+        await vnpayService.redirectToPayment(paymentData);
+        
+      } else if (checkoutData.paymentMethod === 'cod') {
+        // Thanh toán khi nhận hàng - Format theo yêu cầu mới
+        const product = cartItems[0]; // Chỉ một sản phẩm duy nhất
+        
+        const codOrderData = {
+          customer: {
+            id: user?.id || "user_id",
+            name: user?.fullName || user?.name || checkoutData.fullName,
+            email: user?.email || checkoutData.email,
+            phone: user?.phone || checkoutData.phone,
+          },
+          fullName: checkoutData.fullName,
+          phone: checkoutData.phone,
+          fee: finalAmount.toString(),
+          discount: discount.percentage > 0 ? {
+            code: discount.code,
+            percentage: discount.percentage
+          } : null,
+          product: {
+            id: product?.productId || product?.id || "88",
+            name: product?.name || "quan jean",
+            price: product?.price?.toString() || "200000"
+          },
+          address: {
+            from_address: sellerInfo.address || "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM", // Địa chỉ người bán (từ API)
+            to_address: checkoutData.address // Địa chỉ người mua (đã có đầy đủ thông tin)
+          },
+          payment: {
+            transaction: "COD",
+            method: "",
+            status: "Pending",
+            createdAt: new Date().toISOString()
+          },
+          status: "READY_TO_PICK"
+        };
+        
+        // Gọi API tạo đơn hàng
+        await apiServices.order.createOrder(codOrderData);
+        
+        // Xóa chỉ những sản phẩm đã đặt hàng khỏi giỏ hàng
+        await removeOrderedItemsFromCart(cartItems);
+        
+        // Xóa dữ liệu checkout
+        localStorage.removeItem('selectedCheckoutItems');
+        
+        // Hiển thị thông báo thành công
+        Swal.fire({
+          icon: 'success',
+          title: 'Đặt hàng thành công!',
+          text: 'Cảm ơn bạn đã mua hàng. Chúng tôi sẽ liên hệ với bạn sớm nhất.',
+          confirmButtonText: 'Về trang chủ'
+        }).then(() => {
+          navigate('/');
+        });
+      }
       
     } catch (error) {
       console.error('Error creating order:', error);
@@ -487,8 +839,7 @@ function Checkout() {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-blue-700">
-                        Thông tin cá nhân đã được tự động điền từ tài khoản của bạn. Bạn có thể chỉnh sửa nếu cần.
+                      <p className="text-sm text-blue-700">Bạn có thể chỉnh sửa địa chỉ nếu cần.
                       </p>
                     </div>
                   </div>
@@ -553,8 +904,13 @@ function Checkout() {
                     value={checkoutData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Số nhà, tên đường"
+                    placeholder="VD: 123 Đường ABC, Xã Tân Lộc, Huyện Thới Bình, Cà Mau"
                   />
+                  {parsedAddress.provinceName && (
+                    <div className="mt-2 text-sm text-green-600 bg-green-50 p-2 rounded">
+                      ✓ Đã nhận diện: {parsedAddress.wardName}, {parsedAddress.districtName}, {parsedAddress.provinceName}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="md:col-span-2">
@@ -569,6 +925,62 @@ function Checkout() {
                     placeholder="Ghi chú thêm cho đơn hàng (tùy chọn)"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Mã giảm giá */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                <svg className="w-6 h-6 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Mã giảm giá
+              </h2>
+              
+              {discount.percentage > 0 ? (
+                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center">
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 mr-2" />
+                    <div>
+                      <p className="font-medium text-green-800">Mã "{discount.code}" đã được áp dụng</p>
+                      <p className="text-sm text-green-600">Giảm {discount.percentage}% tổng giá trị đơn hàng</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={removeDiscount}
+                    className="text-red-500 hover:text-red-700 font-medium text-sm"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="Nhập mã giảm giá (VD: NEWUSER10)"
+                  />
+                  <button
+                    onClick={applyDiscountCode}
+                    disabled={applyingDiscount || !discountCode.trim()}
+                    className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {applyingDiscount ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Đang áp dụng...
+                      </>
+                    ) : (
+                      'Áp dụng'
+                    )}
+                  </button>
+                </div>
+              )}
+              
+              <div className="mt-3 text-sm text-gray-500">
+                <p>Mã giảm giá có sẵn: NEWUSER10 (10%), SALE20 (20%), VIP30 (30%)</p>
               </div>
             </div>
 
@@ -612,21 +1024,7 @@ function Checkout() {
                   </div>
                 </label>
                 
-                {/* Thẻ tín dụng */}
-                <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="credit_card"
-                    checked={checkoutData.paymentMethod === 'credit_card'}
-                    onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                  />
-                  <div className="ml-3">
-                    <div className="font-medium text-gray-900">Thẻ tín dụng/ghi nợ</div>
-                    <div className="text-sm text-gray-500">Thanh toán online bằng thẻ</div>
-                  </div>
-                </label>
+              
               </div>
               
               {/* Form thẻ tín dụng */}
@@ -729,22 +1127,55 @@ function Checkout() {
                   </span>
                 </div>
                 
+                {/* Discount */}
+                {discount.percentage > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Giảm giá ({discount.code})</span>
+                    <span className="font-medium text-green-600">
+                      -{discountAmount.toLocaleString('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                      })}
+                    </span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Phí vận chuyển</span>
+                  <span className="text-gray-600 flex items-center">
+                    Phí vận chuyển
+                    {calculatingShipping && (
+                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin ml-2"></div>
+                    )}
+                  </span>
                   <span className={`font-medium ${shippingFee === 0 ? 'text-green-600' : ''}`}>
-                    {shippingFee === 0 ? 'Miễn phí' : shippingFee.toLocaleString('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
-                      minimumFractionDigits: 0,
-                    })}
+                    {calculatingShipping ? 'Đang tính...' : (
+                      shippingFee === 0 ? 'Miễn phí' : shippingFee.toLocaleString('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                      })
+                    )}
                   </span>
                 </div>
                 
-                {shippingFee === 0 && (
-                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                    🎉 Miễn phí vận chuyển cho đơn hàng trên 500.000đ
+                {!calculatingShipping && shippingFee > 0 && parsedAddress.districtId && parsedAddress.wardCode && (
+                  <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                    📦 Phí vận chuyển được tính theo GHN từ <strong>{sellerInfo.address || "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM"}</strong> đến {parsedAddress.wardName}, {parsedAddress.districtName}, {parsedAddress.provinceName}
                   </div>
                 )}
+                
+                {sellerInfo.address && (
+                  <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded mt-1">
+                    🏪 Địa chỉ người bán: {sellerInfo.address}
+                  </div>
+                )}
+                
+                {!parsedAddress.districtId || !parsedAddress.wardCode ? (
+                  <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                    ⚠️ Vui lòng nhập địa chỉ đầy đủ theo định dạng: Số nhà, Phường/Xã, Quận/Huyện, Tỉnh/Thành phố
+                  </div>
+                ) : null}
                 
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between">

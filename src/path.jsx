@@ -14,6 +14,7 @@ const PRIVATE_URL = {
   CUSTOMER: "/account",
   CART: "/cart",
   CHECKOUT: "/checkout",
+  VNPAY_RETURN: "/checkout/vnpay-return",
   DASHBOARD: "/dashboard"
 };
 

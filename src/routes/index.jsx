@@ -15,6 +15,7 @@ import {
   DashboardAdmin, 
   LoginAdmin 
 } from "~/pages";
+import { VNPayReturn } from "~/pages/checkout";
 import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
 import { EmptyLayout, DashboardLayout } from "~/components/layouts";
 
@@ -81,6 +82,10 @@ const privateRoutes = [
   {
     path: PRIVATE_URL.CHECKOUT,
     element: Checkout,
+  },
+  {
+    path: PRIVATE_URL.VNPAY_RETURN,
+    element: VNPayReturn,
   },
   {
     path: PRIVATE_URL.DASHBOARD,
