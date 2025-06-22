@@ -7,7 +7,7 @@ import com.example.choviet.entity.Order;
 
 public interface Constants {
     
-    int EMAIL_TOKEN_EXPIRY_MINUTES = 2; // minutes
+    Long EMAIL_TOKEN_EXPIRY_MINUTES = 2L; // minutes
 
     Map<Order.Status, List<Order.Status>> VALID_TRANSITIONS = Map.ofEntries(
             Map.entry(Order.Status.READY_TO_PICK, List.of(Order.Status.PICKING, Order.Status.CANCEL)),

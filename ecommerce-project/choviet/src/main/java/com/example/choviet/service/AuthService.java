@@ -65,7 +65,7 @@ public class AuthService {
             // Generate access token
             String accessToken = jwtUtil.generateTokenWithRole(user.getId(), user.getRole().getRoleName().name());
 
-            redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
+            redisService.set(user.getId(), accessToken, 1L, TimeUnit.HOURS);
 
             // Create response
             AuthResponse response = new AuthResponse();
@@ -105,7 +105,7 @@ public class AuthService {
             // Generate access token
             String accessToken = jwtUtil.generateToken(customer.getId());
 
-            redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
+            redisService.set(customer.getId(), accessToken, 1L, TimeUnit.HOURS);
 
             // đẩy vào queue
             AuthResponse response = new AuthResponse();
@@ -244,7 +244,7 @@ public class AuthService {
             try {
                 long remainingTime = jwtUtil.extractExpiration(token).getTime() - System.currentTimeMillis();
                 if (remainingTime > 0) {
-                    redisService.set("blacklist:" + token, "true", (int) (remainingTime / 1000),
+                    redisService.set("blacklist:" + token, "true", (Long) (remainingTime / 1000),
                             TimeUnit.SECONDS);
                 }
             } catch (Exception e) {
