@@ -64,6 +64,11 @@ const adminUrl = {
         updateStatus: `${ORDER}/update-status`,
         detail: (id) => `${ORDER}/${id}`,
     },
+    analytics: {
+        financial: `/analytics/financial`,
+        revenue: `/analytics/revenue`,
+        transactions: `/analytics/transactions`,
+    },
     category: {
         getAll: `${CATEGORY}`,
         getParents: `${CATEGORY}/parents`,

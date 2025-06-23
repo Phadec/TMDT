@@ -540,6 +540,105 @@ const adminServices = {
         throw error;
       }
     }
+  },
+
+  /**
+   * Analytics APIs
+   */
+  analytics: {
+    /**
+     * Lấy dữ liệu phân tích tài chính
+     */
+    getFinancialData: async (dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/financial';
+        const params = new URLSearchParams();
+        
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get financial data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu doanh thu theo thời gian
+     */
+    getRevenueData: async (dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/revenue';
+        const params = new URLSearchParams();
+        
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get revenue data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách giao dịch với phân trang
+     */
+    getTransactions: async (page = 0, size = 20, status = null, dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/transactions';
+        const params = new URLSearchParams();
+        
+        params.append('page', page);
+        params.append('size', size);
+        
+        if (status) {
+          params.append('status', status);
+        }
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        url += `?${params.toString()}`;
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get transactions error:', error);
+        throw error;
+      }
+    }
   }
 };
 

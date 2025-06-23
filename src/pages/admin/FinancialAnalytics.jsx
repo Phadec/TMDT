@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Calendar, DollarSign, TrendingUp, TrendingDown, CreditCard, Download, Filter } from "lucide-react";
+import { adminServices } from "~/api";
 
 function FinancialAnalytics() {
   // State cho dữ liệu tài chính
@@ -12,55 +13,170 @@ function FinancialAnalytics() {
     revenueByMonth: {}
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState("month"); // "day", "week", "month", "year", "custom"
   const [customDateRange, setCustomDateRange] = useState({
     startDate: "",
     endDate: ""
   });
 
-  // Giả lập việc lấy dữ liệu từ API
+  // Lấy dữ liệu từ API
   useEffect(() => {
-    // Trong thực tế, đây sẽ là một API call
-    setTimeout(() => {
-      const dummyData = {
-        totalRevenue: 1250000000,
-        monthlyRevenue: 125000000,
-        dailyRevenue: 4500000,
-        transactions: Array(20).fill().map((_, index) => ({
-          id: index + 1,
-          userId: Math.floor(Math.random() * 1000) + 1,
-          userName: `Người dùng ${Math.floor(Math.random() * 100) + 1}`,
-          amount: Math.floor(Math.random() * 1000000) + 50000,
-          type: ["featured_post", "highlighted_post", "urgent_post", "subscription"][Math.floor(Math.random() * 4)],
-          status: Math.random() > 0.1 ? "completed" : (Math.random() > 0.5 ? "pending" : "failed"),
-          paymentMethod: ["VNPay", "MoMo", "ZaloPay", "Banking"][Math.floor(Math.random() * 4)],
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString()
-        })),
-        revenueByCategory: {
-          "featured_post": 450000000,
-          "highlighted_post": 320000000,
-          "urgent_post": 280000000,
-          "subscription": 200000000
-        },
-        revenueByMonth: {
-          "01": 95000000,
-          "02": 105000000,
-          "03": 88000000,
-          "04": 92000000,
-          "05": 110000000,
-          "06": 125000000,
-          "07": 135000000,
-          "08": 128000000,
-          "09": 115000000,
-          "10": 120000000,
-          "11": 118000000,
-          "12": 119000000
+    fetchFinancialData();
+  }, [dateRange, customDateRange]);
+
+  const fetchFinancialData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Xác định startDate và endDate dựa trên dateRange
+      let startDate = null;
+      let endDate = null;
+      
+      if (dateRange === "custom") {
+        startDate = customDateRange.startDate;
+        endDate = customDateRange.endDate;
+      }
+      
+      // Gọi API để lấy dữ liệu tài chính
+      try {
+        const [financialResponse, transactionsResponse] = await Promise.all([
+          adminServices.analytics.getFinancialData(dateRange, startDate, endDate),
+          adminServices.analytics.getTransactions(0, 20, null, dateRange, startDate, endDate)
+        ]);
+        
+        console.log('Financial Response:', financialResponse);
+        console.log('Transactions Response:', transactionsResponse);
+        
+        // Xử lý dữ liệu từ backend
+        if (financialResponse && financialResponse.data) {
+          setFinancialData(financialResponse.data);
+        } else {
+          throw new Error('No analytics API available');
         }
-      };
-      setFinancialData(dummyData);
+      } catch (analyticsError) {
+        console.log('Analytics API not available, falling back to orders data');
+        // Fallback: tính toán từ orders nếu không có API analytics riêng
+        await fetchDataFromOrders();
+      }
+      
       setLoading(false);
-    }, 1000);
-  }, []);
+    } catch (error) {
+      console.error('Error fetching financial data:', error);
+      setError('Không thể tải dữ liệu tài chính. Vui lòng thử lại sau.');
+      setLoading(false);
+    }
+  };
+
+  // Fallback function: tính toán dữ liệu từ orders
+  const fetchDataFromOrders = async () => {
+    try {
+      // Lấy tất cả orders để tính toán
+      const ordersResponse = await adminServices.orders.getAll(0, 1000); // Lấy nhiều orders
+      
+      if (ordersResponse && (ordersResponse.content || ordersResponse.data)) {
+        const orders = ordersResponse.content || ordersResponse.data || [];
+        
+        // Tính toán dữ liệu tài chính từ orders
+        const calculatedData = calculateFinancialDataFromOrders(orders);
+        setFinancialData(calculatedData);
+      }
+    } catch (error) {
+      console.error('Error fetching orders for financial calculation:', error);
+      // Sử dụng dữ liệu mẫu nếu không thể lấy từ API
+      setFinancialData(getDefaultFinancialData());
+    }
+  };
+
+  // Hàm tính toán dữ liệu tài chính từ orders
+  const calculateFinancialDataFromOrders = (orders) => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    let totalRevenue = 0;
+    let monthlyRevenue = 0;
+    let dailyRevenue = 0;
+    const transactions = [];
+    const revenueByCategory = {};
+    const revenueByMonth = {};
+    
+    orders.forEach(order => {
+      const orderDate = new Date(order.createdAt);
+      const amount = order.fee || 0;
+      
+      // Tổng doanh thu
+      totalRevenue += amount;
+      
+      // Doanh thu tháng này
+      if (orderDate >= thisMonth) {
+        monthlyRevenue += amount;
+      }
+      
+      // Doanh thu hôm nay
+      if (orderDate >= today) {
+        dailyRevenue += amount;
+      }
+      
+      // Doanh thu theo tháng
+      const monthKey = String(orderDate.getMonth() + 1).padStart(2, '0');
+      revenueByMonth[monthKey] = (revenueByMonth[monthKey] || 0) + amount;
+      
+      // Tạo transaction từ order
+      transactions.push({
+        id: order.id,
+        userId: order.customer?.id || order.customerId,
+        userName: order.fullName || order.customer?.fullName || "Khách hàng ẩn danh",
+        amount: amount,
+        type: "order", // Có thể phân loại theo product category
+        status: mapOrderStatusToTransactionStatus(order.status),
+        paymentMethod: order.payment?.method || order.payment?.transaction || "COD",
+        createdAt: order.createdAt
+      });
+    });
+    
+    // Phân loại doanh thu theo category (giả lập)
+    revenueByCategory["orders"] = totalRevenue;
+    
+    return {
+      totalRevenue,
+      monthlyRevenue,
+      dailyRevenue,
+      transactions: transactions.slice(0, 20), // Chỉ lấy 20 giao dịch gần nhất
+      revenueByCategory,
+      revenueByMonth
+    };
+  };
+
+  // Map trạng thái order sang trạng thái transaction
+  const mapOrderStatusToTransactionStatus = (orderStatus) => {
+    switch (orderStatus?.toLowerCase()) {
+      case 'completed':
+      case 'delivered':
+        return 'completed';
+      case 'pending':
+      case 'ready_to_pick':
+      case 'picking':
+      case 'delivering':
+        return 'pending';
+      case 'cancelled':
+      case 'failed':
+        return 'failed';
+      default:
+        return 'pending';
+    }
+  };
+
+  // Dữ liệu mặc định nếu không thể lấy từ API
+  const getDefaultFinancialData = () => ({
+    totalRevenue: 0,
+    monthlyRevenue: 0,
+    dailyRevenue: 0,
+    transactions: [],
+    revenueByCategory: {},
+    revenueByMonth: {}
+  });
 
   // Format số tiền VND
   const formatCurrency = (amount) => {
@@ -82,6 +198,8 @@ function FinancialAnalytics() {
   // Hiển thị loại giao dịch
   const renderTransactionType = (type) => {
     switch (type) {
+      case "order":
+        return "Đơn hàng";
       case "featured_post":
         return "Tin nổi bật";
       case "highlighted_post":
@@ -91,7 +209,7 @@ function FinancialAnalytics() {
       case "subscription":
         return "Gói đăng ký";
       default:
-        return type;
+        return type || "Không xác định";
     }
   };
 
@@ -109,10 +227,53 @@ function FinancialAnalytics() {
     }
   };
 
+  // Xử lý áp dụng custom date range
+  const handleApplyCustomDateRange = () => {
+    if (customDateRange.startDate && customDateRange.endDate) {
+      fetchFinancialData();
+    } else {
+      alert("Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc");
+    }
+  };
+
   // Xử lý xuất báo cáo
   const handleExportReport = () => {
     alert("Tính năng xuất báo cáo sẽ được triển khai sau");
   };
+
+  // Hiển thị loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Đang tải dữ liệu tài chính...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Hiển thị error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 text-red-500">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <p className="mb-4 text-red-600">{error}</p>
+          <button 
+            onClick={fetchFinancialData}
+            className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+          >
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -171,7 +332,7 @@ function FinancialAnalytics() {
             </div>
           </div>
           <h3 className="text-lg font-medium text-gray-500">Số giao dịch</h3>
-          <p className="text-2xl font-bold">{financialData.transactions.length}</p>
+          <p className="text-2xl font-bold">{financialData.transactions?.length || 0}</p>
         </div>
       </div>
 
@@ -230,7 +391,12 @@ function FinancialAnalytics() {
               value={customDateRange.endDate}
               onChange={(e) => setCustomDateRange({...customDateRange, endDate: e.target.value})}
             />
-            <button className="px-4 py-2 text-white bg-indigo-600 rounded-lg">Áp dụng</button>
+            <button 
+              onClick={handleApplyCustomDateRange}
+              className="px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            >
+              Áp dụng
+            </button>
           </div>
         )}
         
@@ -295,16 +461,10 @@ function FinancialAnalytics() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {loading ? (
+              {!financialData.transactions || financialData.transactions.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                    Đang tải dữ liệu...
-                  </td>
-                </tr>
-              ) : financialData.transactions.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                    Không có giao dịch nào
+                    Không có giao dịch nào trong khoảng thời gian này
                   </td>
                 </tr>
               ) : (
