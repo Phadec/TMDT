@@ -812,4 +812,5 @@ const adminServices = {
   }
 };
 
+export { adminServices };
 export default adminServices;

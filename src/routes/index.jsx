@@ -13,7 +13,10 @@ import {
   NotFound, 
   Dashboard, 
   DashboardAdmin, 
-  LoginAdmin 
+  LoginAdmin,
+  GHNOrderManagement,
+  GHNOrderDetail,
+  GHNOrderDetailPublic 
 } from "~/pages";
 import { VNPayReturn } from "~/pages/checkout";
 import { PUBLIC_URL, PRIVATE_URL, ADMIN_URL } from "~/path";
@@ -66,6 +69,11 @@ const publicRoutes = [
     element: LoginAdmin,
     layout: EmptyLayout,
     publicOnly: true, // Chỉ cho phép người dùng chưa đăng nhập truy cập
+  },
+  {
+    path: PUBLIC_URL.GHN_ORDER,
+    element: GHNOrderManagement,
+    layout: EmptyLayout,
   },
 ];
 
