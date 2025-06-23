@@ -67,7 +67,7 @@ const paginationButtonStyles = cva(
 export default function Products() {
   const navigate = useNavigate(); // Hook để điều hướng trang
   const { user, isAuthenticated } = useSelector((state) => state.auth); // Lấy thông tin user từ Redux
-  const { addToCart } = useCart(); // Hook để quản lý giỏ hàng
+  const { addToCart, checkProductInCart } = useCart(); // Hook để quản lý giỏ hàng
 
   // State cho dữ liệu sản phẩm
   const [products, setProducts] = useState([]); // Sản phẩm từ API
@@ -166,7 +166,7 @@ export default function Products() {
         cancelButtonText: "Hủy",
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate("/auth/login");
+          navigate('/login');
         }
       });
       return;
@@ -174,7 +174,26 @@ export default function Products() {
 
     try {
       setCartLoading(true);
-
+      
+      // Kiểm tra sản phẩm đã tồn tại trong giỏ hàng chưa
+      const isProductInCart = await checkProductInCart(product.id);
+      
+      if (isProductInCart) {
+        // Hiển thị thông báo sản phẩm đã có trong giỏ hàng
+        Swal.fire({
+          icon: 'info',
+          title: 'Sản phẩm đã có trong giỏ hàng',
+          text: `"${product.name}" đã có trong giỏ hàng của bạn. Bạn có muốn xem giỏ hàng không?`,
+          showCancelButton: true,
+          confirmButtonText: 'Xem giỏ hàng',
+          cancelButtonText: 'Tiếp tục mua sắm'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate('/cart');
+          }
+        });
+        return;
+      }
       // Tạo dữ liệu sản phẩm và khách hàng
       const productData = {
         customer: {

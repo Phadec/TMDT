@@ -16,6 +16,30 @@ export const loginCustomer = createAsyncThunk(
         localStorage.setItem("accessToken", response.token);
       }
 
+      // Sau khi đăng nhập thành công, lấy thông tin profile đầy đủ
+      if (response && response.id) {
+        try {
+          const profileResponse = await clientApi.post("/profile/view", {
+            personId: response.id,
+          });
+
+          // Kết hợp dữ liệu từ login response và profile response
+          const fullUserData = {
+            ...response,
+            fullname: profileResponse?.data?.fullName || profileResponse?.fullName || response.fullname,
+            phone: profileResponse?.data?.phone || profileResponse?.phone || response.phone,
+            address: profileResponse?.data?.addresses || profileResponse?.addresses || null,
+            name: profileResponse?.data?.name || profileResponse?.name || response.name,
+          };
+
+          return fullUserData;
+        } catch (profileError) {
+          console.warn("Không thể lấy thông tin profile:", profileError);
+          // Vẫn trả về response gốc nếu không lấy được profile
+          return response;
+        }
+      }
+
       return response;
     } catch (error) {
       // Only return serializable error data
@@ -127,6 +151,17 @@ const authCustomerSlice = createSlice({
     },
     clearRegisterSuccess: (state) => {
       state.registerSuccess = false;
+    },
+    updateUserData: (state, action) => {
+      // Cập nhật thông tin user trong state và localStorage
+      const updatedUser = {
+        ...state.user,
+        ...action.payload,
+      };
+      state.user = updatedUser;
+      
+      // Cập nhật localStorage
+      localStorage.setItem("userData", JSON.stringify(updatedUser));
     },
   },
   extraReducers: (builder) => {
@@ -263,6 +298,6 @@ const authCustomerSlice = createSlice({
   },
 });
 
-export const { clearAuthError, clearRegisterSuccess } =
+export const { clearAuthError, clearRegisterSuccess, updateUserData } =
   authCustomerSlice.actions;
 export default authCustomerSlice.reducer;

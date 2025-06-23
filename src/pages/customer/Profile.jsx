@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import Swal from "sweetalert2";
 
 import { inputStyles } from "./Setting.jsx";
 import { clientApi } from "~/api/api.jsx";
 import { useAuth } from "~/hooks";
+import { updateUserData } from "~/store/slices/authCustomerSlice.jsx";
 import FaceVerificationModal from "~/components/FaceVerificationModal.jsx";
+import { ghnService } from "~/services/ghnService.js";
 import "~/styles/swal-custom.css";
 
 function Profile({ onProfileDataChange }) {
@@ -14,8 +17,16 @@ function Profile({ onProfileDataChange }) {
     phone: "",
     userType: "",
     createdAt: "",
-    addresses: "",
+    addresses: [], // Thay đổi từ string thành array
     status: "",
+    // Thêm các trường địa chỉ mới
+    province: "",
+    district: "",
+    ward: "",
+    provinceId: "",
+    districtId: "",
+    wardCode: "",
+    streetAddress: "", // Thêm trường số nhà, đường
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,12 +35,22 @@ function Profile({ onProfileDataChange }) {
   const [showFaceVerification, setShowFaceVerification] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [originalData, setOriginalData] = useState({}); // Lưu dữ liệu gốc để so sánh
+  
+  // State cho địa chỉ
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [loadingWards, setLoadingWards] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const dispatch = useDispatch();
 
   // Lấy thông tin profile khi component mount hoặc user thay đổi
   useEffect(() => {
     if (user && isAuthenticated) {
       fetchProfileData();
+      loadProvinces(); // Load danh sách tỉnh/thành phố
     } else if (isAuthenticated && !user) {
       // Nếu authenticated nhưng chưa có user data, set loading
       setLoading(true);
@@ -40,12 +61,68 @@ function Profile({ onProfileDataChange }) {
     }
   }, [user, isAuthenticated]);
 
+  // Load danh sách tỉnh/thành phố
+  const loadProvinces = async () => {
+    try {
+      setLoadingProvinces(true);
+      const provincesData = await ghnService.getProvinces();
+      setProvinces(provincesData || []);
+    } catch (error) {
+      console.error('Error loading provinces:', error);
+    } finally {
+      setLoadingProvinces(false);
+    }
+  };
+
+  // Load danh sách quận/huyện khi chọn tỉnh
+  const loadDistricts = async (provinceId) => {
+    if (!provinceId) {
+      setDistricts([]);
+      setWards([]);
+      return;
+    }
+
+    try {
+      setLoadingDistricts(true);
+      const districtsData = await ghnService.getDistricts(provinceId);
+      setDistricts(districtsData || []);
+      setWards([]); // Reset wards khi thay đổi tỉnh
+    } catch (error) {
+      console.error('Error loading districts:', error);
+      setDistricts([]);
+    } finally {
+      setLoadingDistricts(false);
+    }
+  };
+
+  // Load danh sách phường/xã khi chọn quận/huyện
+  const loadWards = async (districtId) => {
+    if (!districtId) {
+      setWards([]);
+      return;
+    }
+
+    try {
+      setLoadingWards(true);
+      const wardsData = await ghnService.getWards(districtId);
+      setWards(wardsData || []);
+    } catch (error) {
+      console.error('Error loading wards:', error);
+      setWards([]);
+    } finally {
+      setLoadingWards(false);
+    }
+  };
+
   // Gọi callback khi profileData thay đổi
   useEffect(() => {
     if (onProfileDataChange && profileData.fullname) {
       onProfileDataChange(profileData);
     }
   }, [profileData, onProfileDataChange]);
+
+  // Không tự động cập nhật addresses nữa - để người dùng tự quản lý
+  // useEffect đã được comment để người dùng có thể tự thêm/xóa địa chỉ
 
   const fetchProfileData = async () => {
     try {
@@ -74,8 +151,16 @@ function Profile({ onProfileDataChange }) {
           phone: userData.phone || "",
           userType: isSellerValue ? "Người bán" : "Khách hàng",
           createdAt: userData.createdAt || "",
-          addresses: userData.addresses || "",
+          addresses: Array.isArray(userData.addresses) ? userData.addresses : (userData.addresses ? [userData.addresses] : []),
           status: userData.status || "",
+          // Thêm các trường địa chỉ mới
+          province: userData.province || "",
+          district: userData.district || "",
+          ward: userData.ward || "",
+          provinceId: userData.provinceId || "",
+          districtId: userData.districtId || "",
+          wardCode: userData.wardCode || "",
+          streetAddress: userData.streetAddress || "", // Thêm trường số nhà, đường
         };
         
         setIsSeller(isSellerValue);
@@ -85,7 +170,8 @@ function Profile({ onProfileDataChange }) {
           fullname: profileInfo.fullname,
           email: profileInfo.email,
           phone: profileInfo.phone,
-          addresses: profileInfo.addresses,
+          addresses: Array.isArray(profileInfo.addresses) ? [...profileInfo.addresses] : [profileInfo.addresses].filter(Boolean),
+          streetAddress: profileInfo.streetAddress,
         });
         setError(null);
       } else if (response) {
@@ -98,8 +184,16 @@ function Profile({ onProfileDataChange }) {
           phone: response.phone || "",
           userType: isSellerValue ? "Người bán" : "Khách hàng",
           createdAt: response.createdAt || "",
-          addresses: response.addresses || "",
+          addresses: Array.isArray(response.addresses) ? response.addresses : (response.addresses ? [response.addresses] : []),
           status: response.status || "",
+          // Thêm các trường địa chỉ mới
+          province: response.province || "",
+          district: response.district || "",
+          ward: response.ward || "",
+          provinceId: response.provinceId || "",
+          districtId: response.districtId || "",
+          wardCode: response.wardCode || "",
+          streetAddress: response.streetAddress || "", // Thêm trường số nhà, đường
         };
         
         setIsSeller(isSellerValue);
@@ -109,7 +203,8 @@ function Profile({ onProfileDataChange }) {
           fullname: profileInfo.fullname,
           email: profileInfo.email,
           phone: profileInfo.phone,
-          addresses: profileInfo.addresses,
+          addresses: Array.isArray(profileInfo.addresses) ? [...profileInfo.addresses] : [profileInfo.addresses].filter(Boolean),
+          streetAddress: profileInfo.streetAddress,
         });
         setError(null);
       } else {
@@ -175,12 +270,11 @@ function Profile({ onProfileDataChange }) {
         }
       }
 
-      // Kiểm tra địa chỉ
-      if (!profileData.addresses || !profileData.addresses.trim()) {
-        if (originalData.addresses && originalData.addresses.trim()) {
-          validationErrors.push("Địa chỉ không được để trống");
+      // Kiểm tra địa chỉ - chỉ cần kiểm tra số nhà, đường vì địa chỉ chi tiết tự động tạo
+      if (profileData.provinceId || profileData.districtId || profileData.wardCode) {
+        if (!profileData.streetAddress || !profileData.streetAddress.trim()) {
+          validationErrors.push("Vui lòng nhập số nhà, tên đường");
         }
-        // Không bắt buộc nhập địa chỉ nếu trước đó chưa có
       }
 
       // Hiển thị lỗi validation nếu có
@@ -202,11 +296,15 @@ function Profile({ onProfileDataChange }) {
       }
 
       // 2. Kiểm tra có thay đổi hay không
+      const currentAddressesString = Array.isArray(profileData.addresses) ? profileData.addresses.join(', ') : '';
+      const originalAddressesString = Array.isArray(originalData.addresses) ? originalData.addresses.join(', ') : '';
+      
       const hasChanges = (
         (profileData.fullname || '').trim() !== (originalData.fullname || '').trim() ||
         (profileData.email || '').trim() !== (originalData.email || '').trim() ||
         (profileData.phone || '').trim() !== (originalData.phone || '').trim() ||
-        (profileData.addresses || '').trim() !== (originalData.addresses || '').trim()
+        currentAddressesString.trim() !== originalAddressesString.trim() ||
+        (profileData.streetAddress || '').trim() !== (originalData.streetAddress || '').trim()
       );
 
       if (!hasChanges) {
@@ -225,7 +323,14 @@ function Profile({ onProfileDataChange }) {
         name: (profileData.fullname || '').trim(),
         email: (profileData.email || '').trim(),
         phone: (profileData.phone || '').trim(),
-        address: (profileData.addresses || '').trim()
+        addresses: Array.isArray(profileData.addresses) ? profileData.addresses : (profileData.addresses ? [profileData.addresses] : []),
+        streetAddress: (profileData.streetAddress || '').trim(),
+        province: profileData.province,
+        district: profileData.district,
+        ward: profileData.ward,
+        provinceId: profileData.provinceId,
+        districtId: profileData.districtId,
+        wardCode: profileData.wardCode
       });
 
       console.log("Update profile response:", response);
@@ -245,7 +350,7 @@ function Profile({ onProfileDataChange }) {
                   <li>• Họ và tên: ${profileData.fullname}</li>
                   <li>• Email: ${profileData.email}</li>
                   <li>• Số điện thoại: ${profileData.phone}</li>
-                  <li>• Địa chỉ: ${profileData.addresses || 'Chưa cập nhật'}</li>
+                  <li>• Địa chỉ: ${Array.isArray(profileData.addresses) ? profileData.addresses.join(', ') || 'Chưa cập nhật' : profileData.addresses || 'Chưa cập nhật'}</li>
                 </ul>
               </div>
             </div>
@@ -256,6 +361,18 @@ function Profile({ onProfileDataChange }) {
             popup: 'swal-wide'
           }
         });
+        
+        // Cập nhật userData trong localStorage và Redux store
+        const updatedUserData = {
+          fullname: (profileData.fullname || '').trim(),
+          phone: (profileData.phone || '').trim(),
+          address: Array.isArray(profileData.addresses)
+            ? [...profileData.addresses]
+            : (profileData.addresses ? [profileData.addresses] : []),
+          name: (profileData.fullname || '').trim(), // Đồng bộ name với fullname
+        };
+        
+        dispatch(updateUserData(updatedUserData));
         
         // Tải lại thông tin profile để đảm bảo dữ liệu mới nhất
         await fetchProfileData();
@@ -406,10 +523,61 @@ function Profile({ onProfileDataChange }) {
     setShowFaceVerification(false);
   };
 
+  // Hàm tự động cập nhật địa chỉ chi tiết
+  const updateFullAddress = (streetAddress, ward, district, province) => {
+    const addressParts = [streetAddress, ward, district, province].filter(Boolean);
+    return addressParts.join(', ');
+  };
+
   const handleInputChange = (field, value) => {
-    setProfileData((prev) => ({
+    setProfileData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+
+      // Xử lý thay đổi địa chỉ
+      if (field === 'provinceId') {
+        const selectedProvince = provinces.find(p => p.ProvinceID === parseInt(value));
+        newData.provinceId = value;
+        newData.province = selectedProvince ? selectedProvince.ProvinceName : '';
+        newData.districtId = ''; // Reset district
+        newData.district = '';
+        newData.wardCode = ''; // Reset ward
+        newData.ward = '';
+        loadDistricts(value);
+      } else if (field === 'districtId') {
+        const selectedDistrict = districts.find(d => d.DistrictID === parseInt(value));
+        newData.districtId = value;
+        newData.district = selectedDistrict ? selectedDistrict.DistrictName : '';
+        newData.wardCode = ''; // Reset ward
+        newData.ward = '';
+        loadWards(value);
+      } else if (field === 'wardCode') {
+        const selectedWard = wards.find(w => w.WardCode === value);
+        newData.wardCode = value;
+        newData.ward = selectedWard ? selectedWard.WardName : '';
+      } else if (field === 'streetAddress') {
+        // Không tự động cập nhật addresses nữa
+      }
+
+      return newData;
+    });
+  };
+
+  // Hàm xóa địa chỉ
+  const handleRemoveAddress = (index) => {
+    setProfileData(prev => ({
       ...prev,
-      [field]: value,
+      addresses: prev.addresses.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Hàm cập nhật địa chỉ cụ thể
+  const handleAddressChange = (index, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      addresses: prev.addresses.map((addr, i) => i === index ? value : addr)
     }));
   };
 
@@ -520,14 +688,179 @@ function Profile({ onProfileDataChange }) {
             </div>
           </div>
         </div>
-        <div>
-          <label className="form-label">Địa chỉ</label>
-          <textarea
-            className={inputStyles()}
-            placeholder="Nhập địa chỉ của bạn"
-            value={profileData.addresses}
-            onChange={(e) => handleInputChange("addresses", e.target.value)}
-          />
+        {/* Địa chỉ chi tiết */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-900">Địa chỉ</h3>
+          
+          {/* Tỉnh/Thành phố */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="form-label">Tỉnh/Thành phố *</label>
+              <select
+                className={inputStyles()}
+                value={profileData.provinceId}
+                onChange={(e) => handleInputChange("provinceId", e.target.value)}
+                disabled={loadingProvinces}
+              >
+                <option value="">
+                  {loadingProvinces ? "Đang tải..." : "Chọn tỉnh/thành phố"}
+                </option>
+                {provinces.map((province) => (
+                  <option key={province.ProvinceID} value={province.ProvinceID}>
+                    {province.ProvinceName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quận/Huyện */}
+            <div>
+              <label className="form-label">Quận/Huyện *</label>
+              <select
+                className={inputStyles()}
+                value={profileData.districtId}
+                onChange={(e) => handleInputChange("districtId", e.target.value)}
+                disabled={loadingDistricts || !profileData.provinceId}
+              >
+                <option value="">
+                  {loadingDistricts ? "Đang tải..." : "Chọn quận/huyện"}
+                </option>
+                {districts.map((district) => (
+                  <option key={district.DistrictID} value={district.DistrictID}>
+                    {district.DistrictName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Phường/Xã */}
+            <div>
+              <label className="form-label">Phường/Xã *</label>
+              <select
+                className={inputStyles()}
+                value={profileData.wardCode}
+                onChange={(e) => handleInputChange("wardCode", e.target.value)}
+                disabled={loadingWards || !profileData.districtId}
+              >
+                <option value="">
+                  {loadingWards ? "Đang tải..." : "Chọn phường/xã"}
+                </option>
+                {wards.map((ward) => (
+                  <option key={ward.WardCode} value={ward.WardCode}>
+                    {ward.WardName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Số nhà, đường */}
+          <div>
+            <label className="form-label">Số nhà, tên đường *</label>
+            <input
+              type="text"
+              className={inputStyles()}
+              placeholder="Ví dụ: 123 Nguyễn Văn A, Khu phố 1..."
+              value={profileData.streetAddress}
+              onChange={(e) => handleInputChange("streetAddress", e.target.value)}
+            />
+          </div>
+
+          {/* Địa chỉ chi tiết - Danh sách địa chỉ */}
+          <div>
+            <label className="form-label">Địa chỉ chi tiết</label>
+            
+            <div className="space-y-3 mt-3">
+              {profileData.addresses.length === 0 ? (
+                <div className="text-gray-500 text-sm italic p-3 border border-dashed border-gray-300 rounded-md text-center">
+                  Chưa có địa chỉ nào. Sử dụng form bên dưới để tạo địa chỉ tự động.
+                </div>
+              ) : (
+                profileData.addresses.map((address, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        className={inputStyles()}
+                        placeholder={`Địa chỉ ${index + 1}`}
+                        value={address}
+                        onChange={(e) => handleAddressChange(index, e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAddress(index)}
+                      className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      title="Xóa địa chỉ"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {/* Hiển thị địa chỉ tự động tạo từ form - chỉ khi có đầy đủ thông tin bắt buộc */}
+            {(profileData.streetAddress && profileData.streetAddress.trim() && 
+              profileData.province && profileData.province.trim() && 
+              profileData.district && profileData.district.trim() && 
+              profileData.ward && profileData.ward.trim()) && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800 font-medium mb-1">Địa chỉ được tạo từ thông tin trên:</p>
+                <p className="text-sm text-blue-700">
+                  {updateFullAddress(
+                    profileData.streetAddress,
+                    profileData.ward,
+                    profileData.district,
+                    profileData.province
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const autoAddress = updateFullAddress(
+                      profileData.streetAddress,
+                      profileData.ward,
+                      profileData.district,
+                      profileData.province
+                    );
+                    if (autoAddress && !profileData.addresses.includes(autoAddress)) {
+                      setProfileData(prev => ({
+                        ...prev,
+                        addresses: [...prev.addresses, autoAddress]
+                      }));
+                    }
+                  }}
+                  className="mt-2 inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Thêm vào danh sách
+                </button>
+              </div>
+            )}
+            
+            {/* Hiển thị thông báo khi chưa đủ thông tin */}
+            {(profileData.streetAddress || profileData.province || profileData.district || profileData.ward) && 
+             !(profileData.streetAddress && profileData.streetAddress.trim() && 
+               profileData.province && profileData.province.trim() && 
+               profileData.district && profileData.district.trim() && 
+               profileData.ward && profileData.ward.trim()) && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800 font-medium mb-1">Để tạo địa chỉ hoàn chỉnh, vui lòng điền đầy đủ:</p>
+                <ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+                  {(!profileData.streetAddress || !profileData.streetAddress.trim()) && <li>Số nhà, tên đường</li>}
+                  {(!profileData.province || !profileData.province.trim()) && <li>Tỉnh/Thành phố</li>}
+                  {(!profileData.district || !profileData.district.trim()) && <li>Quận/Huyện</li>}
+                  {(!profileData.ward || !profileData.ward.trim()) && <li>Phường/Xã</li>}
+                </ul>
+              </div>
+            )}
+          </div>
+
         </div>
         <div className="flex items-center justify-between">
           {/* Nút đăng ký làm người bán nếu chưa phải seller */}

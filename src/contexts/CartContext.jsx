@@ -48,6 +48,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Hàm kiểm tra sản phẩm đã tồn tại trong giỏ hàng
+  const checkProductInCart = async (productId) => {
+    try {
+      const cartId = getOrCreateCartId();
+      return await apiServices.cart.checkProductInCart(cartId, productId);
+    } catch (error) {
+      console.error('Error checking product in cart:', error);
+      return false;
+    }
+  };
+
   // Hàm thêm sản phẩm vào giỏ hàng và cập nhật count
   const addToCart = async (productData) => {
     try {
@@ -111,6 +122,7 @@ export const CartProvider = ({ children }) => {
     cartItems,
     loading,
     fetchCartItemCount,
+    checkProductInCart,
     addToCart,
     removeFromCart,
     removeFromCartOnly,

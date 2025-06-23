@@ -5,6 +5,7 @@ const USER = '/users';
 const CUSTOMER = '/customers';
 const ORDER = '/orders';
 const CATEGORY = '/categories';
+const VNPAY = '/vnpay';
 
 const clientUrl = {
     auth: {
@@ -22,6 +23,11 @@ const clientUrl = {
         },
         products: `/seller/products`,
         orders: `/seller/orders`,
+    },
+    order: {
+        create: `${ORDER}`,
+        getAll: `${ORDER}`,
+        detail: (id) => `${ORDER}/${id}`,
     }
 };
 
@@ -84,6 +90,12 @@ const commonUrl = {
     },
     category: {
         getAll: `${CATEGORY}/all`,
+    },
+    order: {
+        create: `${ORDER}`,
+        getAll: `${ORDER}`,
+        detail: (id) => `${ORDER}/${id}`,
+        updateStatus: (id) => `${ORDER}/${id}/status`,
     }
 };
 

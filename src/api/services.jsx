@@ -107,6 +107,21 @@ const apiServices = {
         console.error(`Error fetching reviews for product ${productId}:`, error);
         throw error;
       }
+    },
+
+    /**
+     * Lấy thông tin chi tiết sản phẩm bao gồm thông tin người bán
+     * @param {string} productId - ID của sản phẩm
+     * @returns {Promise} - Promise chứa thông tin chi tiết sản phẩm và người bán
+     */
+    getProductWithSellerInfo: async (productId) => {
+      try {
+        const response = await commonApi.get(commonUrl.product.detail(productId));
+        return response;
+      } catch (error) {
+        console.error(`Error fetching product with seller info for ID ${productId}:`, error);
+        throw error;
+      }
     }
   },
 
@@ -168,6 +183,25 @@ const apiServices = {
     },
 
     /**
+     * Kiểm tra sản phẩm đã tồn tại trong giỏ hàng
+     * @param {string} cartId - ID của giỏ hàng
+     * @param {string} productId - ID của sản phẩm cần kiểm tra
+     * @returns {Promise<boolean>} - Promise chứa kết quả kiểm tra
+     */
+    checkProductInCart: async (cartId, productId) => {
+      try {
+        const response = await clientApi.get(`/cart?id=${cartId}`);
+        if (response && Array.isArray(response)) {
+          return response.some(item => item.productId === productId);
+        }
+        return false;
+      } catch (error) {
+        console.error('Error checking product in cart:', error);
+        return false;
+      }
+    },
+
+    /**
      * Xóa sản phẩm khỏi giỏ hàng
      * @param {string} cartId - ID của giỏ hàng
      * @param {string} productId - ID của sản phẩm cần xóa
@@ -196,6 +230,75 @@ const apiServices = {
      */
     clearCart: () => {
       clearCartId();
+    }
+  },
+
+  /**
+   * API liên quan đến đơn hàng
+   */
+  order: {
+    /**
+     * Tạo đơn hàng mới
+     * @param {Object} orderData - Dữ liệu đơn hàng
+     * @returns {Promise} - Promise chứa kết quả tạo đơn hàng
+     */
+    createOrder: async (orderData) => {
+      try {
+        const response = await clientApi.post(clientUrl.order.create, orderData);
+        return response;
+      } catch (error) {
+        console.error('Error creating order:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách đơn hàng
+     * @param {number} page - Số trang (bắt đầu từ 0)
+     * @param {number} size - Số lượng đơn hàng mỗi trang
+     * @returns {Promise} - Promise chứa danh sách đơn hàng
+     */
+    getOrders: async (page = 0, size = 10) => {
+      try {
+        const response = await commonApi.get(commonUrl.order.getAll, {
+          params: { page, size }
+        });
+        return response;
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy chi tiết đơn hàng theo ID
+     * @param {string} id - ID của đơn hàng
+     * @returns {Promise} - Promise chứa thông tin chi tiết đơn hàng
+     */
+    getOrderById: async (id) => {
+      try {
+        const response = await commonApi.get(commonUrl.order.detail(id));
+        return response;
+      } catch (error) {
+        console.error(`Error fetching order with ID ${id}:`, error);
+        throw error;
+      }
+    },
+
+    /**
+     * Cập nhật trạng thái đơn hàng
+     * @param {string} id - ID của đơn hàng
+     * @param {string} status - Trạng thái mới
+     * @returns {Promise} - Promise chứa kết quả cập nhật
+     */
+    updateOrderStatus: async (id, status) => {
+      try {
+        const response = await commonApi.put(commonUrl.order.updateStatus(id), { status });
+        return response;
+      } catch (error) {
+        console.error(`Error updating order status for ID ${id}:`, error);
+        throw error;
+      }
     }
   },
 
