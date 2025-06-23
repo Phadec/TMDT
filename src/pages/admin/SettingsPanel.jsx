@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Save, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
+import { settingsService } from "../../api/settingsService";
 
-function SettingsPanel() {  // State cho các cài đặt hệ thống
+function SettingsPanel() {
+  // State cho các cài đặt hệ thống
   const [settings, setSettings] = useState({
     chung: {
-      siteName: "Chợ Rao Vặt Online",
-      siteDescription: "Nền tảng mua bán, rao vặt trực tuyến hàng đầu Việt Nam",
-      contactEmail: "support@example.com",
-      contactPhone: "1900 1234",
-      logo: "/logo.png",
-      favicon: "/favicon.ico",
+      siteName: "",
+      siteDescription: "",
+      contactEmail: "",
+      contactPhone: "",
+      logo: "",
+      favicon: "",
       maintenanceMode: false
     },
     baiviet: {
@@ -17,8 +19,8 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
       maxImagesPerPost: 10,
       maxPostsPerUser: 20,
       postExpiryDays: 30,
-      allowedCategories: ["Điện tử", "Thời trang", "Bất động sản", "Xe cộ", "Đồ gia dụng", "Việc làm", "Dịch vụ"],
-      bannedKeywords: ["lừa đảo", "ma túy", "vũ khí", "cờ bạc"]
+      allowedCategories: [],
+      bannedKeywords: []
     },
     nguoidung: {
       requireEmailVerification: true,
@@ -30,7 +32,7 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
     },
     baomat: {
       recaptchaEnabled: true,
-      recaptchaKey: "6LcXXXXXXXXXXXXXXXXXXXXX",
+      recaptchaKey: "",
       maxLoginAttempts: 5,
       lockoutTime: 30,
       passwordMinLength: 8,
@@ -40,7 +42,7 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
     },
     thanhtoan: {
       currency: "VND",
-      paymentGateways: ["VNPay", "MoMo", "ZaloPay", "Banking"],
+      paymentGateways: [],
       featuredPostPrice: 50000,
       highlightedPostPrice: 30000,
       urgentPostPrice: 40000
@@ -49,13 +51,34 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
       emailNotifications: true,
       pushNotifications: true,
       smsNotifications: false,
-      adminEmailForReports: "admin@example.com"
+      adminEmailForReports: ""
     }
   });
 
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("chung");
+
+  // Load cài đặt khi component mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  // Load cài đặt từ server
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await settingsService.getSettings();
+      setSettings(data);
+    } catch (err) {
+      setError(err.message || "Không thể tải cài đặt");
+      console.error("Error loading settings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Xử lý thay đổi cài đặt
   const handleChange = (section, field, value) => {
@@ -68,28 +91,70 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
     });
   };
 
-  // Xử lý lưu cài đặt
-  const handleSaveSettings = () => {
-    setLoading(true);
-    // Giả lập API call để lưu cài đặt
-    setTimeout(() => {
-      setLoading(false);
+  // Xử lý lưu cài đặt chung
+  const handleSaveGeneralSettings = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const updatedSettings = await settingsService.updateGeneralSettings(settings.chung);
+      setSettings(updatedSettings);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    }, 1000);
+    } catch (err) {
+      setError(err.message || "Không thể lưu cài đặt");
+      console.error("Error saving general settings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý lưu tất cả cài đặt
+  const handleSaveSettings = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const updatedSettings = await settingsService.updateSettings(settings);
+      setSettings(updatedSettings);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      setError(err.message || "Không thể lưu cài đặt");
+      console.error("Error saving settings:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Xử lý reset cài đặt
-  const handleResetSettings = () => {
+  const handleResetSettings = async () => {
     if (window.confirm("Bạn có chắc chắn muốn khôi phục cài đặt mặc định?")) {
-      setLoading(true);
-      // Giả lập API call để reset cài đặt
-      setTimeout(() => {
-        // Đây sẽ là API call để lấy cài đặt mặc định
+      try {
+        setLoading(true);
+        setError("");
+        const defaultSettings = await settingsService.resetSettings();
+        setSettings(defaultSettings);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } catch (err) {
+        setError(err.message || "Không thể khôi phục cài đặt mặc định");
+        console.error("Error resetting settings:", err);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     }
   };
+
+  // Hiển thị loading khi đang tải dữ liệu lần đầu
+  if (loading && !settings.chung.siteName) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="flex items-center space-x-2">
+          <RefreshCw size={24} className="animate-spin" />
+          <span>Đang tải cài đặt...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
@@ -150,7 +215,7 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
                 Khôi phục mặc định
               </button>
               <button
-                onClick={handleSaveSettings}
+                onClick={activeTab === "chung" ? handleSaveGeneralSettings : handleSaveSettings}
                 className="flex items-center px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
                 disabled={loading}
               >
@@ -159,10 +224,19 @@ function SettingsPanel() {  // State cho các cài đặt hệ thống
                 ) : (
                   <Save size={18} className="mr-1" />
                 )}
-                Lưu cài đặt
+                {activeTab === "chung" ? "Lưu cài đặt chung" : "Lưu cài đặt"}
               </button>
             </div>
           </div>
+
+          {error && (
+            <div className="p-3 mb-4 text-red-700 bg-red-100 rounded-lg">
+              <p className="flex items-center">
+                <AlertTriangle size={18} className="mr-2" />
+                {error}
+              </p>
+            </div>
+          )}
 
           {saveSuccess && (
             <div className="p-3 mb-4 text-green-700 bg-green-100 rounded-lg">
