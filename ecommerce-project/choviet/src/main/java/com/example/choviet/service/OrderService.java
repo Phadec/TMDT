@@ -38,6 +38,7 @@ public class OrderService {
     @Async
     public void createOrder(Order order) {
         Event<Order> event = new Event<Order>();
+        order.setCreatedAt(LocalDateTime.now());
         event.setData(order);
         event.setAction(ORDER_CREATE);
         event.setCreatedAt(LocalDateTime.now());
