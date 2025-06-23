@@ -108,6 +108,13 @@ const commonUrl = {
         getAll: `${ORDER}`,
         detail: (id) => `${ORDER}/${id}`,
         updateStatus: (id) => `${ORDER}/${id}/status`,
+    },
+     home: {
+        banner: `/home/banner`,
+        todayRecommendations: `/home/today-recommendations`,
+    },
+    imageProxy: {
+        getImage: (encodedUrl) => `/common/image-proxy/image?url=${encodedUrl}`,
     }
 };
 
