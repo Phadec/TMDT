@@ -4,7 +4,8 @@ import { cva } from "class-variance-authority";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ShoppingCartIcon, CreditCardIcon } from "@heroicons/react/24/solid";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
+import { Tool } from "~/components/items";
 
 import { Search } from "~/components/items";
 import { apiServices } from "~/api";
@@ -153,19 +154,19 @@ export default function Products() {
   // Hàm xử lý thêm vào giỏ hàng
   const handleAddToCart = async (e, product) => {
     e.stopPropagation(); // Ngăn không cho click event bubble up
-    
+
     // Kiểm tra đăng nhập
     if (!isAuthenticated || !user) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Chưa đăng nhập',
-        text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng',
+        icon: "warning",
+        title: "Chưa đăng nhập",
+        text: "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng",
         showCancelButton: true,
-        confirmButtonText: 'Đăng nhập',
-        cancelButtonText: 'Hủy'
+        confirmButtonText: "Đăng nhập",
+        cancelButtonText: "Hủy",
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/auth/login');
+          navigate("/auth/login");
         }
       });
       return;
@@ -173,7 +174,7 @@ export default function Products() {
 
     try {
       setCartLoading(true);
-      
+
       // Tạo dữ liệu sản phẩm và khách hàng
       const productData = {
         customer: {
@@ -181,42 +182,44 @@ export default function Products() {
           name: user.name || user.fullName || "Khách hàng",
           email: user.email || "",
           phone: user.phone || "",
-          address: user.address || ""
+          address: user.address || "",
         },
         product: [
           {
             productId: product.id,
             name: product.name,
-            price: product.price.replace(/[^\d]/g, '') || "0" // Loại bỏ ký tự không phải số
-          }
-        ]
+            price: product.price.replace(/[^\d]/g, "") || "0", // Loại bỏ ký tự không phải số
+          },
+        ],
       };
 
       // Gọi API thêm vào giỏ hàng với cartId tự động quản lý (TTL 30 ngày)
       const response = await addToCart(productData);
-      
+
       if (response) {
         // Hiển thị toast thành công
         Swal.fire({
-          icon: 'success',
-          title: 'Thành công!',
+          icon: "success",
+          title: "Thành công!",
           text: `Đã thêm "${product.name}" vào giỏ hàng!`,
           timer: 2000,
           showConfirmButton: false,
           toast: true,
-          position: 'top-end'
+          position: "top-end",
         });
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
       Swal.fire({
-        icon: 'error',
-        title: 'Lỗi!',
-        text: error.message || 'Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.',
+        icon: "error",
+        title: "Lỗi!",
+        text:
+          error.message ||
+          "Không thể thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.",
         timer: 3000,
         showConfirmButton: false,
         toast: true,
-        position: 'top-end'
+        position: "top-end",
       });
     } finally {
       setCartLoading(false);
@@ -237,6 +240,10 @@ export default function Products() {
       <div>
         {/* Thanh tìm kiếm bằng AI */}
         <Search />
+      </div>
+
+      <div className="">
+        <Tool />
       </div>
 
       {/* Phân mục sản phẩm */}
@@ -284,7 +291,7 @@ export default function Products() {
                   />
                   <div className="flex flex-col flex-grow p-4">
                     <div className="flex items-center justify-between px-4 py-2 mb-4 transition-shadow duration-200 bg-white rounded-lg shadow-sm hover:shadow-md">
-                      <h3 className="text-base font-semibold text-gray-800 line-clamp-2 flex-grow">
+                      <h3 className="flex-grow text-base font-semibold text-gray-800 line-clamp-2">
                         {product.name}
                       </h3>
                       <span className="px-3 py-1 ml-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-full shadow-sm whitespace-nowrap">
@@ -298,20 +305,20 @@ export default function Products() {
                       <p className="mb-1 font-semibold text-purple-700">
                         Giá: {product.price}
                       </p>
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="mb-3 text-sm text-gray-500">
                         📍 {product.location} | 🛠️ {product.condition}
                       </p>
-                      
+
                       {/* Action buttons */}
                       <div className="flex gap-2 mt-3">
                         <button
                           onClick={(e) => handleAddToCart(e, product)}
                           disabled={cartLoading}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center justify-center flex-1 gap-2 px-3 py-2 text-sm font-medium text-white transition-colors duration-200 bg-purple-600 rounded-lg shadow-sm hover:bg-purple-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Thêm vào giỏ hàng"
                         >
                           {cartLoading ? (
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
                           ) : (
                             <ShoppingCartIcon className="w-4 h-4" />
                           )}
@@ -319,10 +326,10 @@ export default function Products() {
                             {cartLoading ? "Đang thêm..." : "Giỏ hàng"}
                           </span>
                         </button>
-                        
+
                         <button
                           onClick={(e) => handleBuyNow(e, product)}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 shadow-sm hover:shadow-md"
+                          className="flex items-center justify-center flex-1 gap-2 px-3 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg shadow-sm hover:bg-green-700 hover:shadow-md"
                           title="Mua ngay"
                         >
                           <CreditCardIcon className="w-4 h-4" />
