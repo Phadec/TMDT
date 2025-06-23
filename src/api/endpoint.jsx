@@ -65,9 +65,16 @@ const adminUrl = {
         detail: (id) => `${ORDER}/${id}`,
     },
     analytics: {
+        overview: `/analytics/overview`,
         financial: `/analytics/financial`,
         revenue: `/analytics/revenue`,
         transactions: `/analytics/transactions`,
+    },
+    dashboard: {
+        stats: `/dashboard/stats`,
+        activities: `/dashboard/activities`,
+        newUsers: `/dashboard/new-users`,
+        recentPosts: `/dashboard/recent-posts`,
     },
     category: {
         getAll: `${CATEGORY}`,
