@@ -14,6 +14,7 @@ function Profile({ onProfileDataChange }) {
   const [profileData, setProfileData] = useState({
     fullname: "",
     email: "",
+    password: "",
     phone: "",
     userType: "",
     createdAt: "",
@@ -322,6 +323,7 @@ function Profile({ onProfileDataChange }) {
         personId: personId,
         name: (profileData.fullname || '').trim(),
         email: (profileData.email || '').trim(),
+        password: "",
         phone: (profileData.phone || '').trim(),
         addresses: Array.isArray(profileData.addresses) ? profileData.addresses : (profileData.addresses ? [profileData.addresses] : []),
         streetAddress: (profileData.streetAddress || '').trim(),
@@ -693,7 +695,7 @@ function Profile({ onProfileDataChange }) {
           <h3 className="text-lg font-medium text-gray-900">Địa chỉ</h3>
           
           {/* Tỉnh/Thành phố */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
               <label className="form-label">Tỉnh/Thành phố *</label>
               <select
@@ -770,9 +772,9 @@ function Profile({ onProfileDataChange }) {
           <div>
             <label className="form-label">Địa chỉ chi tiết</label>
             
-            <div className="space-y-3 mt-3">
+            <div className="mt-3 space-y-3">
               {profileData.addresses.length === 0 ? (
-                <div className="text-gray-500 text-sm italic p-3 border border-dashed border-gray-300 rounded-md text-center">
+                <div className="p-3 text-sm italic text-center text-gray-500 border border-gray-300 border-dashed rounded-md">
                   Chưa có địa chỉ nào. Sử dụng form bên dưới để tạo địa chỉ tự động.
                 </div>
               ) : (
@@ -790,7 +792,7 @@ function Profile({ onProfileDataChange }) {
                     <button
                       type="button"
                       onClick={() => handleRemoveAddress(index)}
-                      className="inline-flex items-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      className="inline-flex items-center p-2 text-red-600 rounded-md hover:text-red-800 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                       title="Xóa địa chỉ"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -807,8 +809,8 @@ function Profile({ onProfileDataChange }) {
               profileData.province && profileData.province.trim() && 
               profileData.district && profileData.district.trim() && 
               profileData.ward && profileData.ward.trim()) && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-blue-800 font-medium mb-1">Địa chỉ được tạo từ thông tin trên:</p>
+              <div className="p-3 mt-3 border border-blue-200 rounded-md bg-blue-50">
+                <p className="mb-1 text-sm font-medium text-blue-800">Địa chỉ được tạo từ thông tin trên:</p>
                 <p className="text-sm text-blue-700">
                   {updateFullAddress(
                     profileData.streetAddress,
@@ -833,7 +835,7 @@ function Profile({ onProfileDataChange }) {
                       }));
                     }
                   }}
-                  className="mt-2 inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="inline-flex items-center px-2 py-1 mt-2 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -849,9 +851,9 @@ function Profile({ onProfileDataChange }) {
                profileData.province && profileData.province.trim() && 
                profileData.district && profileData.district.trim() && 
                profileData.ward && profileData.ward.trim()) && (
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                <p className="text-sm text-yellow-800 font-medium mb-1">Để tạo địa chỉ hoàn chỉnh, vui lòng điền đầy đủ:</p>
-                <ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+              <div className="p-3 mt-3 border border-yellow-200 rounded-md bg-yellow-50">
+                <p className="mb-1 text-sm font-medium text-yellow-800">Để tạo địa chỉ hoàn chỉnh, vui lòng điền đầy đủ:</p>
+                <ul className="space-y-1 text-sm text-yellow-700 list-disc list-inside">
                   {(!profileData.streetAddress || !profileData.streetAddress.trim()) && <li>Số nhà, tên đường</li>}
                   {(!profileData.province || !profileData.province.trim()) && <li>Tỉnh/Thành phố</li>}
                   {(!profileData.district || !profileData.district.trim()) && <li>Quận/Huyện</li>}

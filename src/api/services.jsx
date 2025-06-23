@@ -122,6 +122,42 @@ const apiServices = {
         console.error(`Error fetching product with seller info for ID ${productId}:`, error);
         throw error;
       }
+    },
+
+    /**
+     * Lấy sản phẩm cho carousel banner từ API getBanner của HomeController
+     * @param {string} recentlyViewedIdsString - Chuỗi ID sản phẩm đã xem (cách nhau bởi dấu phẩy)
+     * @returns {Promise} - Promise chứa danh sách sản phẩm gợi ý
+     */
+    getBannerProducts: async (recentlyViewedIdsString = '') => {
+      try {
+        const params = {};
+        if (recentlyViewedIdsString) {
+          params.recentlyViewed = recentlyViewedIdsString;
+        }
+        
+        const response = await commonApi.get(commonUrl.home.banner, { params });
+
+        // API trả về ApiResponse<List<Product>>
+        if (response) {
+          return response;
+        }
+        
+        return [];
+        
+      } catch (error) {
+        console.error('Error fetching banner products:', error);
+        // Fallback về sản phẩm thường nếu API banner fail
+        try {
+          const fallbackResponse = await commonApi.get(commonUrl.product.getAll, {
+            params: { page: 0, size: 8 }
+          });
+          return fallbackResponse?.data?.content || [];
+        } catch (fallbackError) {
+          console.error('Error fetching fallback products:', fallbackError);
+          return [];
+        }
+      }
     }
   },
 

@@ -148,6 +148,19 @@ export default function Products() {
 
   // Hàm xử lý khi người dùng click vào sản phẩm
   const handleProductClick = (productId) => {
+    // Lưu vào localStorage
+    try {
+      const key = "recentlyViewedIds";
+      let ids = localStorage.getItem(key);
+      let idArr = ids ? ids.split(",").filter(Boolean) : [];
+      // Đưa id lên đầu, loại bỏ nếu đã có
+      idArr = [productId, ...idArr.filter(id => id !== String(productId))];
+      // Giới hạn số lượng id nếu muốn (ví dụ 20)
+      if (idArr.length > 20) idArr = idArr.slice(0, 20);
+      localStorage.setItem(key, idArr.join(","));
+    } catch (e) {
+      // Không làm gì nếu localStorage lỗi
+    }
     navigate(commonUrl.product.detail(productId));
   };
 

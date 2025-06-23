@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
 import {
   Image,
@@ -10,7 +10,10 @@ import { easing } from "maath";
 import { useNavigate } from "react-router-dom";
 import { PUBLIC_URL } from "~/path";
 
-import { getImageFromAssets } from "~/utils/imageUtils";
+import { getImageFromAssets, getSafeImageUrl, getDemoImageUrl } from "~/utils/imageUtils";
+import { apiServices } from "~/api";
+import { getTopRecentlyViewed, addToRecentlyViewed, recentlyViewedIdsToString } from "~/utils/recentlyViewedUtils";
+import { useProxyImageWithFallback } from "~/hooks/useImageWithFallback";
 
 class BentPlaneGeometry extends THREE.PlaneGeometry {
   constructor(radius, ...args) {
@@ -64,16 +67,71 @@ class MeshSineMaterial extends THREE.MeshBasicMaterial {
 extend({ MeshSineMaterial, BentPlaneGeometry });
 
 function Carousel() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Lấy dữ liệu sản phẩm từ API getBanner
+  useEffect(() => {
+    const fetchCarouselData = async () => {
+      try {
+        setLoading(true);
+        
+        // Lấy recently viewed từ localStorage và chuyển thành string
+        const recentlyViewedIds = getTopRecentlyViewed(8);
+        const recentlyViewedString = recentlyViewedIdsToString(recentlyViewedIds);
+        
+        // Gọi API getBanner
+        const bannerProducts = await apiServices.products.getBannerProducts(recentlyViewedString);
+        
+        setProducts(bannerProducts);
+      } catch (error) {
+        console.error('Error loading carousel data:', error);
+        setProducts([]); // Fallback về empty array
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCarouselData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ height: "100vh", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: '#666' }}>
+          <div style={{ 
+            width: '50px', 
+            height: '50px', 
+            border: '3px solid #f3f3f3',
+            borderTop: '3px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <p>Đang tải sản phẩm...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ height: "100vh" }}>
       <Canvas camera={{ position: [0, 0, 100], fov: 15 }}>
         <fog attach="fog" args={["#a79", 8.5, 12]} />
           <Rig rotation={[0, 0, 0.15]}>
-            <Cards />
+            <Cards products={products} />
           </Rig>
           <Banner position={[0, -0.15, 0]} />
         <Environment preset="dawn" background blur={0.5} />
       </Canvas>
+      
+      {/* CSS cho loading spinner */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -105,32 +163,74 @@ function Rig(props) {
  * Each card is clickable and navigates to its respective product detail page
  * The productId parameter is passed to each Card to determine which product page to navigate to
  */
-function Cards({ radius = 1.4, count = 8 }) {
-  return Array.from({ length: count }, (_, i) => (
-    <Card
-      key={i}
-      url={getImageFromAssets(`/img${Math.floor(i % 10) + 1}_.jpg`, "home/carousel")}
-      // Pass a unique product ID for each card (i+1 ensures IDs start from 1)
-      productId={i + 1}
-      position={[
-        Math.sin((i / count) * Math.PI * 2) * radius,
-        0,
-        Math.cos((i / count) * Math.PI * 2) * radius,
-      ]}
-      rotation={[0, Math.PI + (i / count) * Math.PI * 2, 0]}
-    />
-  ));
+function Cards({ products = [], radius = 1.4, count = 8 }) {
+  // Nếu có dữ liệu từ API, sử dụng products
+  if (products.length > 0) {
+    return products.map((product, i) => {
+      // Sử dụng getSafeImageUrl để proxy ảnh từ external URLs
+      const originalImageUrl = product.imageReview || product.images?.[0];
+      const imageUrl = getSafeImageUrl(
+        originalImageUrl,
+        getDemoImageUrl() // Sử dụng demo.jpg làm fallback chính
+      );
+      
+      // Debug logging (có thể bỏ comment khi cần debug)
+      // console.log(`Product ${product.id}: Original URL: ${originalImageUrl} -> Proxied URL: ${imageUrl}`);
+      
+      return (
+        <Card
+          key={product.id || i}
+          url={imageUrl}
+          productId={product.id}
+          productName={product.name || product.productName}
+          productPrice={product.price}
+          position={[
+            Math.sin((i / products.length) * Math.PI * 2) * radius,
+            0,
+            Math.cos((i / products.length) * Math.PI * 2) * radius,
+          ]}
+          rotation={[0, Math.PI + (i / products.length) * Math.PI * 2, 0]}
+        />
+      );
+    });
+  }
+  
+  // Fallback về static images nếu không có products
+  return Array.from({ length: count }, (_, i) => {
+    const fallbackImageUrl = getImageFromAssets(`img${Math.floor(i % 10) + 1}_.jpg`, "home/carousel");
+    
+    return (
+      <Card
+        key={i}
+        url={fallbackImageUrl}
+        productId={i + 1}
+        position={[
+          Math.sin((i / count) * Math.PI * 2) * radius,
+          0,
+          Math.cos((i / count) * Math.PI * 2) * radius,
+        ]}
+        rotation={[0, Math.PI + (i / count) * Math.PI * 2, 0]}
+      />
+    );
+  });
 }
 
-function Card({ url, productId = 1, ...props }) {
+function Card({ url, productId = 1, productName, productPrice, ...props }) {
   const navigate = useNavigate();
   const ref = useRef();
   const [hovered, hover] = useState(false);
+  
+  // Sử dụng custom hook để tự động fallback về demo.jpg khi ImageProxy lỗi
+  const { src: displayUrl, isLoading, hasError, isUsingFallback } = useProxyImageWithFallback(url);
   
   const pointerOver = (e) => (e.stopPropagation(), hover(true));
   const pointerOut = () => hover(false);
   const handleClick = (e) => {
     e.stopPropagation();
+    
+    // Thêm vào recently viewed khi click
+    addToRecentlyViewed(productId);
+    
     // Navigate to product detail page with the product ID
     const productDetailPath = PUBLIC_URL.PRODUCT_DETIAL.replace(':id', productId);
     navigate(productDetailPath);
@@ -161,7 +261,7 @@ function Card({ url, productId = 1, ...props }) {
     <group>
       <Image
         ref={ref}
-        url={url}
+        url={displayUrl}
         transparent
         side={THREE.DoubleSide}
         onPointerOver={pointerOver}
@@ -180,6 +280,21 @@ function Card({ url, productId = 1, ...props }) {
       >
         <bentPlaneGeometry args={[0.1, 1, 1, 20, 20]} />
       </Image>
+      
+      {/* Debug indicator - có thể bỏ comment khi cần debug */}
+      {/* {isUsingFallback && (
+        <Html position={[0, -0.7, 0]}>
+          <div style={{ 
+            color: 'red', 
+            fontSize: '10px', 
+            background: 'white', 
+            padding: '2px', 
+            borderRadius: '2px' 
+          }}>
+            Using Demo
+          </div>
+        </Html>
+      )} */}
     </group>
   );
 }
