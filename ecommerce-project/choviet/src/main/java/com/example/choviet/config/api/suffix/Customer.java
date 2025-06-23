@@ -5,4 +5,5 @@ public interface Customer {
     String VIEW = "/view";
     String REGISTER_SELLER = "/register-seller";
     String UPDATE_PROFILE = "/update-profile";
+    String SELLER = "/seller";
 }

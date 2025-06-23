@@ -1,12 +1,15 @@
 package com.example.choviet.entity;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @Document(collection = "customers")
@@ -24,7 +27,7 @@ public class Customer {
     
     LocalDateTime createdAt;
     LocalDateTime updateAt;
-
+    
     public enum Status {
         ACTIVE, INACTIVE, SUSPENDED
     }

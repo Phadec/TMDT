@@ -112,6 +112,7 @@ public class AuthService {
             response.setEmail(customer.getEmail());
             response.setId(customer.getId());
             response.setToken(accessToken);
+            response.setSeller(customer.isSeller());
             response.setUserType("CUSTOMER");
             response.setCreatedAt(LocalDateTime.now());
 
