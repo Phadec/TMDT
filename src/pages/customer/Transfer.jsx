@@ -2,6 +2,8 @@ import { cva } from 'class-variance-authority';
 import { useState, useEffect } from 'react';
 import { clientApi } from '~/api/api.jsx';
 import { useAuth } from '~/hooks';
+import { StarIcon, FlagIcon } from '@heroicons/react/24/outline';
+import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 
 const badgeVariants = cva(
     'py-1 px-3 rounded-full text-xs',
@@ -37,18 +39,38 @@ const tabButtonVariants = cva(
     },
   }
 );
-const tableCellVariants   = cva('py-3 px-6', {
+const tableCellVariants = cva('py-3 px-4', {
   variants: {
     align: {
       left: 'text-left',
       center: 'text-center',
       right: 'text-right',
     },
+    width: {
+      narrow: 'w-20',
+      small: 'w-32',
+      medium: 'w-40',
+      large: 'w-48',
+      auto: 'w-auto',
+    },
   },
   defaultVariants: {
     align: 'left',
+    width: 'auto',
   },
 });
+
+const actionButtonVariants = cva(
+  'p-2 rounded-full transition-colors duration-200 hover:scale-110 transform',
+  {
+    variants: {
+      type: {
+        review: 'text-yellow-500 hover:bg-yellow-50 hover:text-yellow-600',
+        report: 'text-red-500 hover:bg-red-50 hover:text-red-600',
+      },
+    },
+  }
+);
 
 // Mapping trạng thái từ BE sang Frontend
 const STATUS_MAPPING = {
@@ -87,8 +109,8 @@ function Transfer() {
   const [activeTab, setActiveTab] = useState('PENDING');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
-    page: 1,
     size: 15,
     totalPages: 0,
     totalElements: 0
@@ -106,43 +128,53 @@ function Transfer() {
 
   // Fetch orders by status
   const fetchOrders = async (status, page = 1) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('No user ID found:', user);
+      return;
+    }
+    
+    console.log('Fetching orders for user:', user.id, 'status:', status, 'page:', page);
     
     setLoading(true);
     try {
       const backendStatuses = STATUS_MAPPING[status];
+      console.log('Backend statuses to fetch:', backendStatuses);
       
       // Call API for each backend status in the group
       const promises = backendStatuses.map(backendStatus => 
         clientApi.post(`/orders/get/status?page=${page}&size=${pagination.size}`, {
-          id: user.id.toString(),
           customerId: user.id.toString(),
           status: backendStatus
         })
         .catch(err => {
           console.error(`Error fetching orders for status ${backendStatus}:`, err);
-          return { data: { content: [], totalElements: 0, totalPages: 0 } };
+          return { content: [], totalElements: 0, totalPages: 0 };
         })
       );
 
       const results = await Promise.all(promises);
       
+      console.log('API Results for status', status, ':', results);
+      
       // Combine results from all statuses
       const allOrders = results.reduce((acc, result) => {
-        if (result && result.data && result.data.content) {
-          acc.push(...result.data.content);
+        if (result && result.content) {
+          console.log('Adding orders from result:', result.content);
+          acc.push(...result.content);
         }
         return acc;
       }, []);
+      
+      console.log('Combined orders:', allOrders);
 
       // Calculate total pagination info
-      const totalElements = results.reduce((sum, result) => sum + (result?.data?.totalElements || 0), 0);
-      const maxTotalPages = Math.max(...results.map(result => result?.data?.totalPages || 0));
+      const totalElements = results.reduce((sum, result) => sum + (result?.totalElements || 0), 0);
+      const maxTotalPages = Math.max(...results.map(result => result?.totalPages || 0));
 
       setOrders(allOrders);
+      setCurrentPage(page);
       setPagination(prev => ({
         ...prev,
-        page,
         totalElements,
         totalPages: maxTotalPages
       }));
@@ -157,18 +189,20 @@ function Transfer() {
 
   // Load orders when tab or page changes
   useEffect(() => {
-    fetchOrders(activeTab, pagination.page);
-  }, [activeTab, pagination.page, user?.id]);
+    if (user?.id) {
+      fetchOrders(activeTab, currentPage);
+    }
+  }, [activeTab, currentPage, user?.id]);
 
   // Handle tab change
   const handleTabChange = (tabKey) => {
     setActiveTab(tabKey);
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setCurrentPage(1);
   };
 
   // Handle page change
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setCurrentPage(newPage);
   };
 
   // Format currency
@@ -184,18 +218,38 @@ function Transfer() {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
+  // Handle review action
+  const handleReview = (orderId) => {
+    console.log('Review order:', orderId);
+    // TODO: Implement review functionality
+    // This could open a modal or navigate to review page
+  };
+
+  // Handle report action
+  const handleReport = (orderId) => {
+    console.log('Report order:', orderId);
+    // TODO: Implement report functionality
+    // This could open a modal or navigate to report page
+  };
+
+  // Truncate text for better UI
+  const truncateText = (text, maxLength = 30) => {
+    if (!text) return 'N/A';
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+  };
+
   return (
     <div>
       <h2 className="section-title">Lịch sử giao dịch</h2>
       
       {/* Tabs */}
       <div className="mb-6">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
-              className={tabButtonVariants({ active: activeTab === tab.key })}
+              className={`${tabButtonVariants({ active: activeTab === tab.key })} text-xs md:text-sm px-3 md:px-4 py-2 whitespace-nowrap`}
             >
               {tab.label}
             </button>
@@ -210,81 +264,198 @@ function Transfer() {
         </div>
       )}
 
-      {/* Orders table */}
+      {/* Orders table - Desktop */}
       {!loading && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                <th className={tableCellVariants({ align: 'left' })}>Mã đơn hàng</th>
-                <th className={tableCellVariants({ align: 'left' })}>Ngày</th>
-                <th className={tableCellVariants({ align: 'left' })}>Sản phẩm</th>
-                <th className={tableCellVariants({ align: 'right' })}>Tổng tiền</th>
-                <th className={tableCellVariants({ align: 'center' })}>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600 text-sm">
-              {orders.length > 0 ? (
-                orders.map((order) => (
-                  <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className={tableCellVariants({ align: 'left' })}>#{order.id}</td>
-                    <td className={tableCellVariants({ align: 'left' })}>
-                      {formatDate(order.createdAt || order.orderDate)}
-                    </td>
-                    <td className={tableCellVariants({ align: 'left' })}>
-                      {order.items?.map(item => item.productName).join(', ') || 'N/A'}
-                    </td>
-                    <td className={tableCellVariants({ align: 'right' })}>
-                      {formatCurrency(order.totalAmount || 0)}
-                    </td>
-                    <td className={tableCellVariants({ align: 'center' })}>
-                      <span className={badgeVariants({ status: getStatusGroup(order.status) })}>
-                        {STATUS_LABELS[getStatusGroup(order.status)]}
-                      </span>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto shadow-sm rounded-lg">
+            <table className="min-w-full bg-white table-fixed">
+              <thead>
+                <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                  <th className="w-24 py-3 px-4 text-left">Mã ĐH</th>
+                  <th className="w-28 py-3 px-4 text-left">Ngày</th>
+                  <th className="flex-1 py-3 px-4 text-left">Sản phẩm</th>
+                  <th className="w-32 py-3 px-4 text-right">Tổng tiền</th>
+                  <th className="w-32 py-3 px-4 text-center">Trạng thái</th>
+                  {activeTab === 'DELIVERED' && (
+                    <th className="w-24 py-3 px-4 text-center">Thao tác</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="text-gray-600 text-sm">
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                      <td className="w-24 py-3 px-4">
+                        <span className="font-medium text-blue-600">#{order.id}</span>
+                      </td>
+                      <td className="w-28 py-3 px-4">
+                        <span className="text-gray-700 text-xs">
+                          {formatDate(order.createdAt || order.payment?.createdAt)}
+                        </span>
+                      </td>
+                      <td className="flex-1 py-3 px-4">
+                        <div className="max-w-full">
+                          <span 
+                            className="block truncate text-gray-800 font-medium" 
+                            title={order.product?.name || 'N/A'}
+                          >
+                            {truncateText(order.product?.name, 50)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="w-32 py-3 px-4 text-right">
+                        <span className="font-semibold text-green-600 text-xs">
+                          {formatCurrency(
+                            order.payment?.amount ? parseInt(order.payment.amount) / 100 : 
+                            order.fee ? order.fee : 
+                            order.product?.price ? parseInt(order.product.price) : 0
+                          )}
+                        </span>
+                      </td>
+                      <td className="w-32 py-3 px-4 text-center">
+                        <span className={badgeVariants({ status: getStatusGroup(order.status) })}>
+                          {STATUS_LABELS[getStatusGroup(order.status)]}
+                        </span>
+                      </td>
+                      {activeTab === 'DELIVERED' && (
+                        <td className="w-24 py-3 px-4">
+                          <div className="flex justify-center space-x-1">
+                            <button
+                              onClick={() => handleReview(order.id)}
+                              className={actionButtonVariants({ type: 'review' })}
+                              title="Đánh giá sản phẩm"
+                            >
+                              <StarIcon className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleReport(order.id)}
+                              className={actionButtonVariants({ type: 'report' })}
+                              title="Báo cáo vấn đề"
+                            >
+                              <FlagIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={activeTab === 'DELIVERED' ? "6" : "5"} className="text-center py-8 text-gray-500">
+                      <div className="flex flex-col items-center">
+                        <div className="text-gray-400 mb-2">
+                          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3" />
+                          </svg>
+                        </div>
+                        <span>Không có đơn hàng nào</span>
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-gray-500">
-                    Không có đơn hàng nào
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {orders.length > 0 ? (
+              orders.map((order) => (
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <span className="font-medium text-blue-600">#{order.id}</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {formatDate(order.createdAt || order.payment?.createdAt)}
+                      </p>
+                    </div>
+                    <span className={badgeVariants({ status: getStatusGroup(order.status) })}>
+                      {STATUS_LABELS[getStatusGroup(order.status)]}
+                    </span>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <p className="text-gray-800 font-medium text-sm" title={order.product?.name || 'N/A'}>
+                      {truncateText(order.product?.name, 60)}
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-green-600">
+                      {formatCurrency(
+                        order.payment?.amount ? parseInt(order.payment.amount) / 100 : 
+                        order.fee ? order.fee : 
+                        order.product?.price ? parseInt(order.product.price) : 0
+                      )}
+                    </span>
+                    
+                    {activeTab === 'DELIVERED' && (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleReview(order.id)}
+                          className={actionButtonVariants({ type: 'review' })}
+                          title="Đánh giá sản phẩm"
+                        >
+                          <StarIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleReport(order.id)}
+                          className={actionButtonVariants({ type: 'report' })}
+                          title="Báo cáo vấn đề"
+                        >
+                          <FlagIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 bg-white rounded-lg shadow-sm">
+                <div className="flex flex-col items-center">
+                  <div className="text-gray-400 mb-2">
+                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3" />
+                    </svg>
+                  </div>
+                  <span>Không có đơn hàng nào</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Pagination */}
       {!loading && pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center mt-6 space-x-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center mt-6 space-y-2 sm:space-y-0 sm:space-x-2">
           <button
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1}
-            className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors w-full sm:w-auto"
           >
-            Trước
+            ← Trang trước
           </button>
           
-          <span className="text-sm text-gray-600">
-            Trang {pagination.page} / {pagination.totalPages}
+          <span className="text-sm text-gray-600 px-4 py-2 bg-gray-50 rounded-lg">
+            Trang {currentPage} / {pagination.totalPages}
           </span>
           
           <button
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.totalPages}
-            className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= pagination.totalPages}
+            className="px-4 py-2 text-sm border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors w-full sm:w-auto"
           >
-            Sau
+            Trang sau →
           </button>
         </div>
       )}
 
       {/* Total count */}
       {!loading && (
-        <div className="mt-4 text-sm text-gray-600 text-center">
-          Tổng cộng: {pagination.totalElements} đơn hàng
+        <div className="mt-4 text-sm text-gray-600 text-center bg-gray-50 py-2 rounded-lg">
+          <span className="font-medium">Tổng cộng: {pagination.totalElements} đơn hàng</span>
         </div>
       )}
     </div>
