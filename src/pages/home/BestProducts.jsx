@@ -42,78 +42,6 @@ const productTag = cva(['text-xs', 'px-2', 'py-1', 'rounded-full', 'bg-surface-l
  * + Sản phẩm mới
  */
 const bestProduct = [
-  {
-    id: 1,
-    name: "Tai nghe không dây XYZ",
-    image: "img1_.jpg",
-    level: "trending",
-    tags: ["Theo trend", "Phù hợp"],
-    price: "1.290.000đ",
-  },
-  {
-    id: 2,
-    name: "Giày thể thao ABC",
-    image: "img1_.jpg",
-    level: "discount",
-    tags: ["Đang giảm giá", "Lượt mua cao"],
-    price: "890.000đ",
-  },
-  {
-    id: 3,
-    name: "Balo thời trang DEF",
-    image: "img1_.jpg",
-    level: "new",
-    tags: ["Sản phẩm mới"],
-    price: "620.000đ",
-  },
-  {
-    id: 4,
-    name: "Tai nghe không dây XYZ",
-    image: "img1_.jpg",
-    level: "trending",
-    tags: ["Theo trend", "Phù hợp"],
-    price: "1.290.000đ",
-  },
-  {
-    id: 5,
-    name: "Giày thể thao ABC",
-    image: "img1_.jpg",
-    level: "discount",
-    tags: ["Đang giảm giá", "Lượt mua cao"],
-    price: "890.000đ",
-  },
-  {
-    id: 6,
-    name: "Balo thời trang DEF",
-    image: "img1_.jpg",
-    level: "new",
-    tags: ["Sản phẩm mới"],
-    price: "620.000đ",
-  },
-  {
-    id: 7,
-    name: "Tai nghe không dây XYZ",
-    image: "img1_.jpg",
-    level: "trending",
-    tags: ["Theo trend", "Phù hợp"],
-    price: "1.290.000đ",
-  },
-  {
-    id: 8,
-    name: "Giày thể thao ABC",
-    image: "img1_.jpg",
-    level: "discount",
-    tags: ["Đang giảm giá", "Lượt mua cao"],
-    price: "890.000đ",
-  },
-  {
-    id: 9,
-    name: "Balo thời trang DEF",
-    image: "img1_.jpg",
-    level: "new",
-    tags: ["Sản phẩm mới"],
-    price: "620.000đ",
-  },
 ];
 
 const levelColors = {
@@ -185,7 +113,6 @@ function BestProduct() {
         const recentlyViewedIds = getTopRecentlyViewed(9);
         const recentlyViewedString = recentlyViewedIdsToString(recentlyViewedIds);
         
-        console.log('Fetching today recommendations with recently viewed:', recentlyViewedString);
         
         // Gọi API getTodayRecommendations
         const todayProducts = await apiServices.products.getTodayRecommendations(recentlyViewedString);

@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ShoppingCartIcon, CreditCardIcon } from "@heroicons/react/24/solid";
 import Swal from "sweetalert2";
-import { Tool } from "~/components/items";
 
 import { Search } from "~/components/items";
 import { apiServices } from "~/api";
@@ -272,10 +271,6 @@ export default function Products() {
       <div>
         {/* Thanh tìm kiếm bằng AI */}
         <Search />
-      </div>
-
-      <div className="">
-        <Tool />
       </div>
 
       {/* Phân mục sản phẩm */}

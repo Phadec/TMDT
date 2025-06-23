@@ -18,15 +18,12 @@ const buttonStyles = cva(
 );
 function FastButton() {
   return (
-    <div className="fixed z-50 bottom-1/2 right-4 md:right-8 md:bottom-8 flex flex-col gap-2 md:flex-row md:gap-4 items-center md:items-start">
+    <div className="fixed z-50 flex flex-col items-center gap-2 bottom-1/2 right-4 md:right-8 md:bottom-8 md:flex-row md:gap-4 md:items-start">
         <button className={buttonStyles({color: 'blue'})}>
-            <ShoppingBagIcon className="h-6 w-6"/>
-        </button>
-        <button className={buttonStyles({color: 'red'})}>
-            <HeartIcon className="h-6 w-6"/>
+            <ShoppingBagIcon className="w-6 h-6"/>
         </button>
         <button className={buttonStyles({color: 'green'})}>
-            <CheckCircleIcon className="h-6 w-6"/>
+            <CheckCircleIcon className="w-6 h-6"/>
         </button>
     </div>
   );
