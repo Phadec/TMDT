@@ -13,6 +13,7 @@ import {
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
 import { useAuth } from "~/hooks/useAuth";
+import { useCart } from "~/contexts/CartContext";
 
 // Các mục menu công khai (hiển thị cho tất cả người dùng)
 const publicNavItems = [
@@ -65,6 +66,7 @@ const privateNavItems = [
 function Header() {
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
+  const { cartItemCount } = useCart();
 
   const handleLogout = async () => {
     await logout();
@@ -116,12 +118,13 @@ function Header() {
           {/* Hiển thị các mục menu riêng tư khi đã đăng nhập */}
           {isAuthenticated && privateNavItems.map((item, index) => {
             const isActive = location.pathname === item.url;
+            const isCartIcon = item.url === PRIVATE_URL.CART;
             
             return (
               <li key={`private-${index}`} className="relative group">
                 <Link
                   to={item.url}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 
+                  className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 relative
                     ${
                       isActive
                         ? "bg-white text-primary shadow-md scale-110"
@@ -129,11 +132,18 @@ function Header() {
                     }`}
                 >
                   <item.icon className="w-6 h-6" />
+                  {/* Badge số lượng cho icon giỏ hàng */}
+                  {isCartIcon && cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
+                      {cartItemCount > 99 ? '99+' : cartItemCount}
+                    </span>
+                  )}
                 </Link>
                 <span
                   className="absolute hidden sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md sm:inline"
                 >
                   {item.label}
+                  {isCartIcon && cartItemCount > 0 && ` (${cartItemCount})`}
                 </span>
               </li>
             );

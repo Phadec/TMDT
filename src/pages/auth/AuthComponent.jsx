@@ -284,6 +284,8 @@ function Form({
   isShow3LoginButton = true,
   onSubmit,
   isSubmitting = false,
+  additionalContent = null,
+  submitButtonText = "Đăng nhập",
 }) {
   // Xử lý submit form
   const handleSubmit = (e) => {
@@ -343,7 +345,7 @@ function Form({
                 Đang xử lý...
               </span>
             ) : (
-              "Đăng nhập"
+              submitButtonText
             )}
           </button>
 
@@ -425,6 +427,9 @@ function Form({
             </div>
           )}
         </div>
+        
+        {/* Additional Content (như modal) */}
+        {additionalContent}
       </div>
     </div>
   );

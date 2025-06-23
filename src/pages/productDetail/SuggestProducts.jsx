@@ -164,7 +164,7 @@ function SuggestProducts({ categoryId, productId }) {
   return (
     <div className="p-6">
       <h2 className="mb-4 text-2xl font-bold">Sản phẩm liên quan</h2>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
         {relatedProducts.map((product) => {
           // Lấy ảnh đầu tiên từ danh sách ảnh (nếu có)
           const firstImage = product.imageReview ?? FALLBACK_IMAGE;
@@ -177,9 +177,9 @@ function SuggestProducts({ categoryId, productId }) {
           return (
             <div
               key={product.id}
-              className="p-4 transition-all bg-white rounded-lg shadow-lg hover:shadow-xl"
+              className="flex flex-col h-full p-4 transition-all bg-white rounded-lg shadow-lg hover:shadow-xl"
             >
-              <Link to={`/product/${product.id}`}>
+              <Link to={`/products/${product.id}`} className="flex flex-col flex-grow">
                 <img
                   src={firstImage}
                   alt={product.name}
@@ -189,9 +189,9 @@ function SuggestProducts({ categoryId, productId }) {
                     e.target.src = FALLBACK_IMAGE;
                   }}
                 />
-                <div className="mt-4">
-                  <h3 className="text-xl font-semibold">{product.name}</h3>
-                  <p className="mt-2 text-gray-600 line-clamp-2">
+                <div className="flex flex-col flex-grow mt-4">
+                  <h3 className="text-xl font-semibold line-clamp-2 min-h-[3.5rem]">{product.name}</h3>
+                  <p className="mt-2 text-gray-600 line-clamp-2 min-h-[3rem] flex-grow">
                     {product.description || "Không có mô tả"}
                   </p>
                   <p className="mt-3 text-lg font-bold">{price}</p>

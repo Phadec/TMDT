@@ -1,0 +1,12 @@
+export { Home } from './home';
+export { Products } from './products';
+export { Policy } from './policy';
+export { Connect } from './connect';
+export { ProductDetail } from './productDetail';
+export { Login, Register, Forget } from './auth';
+export { Customer } from './customer';
+export { Cart } from './cart';
+export { Checkout } from './checkout';
+export { NotFound } from './notFound';
+export { Dashboard } from './dashboard';
+export { Dashboard as DashboardAdmin, Login as LoginAdmin } from './admin';
