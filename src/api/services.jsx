@@ -158,6 +158,98 @@ const apiServices = {
           return [];
         }
       }
+    },
+
+    /**
+     * Lấy danh sách sản phẩm gợi ý hôm nay (9 sản phẩm)
+     * @param {string} recentlyViewedIdsString - Chuỗi ID sản phẩm xem gần đây (cách nhau bởi dấu phẩy)
+     * @returns {Promise} - Promise chứa danh sách 9 sản phẩm gợi ý hôm nay
+     */
+    getTodayRecommendations: async (recentlyViewedIdsString = '') => {
+      const endpointName = 'todayRecommendations';
+      
+      // Check circuit breaker
+      if (apiServices.circuitBreaker.shouldSkip(endpointName)) {
+        console.warn('Circuit breaker: Skipping today recommendations due to repeated failures, using fallback');
+        return apiServices.products.getTodayRecommendationsFallback();
+      }
+      
+      try {
+        const params = {};
+        if (recentlyViewedIdsString && recentlyViewedIdsString.trim() !== '') {
+          params.recentlyViewed = recentlyViewedIdsString;
+        }
+        
+        const response = await commonApi.get(commonUrl.home.todayRecommendations, { 
+          params,
+          timeout: 10000 // 10 second timeout
+        });
+
+        // Success - clear circuit breaker
+        apiServices.circuitBreaker.clearFailures(endpointName);
+
+        // API trả về ApiResponse<List<Product>>
+        if (response && Array.isArray(response)) {
+          return response.slice(0, 9); // Ensure max 9 products
+        }
+        
+        // If response is not an array, try to extract from data property
+        if (response && response.data && Array.isArray(response.data)) {
+          return response.data.slice(0, 9);
+        }
+        
+        // If still no valid data, fall back to empty array
+        return [];
+        
+      } catch (error) {
+        // Record failure in circuit breaker
+        apiServices.circuitBreaker.recordFailure(endpointName);
+        
+        console.error('Error fetching today recommendations:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          data: error.data
+        });
+        
+        // Detailed error logging for debugging
+        if (error.status === 500) {
+          console.warn('Server error 500: Today recommendations service is down, using fallback');
+        }
+        
+        // Use dedicated fallback method
+        return apiServices.products.getTodayRecommendationsFallback();
+      }
+    },
+
+    /**
+     * Fallback method for getTodayRecommendations
+     * @returns {Promise} - Promise chứa danh sách sản phẩm fallback
+     */
+    getTodayRecommendationsFallback: async () => {
+      try {
+        console.log('Using today recommendations fallback...');
+        const fallbackResponse = await commonApi.get(commonUrl.product.getAll, {
+          params: { page: 0, size: 9 },
+          timeout: 5000 // 5 second timeout for fallback
+        });
+        
+        if (fallbackResponse?.data?.content) {
+          console.log('Fallback successful with paginated data');
+          return fallbackResponse.data.content;
+        } else if (Array.isArray(fallbackResponse)) {
+          console.log('Fallback successful with direct array');
+          return fallbackResponse.slice(0, 9);
+        }
+        
+        console.log('Fallback response format unexpected:', fallbackResponse);
+        return [];
+        
+      } catch (fallbackError) {
+        console.error('Error in today recommendations fallback:', fallbackError);
+        // Return empty array as final fallback
+        return [];
+      }
     }
   },
 
@@ -335,6 +427,49 @@ const apiServices = {
         console.error(`Error updating order status for ID ${id}:`, error);
         throw error;
       }
+    }
+  },
+
+  /**
+   * Circuit breaker for API calls
+   */
+  circuitBreaker: {
+    // Track failed endpoints
+    failedEndpoints: new Map(),
+    
+    /**
+     * Check if endpoint should be skipped due to repeated failures
+     * @param {string} endpoint - The endpoint to check
+     * @returns {boolean} - True if should skip, false otherwise
+     */
+    shouldSkip: function(endpoint) {
+      const failures = this.failedEndpoints.get(endpoint);
+      if (!failures) return false;
+      
+      // Skip if more than 3 failures in last 5 minutes
+      const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+      const recentFailures = failures.filter(time => time > fiveMinutesAgo);
+      this.failedEndpoints.set(endpoint, recentFailures);
+      
+      return recentFailures.length >= 3;
+    },
+    
+    /**
+     * Record a failure for an endpoint
+     * @param {string} endpoint - The endpoint that failed
+     */
+    recordFailure: function(endpoint) {
+      const failures = this.failedEndpoints.get(endpoint) || [];
+      failures.push(Date.now());
+      this.failedEndpoints.set(endpoint, failures);
+    },
+    
+    /**
+     * Clear failures for an endpoint (on success)
+     * @param {string} endpoint - The endpoint to clear
+     */
+    clearFailures: function(endpoint) {
+      this.failedEndpoints.delete(endpoint);
     }
   },
 

@@ -99,6 +99,7 @@ const commonUrl = {
     },
     home: {
         banner: `/home/banner`,
+        todayRecommendations: `/home/today-recommendations`,
     },
     imageProxy: {
         getImage: (encodedUrl) => `/common/image-proxy/image?url=${encodedUrl}`,
