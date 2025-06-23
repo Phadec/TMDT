@@ -26,6 +26,9 @@ const AddProductForm = () => {
   const [description, setDescription] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
   const [category, setCategory] = useState('');
+  // Thêm state cho danh mục
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const [loading, setLoading] = useState(false);
   // Thêm hook cohere
   const { sendMessage } = useCohereChat();
@@ -188,6 +191,27 @@ const AddProductForm = () => {
     return '';
   };
 
+  // Lấy danh mục từ API khi mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const res = await commonApi.get(commonUrl.category.getAll);
+        // Đảm bảo categories luôn là mảng
+        let arr = [];
+        // console.log('Categories response:', res);
+        if (Array.isArray(res)) arr = res;
+        else if (res.data && Array.isArray(res.data.categories)) arr = res.data.categories;
+        setCategories(arr);
+      } catch (e) {
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   return (
     <div className="p-4 bg-white shadow-sm rounded-xl md:p-6">
       <h2 className="mb-4 text-xl font-semibold">Đăng sản phẩm mới</h2>
@@ -272,13 +296,18 @@ const AddProductForm = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 value={category}
                 onChange={e => setCategory(e.target.value)}
+                disabled={loadingCategories}
               >
                 <option value="">Chọn danh mục</option>
-                <option value="electronics">Điện tử</option>
-                <option value="clothing">Thời trang</option>
-                <option value="home">Đồ gia dụng</option>
-                <option value="beauty">Làm đẹp</option>
+                {(Array.isArray(categories) ? categories : []).map(cat => (
+                  <option key={cat.id || cat._id || cat.value} value={cat.id || cat._id || cat.value}>
+                    {cat.name || cat.label}
+                  </option>
+                ))}
               </select>
+              {loadingCategories && (
+                <div className="mt-1 text-xs text-gray-500">Đang tải danh mục...</div>
+              )}
             </div>
 
             <div>

@@ -83,7 +83,7 @@ const commonUrl = {
         upload: `${PRODUCT}/upload`,
     },
     category: {
-        getAll: `${CATEGORY}`,
+        getAll: `${CATEGORY}/all`,
     }
 };
 
