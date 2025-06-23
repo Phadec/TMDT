@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.function.Function;
 
@@ -52,6 +53,8 @@ public class ProductService {
     ProductCustomerRepository productCustomerRepository;
     @Autowired
     CustomerRepository customerRepository;
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     // Lấy tất cả sản phẩm theo trang
     public Page<Product> getProductsPaging(int page, int size) {
@@ -362,5 +365,46 @@ public class ProductService {
     public void deleteProduct(String id) {
         Product product = getProductById(id);
         productRepository.delete(product);
+    }
+
+    public String uploadProduct(
+        String name,
+        Double price,
+        String description,
+        List<String> tags,
+        String address,
+        String idCategory,
+        List<MultipartFile> images
+    ) {
+        // Xử lý upload ảnh trước
+        List<String> imageUrls = new ArrayList<>();
+        if (images != null && !images.isEmpty()) {
+            for (MultipartFile image : images) {
+                try {
+                    String url = cloudinaryService.uploadImage(image);
+                    imageUrls.add(url);
+                } catch (Exception e) {
+                    // Có thể log lỗi hoặc throw exception tùy yêu cầu
+                    throw new RuntimeException("Lỗi upload ảnh: " + e.getMessage());
+                }
+            }
+        }
+
+        String des01 = String.join("\n", tags);
+        String des02 = description;
+
+        Product product = Product.builder()
+                .name(name)
+                .price(price + "")
+                .shortDes(des01)
+                .description(des02)
+                .images(imageUrls)
+                .address(address)
+                .categoryId(idCategory)
+                .build();
+
+        productRepository.save(product);
+
+        return "Sản phẩm tạo thành công với ID: " + product.getId();
     }
 }

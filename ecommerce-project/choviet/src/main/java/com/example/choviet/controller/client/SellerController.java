@@ -59,4 +59,7 @@ public class SellerController {
         Map<String, Object> activities = sellerService.getSellerActivities(sellerId, limit);
         return ResponseEntity.ok(new ApiResponse<>(OK, "success", activities));
     }
+
+    
+
 }

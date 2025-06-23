@@ -93,8 +93,8 @@ public class ProductCategoryService {
         category.setCreatedAt(LocalDateTime.now());
         category.setUpdatedAt(LocalDateTime.now());
         
-        if (category.getIsActive() == null) {
-            category.setIsActive(true);
+        if (!category.isActive()) {
+            category.setActive(true);
         }
         
         if (category.getPostCount() == null) {
@@ -141,8 +141,8 @@ public class ProductCategoryService {
                 existingCategory.setIcon(updatedCategory.getIcon().trim());
             }
             
-            if (updatedCategory.getIsActive() != null) {
-                existingCategory.setIsActive(updatedCategory.getIsActive());
+            if (!updatedCategory.isActive()) {
+                existingCategory.setActive(false);
             }
             
             existingCategory.setUpdatedAt(LocalDateTime.now());

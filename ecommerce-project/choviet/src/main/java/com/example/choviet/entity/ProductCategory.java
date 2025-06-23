@@ -16,13 +16,12 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductCategory {
     @Id
-    @Field("category_id")
     String id;
     String name;
     String description;
     String parentId;
     String icon;
-    Boolean isActive;
+    boolean isActive;
     Long postCount; // Số lượng bài đăng trong danh mục
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
