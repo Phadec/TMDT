@@ -80,6 +80,10 @@ const commonUrl = {
         detail: (id) => `${PRODUCT}/${id}`,
         similar: (id) => `${PRODUCT}/${id}/similar`,
         reviews: (id) => `${PRODUCT}/${id}/reviews`,
+        upload: `${PRODUCT}/upload`,
+    },
+    category: {
+        getAll: `${CATEGORY}`,
     }
 };
 

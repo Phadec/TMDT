@@ -3,8 +3,9 @@ import Tagify from '@yaireo/tagify';
 import '@yaireo/tagify/dist/tagify.css';
 import Swal from 'sweetalert2';
 import ImageUploader from './ImageUploader';
-import { useCohereChat } from '../../hooks/useCohere';
-import { handleContent } from '../../promt';
+import { useCohereChat } from '~/hooks/useCohere';
+import { handleContent } from '~/promt';
+import { commonApi, commonUrl } from '~/api';
 
 // Add Product Form Component
 const AddProductForm = () => {
@@ -24,6 +25,8 @@ const AddProductForm = () => {
   const [priceError, setPriceError] = useState('');
   const [description, setDescription] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
+  const [category, setCategory] = useState('');
+  const [loading, setLoading] = useState(false);
   // Thêm hook cohere
   const { sendMessage } = useCohereChat();
 
@@ -256,7 +259,7 @@ const AddProductForm = () => {
                   ref={tagifyRef}
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Nhập thẻ sản phẩm"
+                  placeholder="Nhập thẻ sản phẩm và nhấn enter"
                 />
               </div>
             </div>
@@ -265,7 +268,11 @@ const AddProductForm = () => {
               <label className="block mb-1 text-sm font-medium text-gray-700">
                 Danh mục
               </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+              >
                 <option value="">Chọn danh mục</option>
                 <option value="electronics">Điện tử</option>
                 <option value="clothing">Thời trang</option>
@@ -400,20 +407,60 @@ const AddProductForm = () => {
                 return;
               }
               const tags = handleGetTags();
-              console.log('Images:', images);
-              console.log('Tags:', tags);
-              
-              // Show success message
-              Swal.fire({
-                icon: 'success',
-                title: 'Thành công!',
-                text: 'Sản phẩm đã được đăng thành công!',
-                confirmButtonColor: '#10B981',
-                timer: 2000,
-                showConfirmButton: false
-              });
               
               // Xử lý submit form ở đây
+              try {
+                setLoading(true);
+                // Chuẩn bị dữ liệu gửi lên server (multipart/form-data)
+                const formData = new FormData();
+                formData.append('name', productName);
+                formData.append('price', Number(price));
+                formData.append('description', description);
+                formData.append('address', address);
+                formData.append('category', category);
+                // Thêm tags (nếu có)
+                if (tags && tags.length > 0) {
+                  tags.forEach(tag => formData.append('tags', tag.value));
+                }
+                // Thêm ảnh (dạng file)
+                images.forEach(img => {
+                  if (img.file) {
+                    formData.append('images', img.file, img.name);
+                  }
+                });
+
+                await commonApi.post(commonUrl.product.upload, formData, {
+                  headers: {
+                    'Content-Type': 'multipart/form-data'
+                  }
+                });
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Thành công!',
+                  text: 'Sản phẩm đã được đăng thành công!',
+                  confirmButtonColor: '#10B981',
+                  timer: 2000,
+                  showConfirmButton: false
+                });
+                // Reset form nếu muốn
+                setProductName('');
+                setPrice('');
+                setDescription('');
+                setImages([]);
+                setAddress('');
+                setCategory('');
+                if (tagifyInstance.current) tagifyInstance.current.removeAllTags();
+              } catch (err) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Lỗi',
+                  text: err?.message || 'Không thể đăng sản phẩm. Vui lòng thử lại.',
+                  confirmButtonColor: '#EF4444'
+                });
+              } finally {
+                setLoading(false);
+              }
             }}
             className={`px-6 py-3 font-medium text-white transition-all duration-300 rounded-lg ${
               images.length >= 10 && !productNameError && !priceError && !descriptionError
@@ -421,6 +468,7 @@ const AddProductForm = () => {
                 : 'bg-gray-400 cursor-not-allowed'
             }`}
             disabled={
+              loading ||
               images.length < 10 ||
               !addressValid ||
               checkingAddress ||
@@ -429,7 +477,15 @@ const AddProductForm = () => {
               !!descriptionError
             }
           >
-            {images.length >= 10 ? (
+            {loading ? (
+              <>
+                <svg className="inline w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                Đang đăng sản phẩm...
+              </>
+            ) : images.length >= 10 ? (
               <>
                 <svg className="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

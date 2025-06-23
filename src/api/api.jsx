@@ -14,7 +14,6 @@ const ENDPOINTS = {
 // Khởi tạo instance axios
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -22,7 +21,7 @@ const api = axios.create({
 const createApiService = (baseURL, tokenKey = "accessToken") => {
   const instance = axios.create({
     baseURL,
-    timeout: 10000,
+
     headers: { "Content-Type": "application/json" },
   });
 
@@ -36,50 +35,59 @@ const createApiService = (baseURL, tokenKey = "accessToken") => {
     (error) => Promise.reject(error)
   );
 
-  // Interceptor xử lý response
-  instance.interceptors.response.use(
-    (response) => {
-      // Trả về data từ format API: { code, message, data }
-      if (response.data && response.data.code === Code.OK) {
-        return response.data.data;
-      }
-      return response.data;
-    },
-    (error) => {
-      // Xử lý các lỗi phổ biến
-      if (error.response) {
-        // Lỗi từ server với status code
-        const { status, data } = error.response;
-        
-        // Nếu token hết hạn hoặc không hợp lệ
-        if (status === 401) {
-          localStorage.removeItem(tokenKey);
-          // Redirect to login if it's admin token
-          if (tokenKey === "adminToken") {
-            window.location.href = "/admin/login";
-          }
-        }
+  // // Interceptor xử lý response
+  // instance.interceptors.response.use(
+  //   (response) => {
+  //     // Nếu là upload file (FormData), trả về toàn bộ response
+  //     if (
+  //       response.config &&
+  //       response.config.data &&
+  //       typeof response.config.data === "object" &&
+  //       (response.config.data instanceof FormData)
+  //     ) {
+  //       return response;
+  //     }
+  //     // Trả về data từ format API: { code, message, data }
+  //     if (response.data && response.data.code === Code.OK) {
+  //       return response.data.data;
+  //     }
+  //     return response.data;
+  //   },
+  //   (error) => {
+  //     // Xử lý các lỗi phổ biến
+  //     if (error.response) {
+  //       // Lỗi từ server với status code
+  //       const { status, data } = error.response;
 
-        // Trả về message lỗi từ server nếu có
-        return Promise.reject({
-          status,
-          message: data.message || "Lỗi từ server",
-          data: data
-        });
-      } else if (error.request) {
-        // Không nhận được response
-        return Promise.reject({
-          status: 0,
-          message: "Không thể kết nối đến server",
-        });
-      } else {
-        // Lỗi trong quá trình set up request
-        return Promise.reject({
-          message: error.message || "Có lỗi xảy ra",
-        });
-      }
-    }
-  );
+  //       // Nếu token hết hạn hoặc không hợp lệ
+  //       if (status === 401) {
+  //         localStorage.removeItem(tokenKey);
+  //         // Redirect to login if it's admin token
+  //         if (tokenKey === "adminToken") {
+  //           window.location.href = "/admin/login";
+  //         }
+  //       }
+
+  //       // Trả về message lỗi từ server nếu có
+  //       return Promise.reject({
+  //         status,
+  //         message: data.message || "Lỗi từ server",
+  //         data: data,
+  //       });
+  //     } else if (error.request) {
+  //       // Không nhận được response
+  //       return Promise.reject({
+  //         status: 0,
+  //         message: "Không thể kết nối đến server",
+  //       });
+  //     } else {
+  //       // Lỗi trong quá trình set up request
+  //       return Promise.reject({
+  //         message: error.message || "Có lỗi xảy ra",
+  //       });
+  //     }
+  //   }
+  // );
 
   return {
     get: (path, config) => instance.get(path, config),
