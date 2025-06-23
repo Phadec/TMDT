@@ -29,6 +29,6 @@ public class Customer {
     LocalDateTime updateAt;
     
     public enum Status {
-        ACTIVE, INACTIVE, SUSPENDED
+        ACTIVE, INACTIVE, SUSPENDED, BANNED
     }
 }

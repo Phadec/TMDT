@@ -97,21 +97,22 @@ public class CustomerService {
     public void updateProfile(PersonRequest personRequest){
         String id = personRequest.getPersonId();
 
-        Optional<Customer> customer = Optional.ofNullable(customerRepository.findById(id).orElseThrow(null));
-
-        if(customer.isPresent()){
+        Optional<Customer> customer = Optional.ofNullable(customerRepository.findById(id).orElseThrow(null));        if(customer.isPresent()){
             Customer customerPresent = customer.get();
-            String name = personRequest.getName().isEmpty() ? customerPresent.getFullName() : personRequest.getName();
-            String email = personRequest.getEmail().isEmpty() ? customerPresent.getEmail() : personRequest.getEmail();
-            String phone = personRequest.getPhone().isEmpty() ? customerPresent.getPhone() : personRequest.getPhone();
-            String password = personRequest.getPassword().isEmpty() ? customerPresent.getPasswordHash() : personRequest.getPassword();
-            List<String> address = personRequest.getAddresses().isEmpty() ? customerPresent.getAddresses() : personRequest.getAddresses();
-
-            customerPresent.setFullName(name);
+            String name = (personRequest.getName() == null || personRequest.getName().isEmpty()) ? customerPresent.getFullName() : personRequest.getName();
+            String email = (personRequest.getEmail() == null || personRequest.getEmail().isEmpty()) ? customerPresent.getEmail() : personRequest.getEmail();
+            String phone = (personRequest.getPhone() == null || personRequest.getPhone().isEmpty()) ? customerPresent.getPhone() : personRequest.getPhone();
+            String password = (personRequest.getPassword() == null || personRequest.getPassword().isEmpty()) ? customerPresent.getPasswordHash() : personRequest.getPassword();
+            List<String> address = (personRequest.getAddresses() == null || personRequest.getAddresses().isEmpty()) ? customerPresent.getAddresses() : personRequest.getAddresses();            customerPresent.setFullName(name);
             customerPresent.setEmail(email);
             customerPresent.setPhone(phone);
             customerPresent.setAddresses(address);
-            customerPresent.setPasswordHash(passwordEncoder.encode(password));
+            
+            // Only encode password if it's a new password (not the existing hash)
+            if (personRequest.getPassword() != null && !personRequest.getPassword().isEmpty()) {
+                customerPresent.setPasswordHash(passwordEncoder.encode(personRequest.getPassword()));
+            }
+            // If password is null or empty, keep the existing password hash
 
             System.out.println(customerPresent);
             customerRepository.save(customerPresent);
