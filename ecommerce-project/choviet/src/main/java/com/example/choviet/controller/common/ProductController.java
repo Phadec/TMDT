@@ -111,6 +111,7 @@ public class ProductController {
 
     @PostMapping(value = UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<String>> uploadProduct(
+            @RequestParam("id_customer") String idCustomer,
             @RequestParam("name") String name,
             @RequestParam("price") Double price,
             @RequestParam("description") String description,
@@ -119,7 +120,7 @@ public class ProductController {
             @RequestParam(value = "tags", required = false) List<String> tags,
             @RequestParam("images") List<MultipartFile> images
     ) {
-        String message = productService.uploadProduct(name, price, description, tags, address, category, images);
+        String message = productService.uploadProduct(idCustomer ,name, price, description, tags, address, category, images);
         if (message != null) {
             return ResponseEntity.ok(new ApiResponse<>(OK, "success", message));
         }

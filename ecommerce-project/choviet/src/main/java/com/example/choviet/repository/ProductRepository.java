@@ -44,4 +44,14 @@ public interface ProductRepository extends MongoRepository<Product, String> {
      * Tìm sản phẩm theo seller sắp xếp theo thời gian tạo
      */
     List<Product> findByCustomer_IdOrderByCreatedAtDesc(String customerId);
+
+    /**
+     * Tìm sản phẩm theo trạng thái với phân trang
+     */
+    Page<Product> findByStatus(Product.Type status, Pageable pageable);
+
+    /**
+     * Tìm sản phẩm theo trạng thái
+     */
+    List<Product> findByStatus(Product.Type status);
 }

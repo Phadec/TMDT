@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.example.choviet.dto.CategoryDto;
 import com.example.choviet.entity.ProductCategory;
 import com.example.choviet.repository.CategoryRepository;
 
@@ -19,7 +20,7 @@ public class CategoryService {
     @Autowired
     RedisService redisService;
 
-    public List<String> getAllCategories() {
+    public List<CategoryDto> getAllCategories() {
         String redisKey = "categories";
 
         // Kiểm tra khóa có tồn tại không
@@ -29,22 +30,22 @@ public class CategoryService {
                 List<?> cachedList = (List<?>) cached;
                 if (cachedList.isEmpty() || cachedList.get(0) instanceof String) {
                     @SuppressWarnings("unchecked")
-                    List<String> safeList = (List<String>) cachedList;
+                    List<CategoryDto> safeList = (List<CategoryDto>) cachedList;
                     return safeList;
                 }
             }
         }
 
         // Nếu không có trong cache, lấy từ DB và lưu vào Redis
-        List<String> categories = fetchCategoriesFromDatabase();
+        List<CategoryDto> categories = fetchCategoriesFromDatabase();
         redisService.set(redisKey, categories, 30L, TimeUnit.DAYS);
         return categories;
     }
 
-    private List<String> fetchCategoriesFromDatabase() {
+    private List<CategoryDto> fetchCategoriesFromDatabase() {
         return categoryRepository.findAll()
                 .stream()
-                .map(ProductCategory::getName)
+                .map(CategoryDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
