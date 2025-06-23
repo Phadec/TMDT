@@ -6,6 +6,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -45,6 +46,12 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue contactEmailQueue() {
+        return new Queue(CONTACT_EMAIL_QUEUE_LISTENER, true);
+    }
+
+
+    @Bean
     public Queue changePasswordQueue() {
         return new Queue(CHANGE_PASSWORD_QUEUE_LISTENER, true);
     }
@@ -72,6 +79,11 @@ public class RabbitMQConfig {
     @Bean
     public Binding verifyEmailBinding() {
         return BindingBuilder.bind(verifyEmailQueue()).to(userExchange()).with(VERIFY_EMAIL_QUEUE);
+    }
+
+    @Bean
+    public Binding contactEmailBinding() {
+        return BindingBuilder.bind(contactEmailQueue()).to(userExchange()).with(CONTACT_EMAIL_QUEUE);
     }
 
     @Bean
@@ -131,7 +143,6 @@ public class RabbitMQConfig {
     public Jackson2JsonMessageConverter jsonMessageConverter() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-
         return new Jackson2JsonMessageConverter(mapper);
     }
 

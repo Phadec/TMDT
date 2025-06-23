@@ -1,6 +1,7 @@
 package com.example.choviet.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.choviet.config.ErrorConfig;
+import com.example.choviet.dto.PersonRequest;
 import com.example.choviet.dto.ProfileResponse;
 import com.example.choviet.entity.Customer;
 import com.example.choviet.exception.AppException;
@@ -97,6 +100,27 @@ public class CustomerService {
                 .createdAt(updatedCustomer.getCreatedAt())
                 .updateAt(updatedCustomer.getUpdateAt())
                 .build();
+    }
+
+    public void updateProfile(PersonRequest personRequest){
+        String id = personRequest.getPersonId();
+
+        Optional<Customer> customer = Optional.ofNullable(customerRepository.findById(id).orElseThrow(null));
+
+        if(customer.isPresent()){
+            Customer customerPresent = customer.get();
+            String name = personRequest.getName().isEmpty() ? customerPresent.getFullName() : personRequest.getName();
+            String email = personRequest.getEmail().isEmpty() ? customerPresent.getEmail() : personRequest.getEmail();
+            String phone = personRequest.getPhone().isEmpty() ? customerPresent.getPhone() : personRequest.getPhone();
+            String address = personRequest.getAddress().isEmpty() ? customerPresent.getAddresses() : personRequest.getAddress();
+
+            customerPresent.setFullName(name);
+            customerPresent.setEmail(email);
+            customerPresent.setPhone(phone);
+            customerPresent.setAddresses(address);
+            System.out.println(customerPresent);
+            customerRepository.save(customerPresent);
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ import static com.example.choviet.config.api.Prefix.*;
 import static com.example.choviet.config.api.suffix.Verify.*;
 
 import com.example.choviet.dto.ApiResponse;
+import com.example.choviet.dto.EmailRequest;
 import com.example.choviet.dto.VerifyEmailRequest;
 import com.example.choviet.service.VerifyService;
 import lombok.AccessLevel;
@@ -23,6 +24,12 @@ public class VerifyController {
     @PostMapping(SEND_VERIFICATION_EMAIL)
     public ResponseEntity<ApiResponse<String>> sendVerificationEmail(@RequestBody VerifyEmailRequest verifyEmail) {
         String message = verifyService.sendVerificationEmail(verifyEmail.getEmail());
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", message));
+    }
+
+    @PostMapping(SEND_EMAIL)
+    public ResponseEntity<ApiResponse<String>> sendEmail(@RequestBody EmailRequest emailRequest) {
+        String message = verifyService.sendEmail(emailRequest);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", message));
     }
 

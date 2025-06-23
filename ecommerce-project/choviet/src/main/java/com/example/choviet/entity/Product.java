@@ -1,6 +1,7 @@
 package com.example.choviet.entity;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Document(collection = "products")
+@Builder
 @Data
 public class Product {
     @Id
@@ -30,6 +32,7 @@ public class Product {
     List<String> images;
     ProductCategory productCategory;
     Customer customer; // seller
+    String address;
 
     Type status;
     LocalDateTime createdAt;

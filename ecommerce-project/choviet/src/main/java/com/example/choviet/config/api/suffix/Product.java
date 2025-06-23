@@ -7,4 +7,5 @@ public interface Product {
     String GET_PRODUCTS_BY_CATEGORY = "/category/{id}";
     String SIMILAR_PRODUCTS = "/{id}/similar";
     String REVIEWS = "/{id}/reviews";
+    String UPLOAD = "/upload";
 }

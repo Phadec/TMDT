@@ -65,7 +65,7 @@ public class AuthService {
             // Generate access token
             String accessToken = jwtUtil.generateTokenWithRole(user.getId(), user.getRole().getRoleName().name());
 
-            redisService.set(user.getId(), accessToken, 1, TimeUnit.HOURS);
+            redisService.set(user.getId(), accessToken, 1L, TimeUnit.HOURS);
 
             // Create response
             AuthResponse response = new AuthResponse();
@@ -105,13 +105,14 @@ public class AuthService {
             // Generate access token
             String accessToken = jwtUtil.generateToken(customer.getId());
 
-            redisService.set(customer.getId(), accessToken, 1, TimeUnit.HOURS);
+            redisService.set(customer.getId(), accessToken, 1L, TimeUnit.HOURS);
 
             // đẩy vào queue
             AuthResponse response = new AuthResponse();
             response.setEmail(customer.getEmail());
             response.setId(customer.getId());
             response.setToken(accessToken);
+            response.setSeller(customer.isSeller());
             response.setUserType("CUSTOMER");
             response.setCreatedAt(LocalDateTime.now());
 
@@ -244,7 +245,7 @@ public class AuthService {
             try {
                 long remainingTime = jwtUtil.extractExpiration(token).getTime() - System.currentTimeMillis();
                 if (remainingTime > 0) {
-                    redisService.set("blacklist:" + token, "true", (int) (remainingTime / 1000),
+                    redisService.set("blacklist:" + token, "true", (Long) (remainingTime / 1000),
                             TimeUnit.SECONDS);
                 }
             } catch (Exception e) {
@@ -280,22 +281,23 @@ public class AuthService {
             throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không được trùng với mật khẩu cũ");
         }
 
-        User user = userRepository.findById(userId)
+        Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(oldPassword, customer.getPasswordHash())) {
             throw new AppException(ErrorConfig.INVALID_CREDENTIALS, "Mật khẩu cũ không chính xác");
         }
 
-        if (!user.getEmail().equals(email)) {
+        if (!customer.getEmail().equals(email)) {
             throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        customer.setPasswordHash(passwordEncoder.encode(newPassword));
+        customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
-        response.setId(user.getId());
+        response.setId(customer.getId());
+        response.setEmail(email);
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
@@ -319,18 +321,19 @@ public class AuthService {
             throw new AppException(ErrorConfig.INVALID_DATA, "Mật khẩu mới không khớp với xác nhận mật khẩu");
         }
 
-        User user = userRepository.findById(userId)
+        Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorConfig.USER_NOT_FOUND));
 
-        if (!user.getEmail().equals(email)) {
+        if (!customer.getEmail().equals(email)) {
             throw new AppException(ErrorConfig.INVALID_DATA, "Email không chính xác");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        customer.setPasswordHash(passwordEncoder.encode(newPassword));
+        customerRepository.save(customer);
 
         AuthResponse response = new AuthResponse();
-        response.setId(user.getId());
+        response.setId(customer.getId());
+        response.setEmail(email);
 
         // đẩy vào queue
         Event<AuthResponse> event = new Event<>();
