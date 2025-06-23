@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Save, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 
 function SettingsPanel() {  // State cho các cài đặt hệ thống
