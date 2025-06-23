@@ -34,6 +34,8 @@ public class ErrorConfig {
     public static final int BUSINESS_RULE_VIOLATION = 1013;
     public static final int EMAIL_ALREADY_EXISTS = 1014;
     public static final int PHONE_ALREADY_EXISTS = 1015;
+    public static final int SETTINGS_NOT_FOUND = 1016;
+    public static final int SETTINGS_UPDATE_FAILED = 1017;
     
     // ==================== ERROR MESSAGES ====================
     public static final Map<Integer, String> ERROR_MESSAGES = new HashMap<>() {{
@@ -61,6 +63,8 @@ public class ErrorConfig {
         put(BUSINESS_RULE_VIOLATION, "Vi phạm quy tắc nghiệp vụ");
         put(EMAIL_ALREADY_EXISTS, "Email đã tồn tại");
         put(PHONE_ALREADY_EXISTS, "Số điện thoại đã tồn tại");
+        put(SETTINGS_NOT_FOUND, "Không tìm thấy cài đặt");
+        put(SETTINGS_UPDATE_FAILED, "Cập nhật cài đặt thất bại");
     }};
     
     /**
