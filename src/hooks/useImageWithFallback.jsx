@@ -1,110 +1,98 @@
 import { useState, useEffect } from 'react';
-import { getDemoImageUrl } from '~/utils/imageUtils';
 
 /**
- * Custom hook để xử lý việc load ảnh với fallback tự động
- * @param {string} imageUrl - URL của ảnh cần load
- * @param {string} fallbackUrl - URL fallback (mặc định là demo.jpg)
- * @returns {object} { src, isLoading, hasError }
+ * Hook để load ảnh với fallback xử lý
+ * @param {string} src - URL ảnh gốc
+ * @param {string} fallback - URL ảnh fallback
+ * @returns {Object} Object chứa src, isLoading, hasError, isUsingFallback
  */
-export function useImageWithFallback(imageUrl, fallbackUrl = null) {
-  const [src, setSrc] = useState(imageUrl);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+function useImageWithFallback(src, fallback) {
+  const [imageState, setImageState] = useState({
+    src: src || fallback,
+    isLoading: true,
+    hasError: false,
+    isUsingFallback: false
+  });
 
   useEffect(() => {
-    if (!imageUrl) {
-      setSrc(fallbackUrl || getDemoImageUrl());
-      setIsLoading(false);
+    if (!src && !fallback) {
+      setImageState(prev => ({
+        ...prev,
+        isLoading: false,
+        hasError: true,
+        isUsingFallback: false
+      }));
       return;
     }
 
-    setIsLoading(true);
-    setHasError(false);
-    setSrc(imageUrl);
+    // Reset state khi src thay đổi
+    setImageState(prev => ({
+      ...prev,
+      isLoading: true,
+      hasError: false,
+      isUsingFallback: false
+    }));
 
-    // Tạo một Image object để test xem ảnh có load được không
     const img = new Image();
     
-    img.onload = () => {
-      setIsLoading(false);
-      setHasError(false);
+    const handleLoad = () => {
+      setImageState({
+        src: src || fallback,
+        isLoading: false,
+        hasError: false,
+        isUsingFallback: !src
+      });
     };
     
-    img.onerror = () => {
-      setIsLoading(false);
-      setHasError(true);
-      // Nếu lỗi, chuyển sang demo.jpg
-      setSrc(fallbackUrl || getDemoImageUrl());
-    };
-    
-    img.src = imageUrl;
-
-    // Cleanup function
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [imageUrl, fallbackUrl]);
-
-  return { src, isLoading, hasError };
-}
-
-/**
- * Custom hook đặc biệt cho ImageProxy - tự động retry với demo.jpg nếu proxy fail
- * @param {string} originalUrl - URL gốc của ảnh
- * @returns {object} { src, isLoading, hasError, isUsingFallback }
- */
-export function useProxyImageWithFallback(originalUrl) {
-  const [src, setSrc] = useState(originalUrl);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
-
-  useEffect(() => {
-    if (!originalUrl) {
-      setSrc(getDemoImageUrl());
-      setIsUsingFallback(true);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setHasError(false);
-    setIsUsingFallback(false);
-    setSrc(originalUrl);
-
-    // Tạo một Image object để test xem ảnh có load được không
-    const img = new Image();
-    
-    img.onload = () => {
-      setIsLoading(false);
-      setHasError(false);
-    };
-    
-    img.onerror = () => {
-      setIsLoading(false);
-      setHasError(true);
-      setIsUsingFallback(true);
-      // Nếu ImageProxy lỗi, chuyển sang demo.jpg
-      setSrc(getDemoImageUrl());
-      
-      // Log để debug - chỉ log khi là external URL thật sự fail
-      if (originalUrl.includes('/api/v1/common/image-proxy/image')) {
-        console.warn(`ImageProxy failed to load image, using demo.jpg as fallback`);
+    const handleError = () => {
+      // Nếu src gốc lỗi và có fallback, thử fallback
+      if (src && fallback && imageState.src === src) {
+        // Thử load fallback
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          setImageState({
+            src: fallback,
+            isLoading: false,
+            hasError: false,
+            isUsingFallback: true
+          });
+        };
+        
+        fallbackImg.onerror = () => {
+          setImageState({
+            src: fallback, // Vẫn dùng fallback URL để tránh broken image
+            isLoading: false,
+            hasError: true,
+            isUsingFallback: true
+          });
+        };
+        
+        fallbackImg.src = fallback;
       } else {
-        console.warn(`Failed to load image: ${originalUrl}, using demo.jpg as fallback`);
+        // Không có fallback hoặc fallback cũng lỗi
+        setImageState(prev => ({
+          ...prev,
+          isLoading: false,
+          hasError: true,
+          isUsingFallback: !src
+        }));
       }
     };
     
-    img.src = originalUrl;
-
+    img.onload = handleLoad;
+    img.onerror = handleError;
+    
+    // Load ảnh gốc trước, nếu không có thì load fallback
+    img.src = src || fallback;
+    
     // Cleanup function
     return () => {
       img.onload = null;
       img.onerror = null;
     };
-  }, [originalUrl]);
+  }, [src, fallback]);
 
-  return { src, isLoading, hasError, isUsingFallback };
+  return imageState;
 }
+
+export default useImageWithFallback;

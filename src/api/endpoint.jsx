@@ -101,7 +101,7 @@ const commonUrl = {
         banner: `/home/banner`,
     },
     imageProxy: {
-        getImage: (encodedUrl) => `/image-proxy/image?url=${encodedUrl}`,
+        getImage: (encodedUrl) => `/common/image-proxy/image?url=${encodedUrl}`,
     }
 };
 

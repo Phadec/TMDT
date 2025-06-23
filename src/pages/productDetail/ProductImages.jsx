@@ -8,7 +8,7 @@ import { easing } from "maath"; // Các hàm hỗ trợ easing chuyển động
 import { Suspense } from "react"; // Để lazy load các component trong React
 import PropTypes from "prop-types";
 
-import { getImageFromAssets } from "~/utils/imageUtils"; // Hàm tiện ích để lấy ảnh từ thư mục assets
+import { getImageFromAssets, getProxiedImageUrl } from "~/utils/imageUtils"; // Hàm tiện ích để lấy ảnh từ thư mục assets
 
 // 📦 GLOBAL STATE
 // Khai báo một state toàn cục với valtio để theo dõi trạng thái như ảnh được chọn, các url ảnh, và vị trí cuộn
@@ -88,9 +88,7 @@ function ProductImages({imageUrls}) {
     () => {
       // Nếu có imageUrls được truyền vào, tạo proxy URLs
       if (imageUrls && imageUrls.length > 0) {
-        return imageUrls.map(url => 
-          `/api/v1/common/image-proxy/image?url=${encodeURIComponent(url)}`
-        );
+        return imageUrls.map(url => getProxiedImageUrl(url));
       }
       return [];
     },
