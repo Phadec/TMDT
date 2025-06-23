@@ -309,7 +309,7 @@ public class AuthService {
     }
 
     @Transactional
-    // quên mật khẩu của nhân viên
+    // quên mật khẩu của khach hang
     public AuthResponse forgotPassword(ChangePasswordRequest changePasswordRequest) {
         String userId = changePasswordRequest.getUserId();
         String newPassword = changePasswordRequest.getNewPassword();
@@ -378,7 +378,8 @@ public class AuthService {
         AuthResponse response = new AuthResponse();
         response.setId(customer.getId());
         response.setUserType("CUSTOMER");
-        response.setCreatedAt(LocalDateTime.now());
+        response.setEmail(customer.getEmail());
+        response.setPhone(customer.getPhone());
 
         return response;
     }

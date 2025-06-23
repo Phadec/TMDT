@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -18,7 +19,7 @@ public class Customer {
     String fullName;
     String phone;
     Status status;
-    String addresses;
+    List<String> addresses;
     boolean isSeller;
     
     LocalDateTime createdAt;

@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -21,7 +23,7 @@ public class ProfileResponse {
     String fullName;
     String phone;
     Customer.Status status;
-    String addresses;
+    List<String> addresses;
     boolean isSeller;
     LocalDateTime createdAt;
     LocalDateTime updateAt;

@@ -1,6 +1,8 @@
 package com.example.choviet.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.example.choviet.dto.PersonRequest;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.choviet.config.ErrorConfig;
@@ -25,17 +28,7 @@ import lombok.experimental.FieldDefaults;
 public class CustomerService {
     @Autowired
     CustomerRepository customerRepository;
-
-    @Autowired
-    JwtUtil jwtUtil;
-    @Autowired
-    RedisService redisService;
-
-    @Autowired
-    RabbitMQService eventPublisher;
-    @Autowired
-    PagingService pagingService;
-
+    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     /**
      * Lấy thông tin chi tiết của customer theo ID
@@ -110,12 +103,15 @@ public class CustomerService {
             String name = personRequest.getName().isEmpty() ? customerPresent.getFullName() : personRequest.getName();
             String email = personRequest.getEmail().isEmpty() ? customerPresent.getEmail() : personRequest.getEmail();
             String phone = personRequest.getPhone().isEmpty() ? customerPresent.getPhone() : personRequest.getPhone();
-            String address = personRequest.getAddress().isEmpty() ? customerPresent.getAddresses() : personRequest.getAddress();
+            String password = personRequest.getPassword().isEmpty() ? customerPresent.getPasswordHash() : personRequest.getPassword();
+            List<String> address = personRequest.getAddresses().isEmpty() ? customerPresent.getAddresses() : personRequest.getAddresses();
 
             customerPresent.setFullName(name);
             customerPresent.setEmail(email);
             customerPresent.setPhone(phone);
             customerPresent.setAddresses(address);
+            customerPresent.setPasswordHash(passwordEncoder.encode(password));
+
             System.out.println(customerPresent);
             customerRepository.save(customerPresent);
         }
