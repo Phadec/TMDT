@@ -1,6 +1,6 @@
 package com.example.choviet.config.api.suffix;
 
 public interface Category {
-    String CATEGORY = "/category";
+    String CATEGORY = "/categories";
     String GET_ALL = "/all";
 }
