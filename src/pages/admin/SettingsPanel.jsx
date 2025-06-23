@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
-import { Save, RefreshCw, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { Save, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 
-function SettingsPanel() {
-  // State cho các cài đặt hệ thống
+function SettingsPanel() {  // State cho các cài đặt hệ thống
   const [settings, setSettings] = useState({
-    general: {
+    chung: {
       siteName: "Chợ Rao Vặt Online",
       siteDescription: "Nền tảng mua bán, rao vặt trực tuyến hàng đầu Việt Nam",
       contactEmail: "support@example.com",
@@ -13,7 +12,7 @@ function SettingsPanel() {
       favicon: "/favicon.ico",
       maintenanceMode: false
     },
-    posts: {
+    baiviet: {
       requireApproval: true,
       maxImagesPerPost: 10,
       maxPostsPerUser: 20,
@@ -21,7 +20,7 @@ function SettingsPanel() {
       allowedCategories: ["Điện tử", "Thời trang", "Bất động sản", "Xe cộ", "Đồ gia dụng", "Việc làm", "Dịch vụ"],
       bannedKeywords: ["lừa đảo", "ma túy", "vũ khí", "cờ bạc"]
     },
-    users: {
+    nguoidung: {
       requireEmailVerification: true,
       requirePhoneVerification: true,
       allowUserRegistration: true,
@@ -29,7 +28,7 @@ function SettingsPanel() {
       autoDeleteInactiveUsers: false,
       inactiveUserDays: 365
     },
-    security: {
+    baomat: {
       recaptchaEnabled: true,
       recaptchaKey: "6LcXXXXXXXXXXXXXXXXXXXXX",
       maxLoginAttempts: 5,
@@ -39,14 +38,14 @@ function SettingsPanel() {
       passwordRequireNumber: true,
       passwordRequireUppercase: true
     },
-    payment: {
+    thanhtoan: {
       currency: "VND",
       paymentGateways: ["VNPay", "MoMo", "ZaloPay", "Banking"],
       featuredPostPrice: 50000,
       highlightedPostPrice: 30000,
       urgentPostPrice: 40000
     },
-    notifications: {
+    thongbao: {
       emailNotifications: true,
       pushNotifications: true,
       smsNotifications: false,
@@ -56,7 +55,7 @@ function SettingsPanel() {
 
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("chung");
 
   // Xử lý thay đổi cài đặt
   const handleChange = (section, field, value) => {
@@ -99,32 +98,48 @@ function SettingsPanel() {
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b border-gray-200">
             <h3 className="text-lg font-medium">Danh mục cài đặt</h3>
-          </div>
-          <div className="p-2">
+          </div>          <div className="p-2">
             <nav className="space-y-1">
-              {Object.keys(settings).map((section) => (
-                <button
-                  key={section}
-                  className={`w-full px-3 py-2 text-left rounded-lg ${
-                    activeTab === section
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setActiveTab(section)}
-                >
-                  <span className="capitalize">{section}</span>
-                </button>
-              ))}
+              {Object.keys(settings).map((section) => {
+                const sectionNames = {
+                  chung: "Cài đặt chung",
+                  baiviet: "Cài đặt bài viết",
+                  nguoidung: "Cài đặt người dùng",
+                  baomat: "Cài đặt bảo mật",
+                  thanhtoan: "Cài đặt thanh toán",
+                  thongbao: "Cài đặt thông báo"
+                };
+                
+                return (
+                  <button
+                    key={section}
+                    className={`w-full px-3 py-2 text-left rounded-lg ${
+                      activeTab === section
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setActiveTab(section)}
+                  >
+                    <span>{sectionNames[section]}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
       </div>
 
       {/* Nội dung cài đặt */}
-      <div className="lg:col-span-3">
-        <div className="p-6 bg-white rounded-lg shadow">
+      <div className="lg:col-span-3">        <div className="p-6 bg-white rounded-lg shadow">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold capitalize">{activeTab}</h2>
+            <h2 className="text-xl font-bold">
+              {activeTab === "chung" && "Cài đặt chung"}
+              {activeTab === "baiviet" && "Cài đặt bài viết"}
+              {activeTab === "nguoidung" && "Cài đặt người dùng"}
+              {activeTab === "baomat" && "Cài đặt bảo mật"}
+              {activeTab === "thanhtoan" && "Cài đặt thanh toán"}
+              {activeTab === "thongbao" && "Cài đặt thông báo"}
+            </h2>
             <div className="flex gap-2">
               <button
                 onClick={handleResetSettings}
@@ -156,18 +171,16 @@ function SettingsPanel() {
                 Cài đặt đã được lưu thành công!
               </p>
             </div>
-          )}
-
-          {/* Cài đặt chung */}
-          {activeTab === "general" && (
+          )}          {/* Cài đặt chung */}
+          {activeTab === "chung" && (
             <div className="space-y-4">
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Tên trang web</label>
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={settings.general.siteName}
-                  onChange={(e) => handleChange("general", "siteName", e.target.value)}
+                  value={settings.chung.siteName}
+                  onChange={(e) => handleChange("chung", "siteName", e.target.value)}
                 />
               </div>
               
@@ -175,8 +188,8 @@ function SettingsPanel() {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Mô tả trang web</label>
                 <textarea
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={settings.general.siteDescription}
-                  onChange={(e) => handleChange("general", "siteDescription", e.target.value)}
+                  value={settings.chung.siteDescription}
+                  onChange={(e) => handleChange("chung", "siteDescription", e.target.value)}
                 ></textarea>
               </div>
               
@@ -186,8 +199,8 @@ function SettingsPanel() {
                   <input
                     type="email"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.general.contactEmail}
-                    onChange={(e) => handleChange("general", "contactEmail", e.target.value)}
+                    value={settings.chung.contactEmail}
+                    onChange={(e) => handleChange("chung", "contactEmail", e.target.value)}
                   />
                 </div>
                 
@@ -196,8 +209,8 @@ function SettingsPanel() {
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.general.contactPhone}
-                    onChange={(e) => handleChange("general", "contactPhone", e.target.value)}
+                    value={settings.chung.contactPhone}
+                    onChange={(e) => handleChange("chung", "contactPhone", e.target.value)}
                   />
                 </div>
               </div>
@@ -209,8 +222,8 @@ function SettingsPanel() {
                     <input
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.general.logo}
-                      onChange={(e) => handleChange("general", "logo", e.target.value)}
+                      value={settings.chung.logo}
+                      onChange={(e) => handleChange("chung", "logo", e.target.value)}
                     />
                     <button className="px-3 py-2 text-white bg-indigo-600 rounded-lg">Tải lên</button>
                   </div>
@@ -222,8 +235,8 @@ function SettingsPanel() {
                     <input
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.general.favicon}
-                      onChange={(e) => handleChange("general", "favicon", e.target.value)}
+                      value={settings.chung.favicon}
+                      onChange={(e) => handleChange("chung", "favicon", e.target.value)}
                     />
                     <button className="px-3 py-2 text-white bg-indigo-600 rounded-lg">Tải lên</button>
                   </div>
@@ -235,12 +248,12 @@ function SettingsPanel() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.general.maintenanceMode}
-                    onChange={(e) => handleChange("general", "maintenanceMode", e.target.checked)}
+                    checked={settings.chung.maintenanceMode}
+                    onChange={(e) => handleChange("chung", "maintenanceMode", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Chế độ bảo trì</span>
                 </label>
-                {settings.general.maintenanceMode && (
+                {settings.chung.maintenanceMode && (
                   <div className="p-3 mt-2 text-yellow-700 bg-yellow-100 rounded-lg">
                     <div className="flex items-center">
                       <AlertTriangle size={18} className="mr-2" />
@@ -250,18 +263,16 @@ function SettingsPanel() {
                 )}
               </div>
             </div>
-          )}
-
-          {/* Cài đặt bài đăng */}
-          {activeTab === "posts" && (
+          )}          {/* Cài đặt bài đăng */}
+          {activeTab === "baiviet" && (
             <div className="space-y-4">
               <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.posts.requireApproval}
-                    onChange={(e) => handleChange("posts", "requireApproval", e.target.checked)}
+                    checked={settings.baiviet.requireApproval}
+                    onChange={(e) => handleChange("baiviet", "requireApproval", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Yêu cầu phê duyệt bài đăng</span>
                 </label>
@@ -273,8 +284,8 @@ function SettingsPanel() {
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.posts.maxImagesPerPost}
-                    onChange={(e) => handleChange("posts", "maxImagesPerPost", parseInt(e.target.value))}
+                    value={settings.baiviet.maxImagesPerPost}
+                    onChange={(e) => handleChange("baiviet", "maxImagesPerPost", parseInt(e.target.value))}
                   />
                 </div>
                 
@@ -283,8 +294,8 @@ function SettingsPanel() {
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.posts.maxPostsPerUser}
-                    onChange={(e) => handleChange("posts", "maxPostsPerUser", parseInt(e.target.value))}
+                    value={settings.baiviet.maxPostsPerUser}
+                    onChange={(e) => handleChange("baiviet", "maxPostsPerUser", parseInt(e.target.value))}
                   />
                 </div>
                 
@@ -293,8 +304,8 @@ function SettingsPanel() {
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.posts.postExpiryDays}
-                    onChange={(e) => handleChange("posts", "postExpiryDays", parseInt(e.target.value))}
+                    value={settings.baiviet.postExpiryDays}
+                    onChange={(e) => handleChange("baiviet", "postExpiryDays", parseInt(e.target.value))}
                   />
                 </div>
               </div>
@@ -303,15 +314,15 @@ function SettingsPanel() {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Danh mục cho phép</label>
                 <div className="p-3 border border-gray-300 rounded-lg">
                   <div className="flex flex-wrap gap-2">
-                    {settings.posts.allowedCategories.map((category, index) => (
+                    {settings.baiviet.allowedCategories.map((category, index) => (
                       <div key={index} className="flex items-center px-3 py-1 bg-gray-100 rounded-full">
                         <span>{category}</span>
                         <button
                           className="ml-2 text-gray-500 hover:text-red-500"
                           onClick={() => {
-                            const newCategories = [...settings.posts.allowedCategories];
+                            const newCategories = [...settings.baiviet.allowedCategories];
                             newCategories.splice(index, 1);
-                            handleChange("posts", "allowedCategories", newCategories);
+                            handleChange("baiviet", "allowedCategories", newCategories);
                           }}
                         >
                           &times;
@@ -326,8 +337,8 @@ function SettingsPanel() {
                       placeholder="Thêm danh mục mới"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && e.target.value.trim()) {
-                          handleChange("posts", "allowedCategories", [
-                            ...settings.posts.allowedCategories,
+                          handleChange("baiviet", "allowedCategories", [
+                            ...settings.baiviet.allowedCategories,
                             e.target.value.trim()
                           ]);
                           e.target.value = "";
@@ -339,8 +350,8 @@ function SettingsPanel() {
                       onClick={(e) => {
                         const input = e.target.previousSibling;
                         if (input.value.trim()) {
-                          handleChange("posts", "allowedCategories", [
-                            ...settings.posts.allowedCategories,
+                          handleChange("baiviet", "allowedCategories", [
+                            ...settings.baiviet.allowedCategories,
                             input.value.trim()
                           ]);
                           input.value = "";
@@ -357,15 +368,15 @@ function SettingsPanel() {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Từ khóa bị cấm</label>
                 <div className="p-3 border border-gray-300 rounded-lg">
                   <div className="flex flex-wrap gap-2">
-                    {settings.posts.bannedKeywords.map((keyword, index) => (
+                    {settings.baiviet.bannedKeywords.map((keyword, index) => (
                       <div key={index} className="flex items-center px-3 py-1 bg-gray-100 rounded-full">
                         <span>{keyword}</span>
                         <button
                           className="ml-2 text-gray-500 hover:text-red-500"
                           onClick={() => {
-                            const newKeywords = [...settings.posts.bannedKeywords];
+                            const newKeywords = [...settings.baiviet.bannedKeywords];
                             newKeywords.splice(index, 1);
-                            handleChange("posts", "bannedKeywords", newKeywords);
+                            handleChange("baiviet", "bannedKeywords", newKeywords);
                           }}
                         >
                           &times;
@@ -380,8 +391,8 @@ function SettingsPanel() {
                       placeholder="Thêm từ khóa cấm"
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && e.target.value.trim()) {
-                          handleChange("posts", "bannedKeywords", [
-                            ...settings.posts.bannedKeywords,
+                          handleChange("baiviet", "bannedKeywords", [
+                            ...settings.baiviet.bannedKeywords,
                             e.target.value.trim()
                           ]);
                           e.target.value = "";
@@ -393,8 +404,8 @@ function SettingsPanel() {
                       onClick={(e) => {
                         const input = e.target.previousSibling;
                         if (input.value.trim()) {
-                          handleChange("posts", "bannedKeywords", [
-                            ...settings.posts.bannedKeywords,
+                          handleChange("baiviet", "bannedKeywords", [
+                            ...settings.baiviet.bannedKeywords,
                             input.value.trim()
                           ]);
                           input.value = "";
@@ -407,10 +418,8 @@ function SettingsPanel() {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Cài đặt người dùng */}
-          {activeTab === "users" && (
+          )}          {/* Cài đặt người dùng */}
+          {activeTab === "nguoidung" && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
@@ -418,8 +427,8 @@ function SettingsPanel() {
                     <input
                       type="checkbox"
                       className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                      checked={settings.users.requireEmailVerification}
-                      onChange={(e) => handleChange("users", "requireEmailVerification", e.target.checked)}
+                      checked={settings.nguoidung.requireEmailVerification}
+                      onChange={(e) => handleChange("nguoidung", "requireEmailVerification", e.target.checked)}
                     />
                     <span className="ml-2 text-sm text-gray-700">Yêu cầu xác thực email</span>
                   </label>
@@ -430,8 +439,8 @@ function SettingsPanel() {
                     <input
                       type="checkbox"
                       className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                      checked={settings.users.requirePhoneVerification}
-                      onChange={(e) => handleChange("users", "requirePhoneVerification", e.target.checked)}
+                      checked={settings.nguoidung.requirePhoneVerification}
+                      onChange={(e) => handleChange("nguoidung", "requirePhoneVerification", e.target.checked)}
                     />
                     <span className="ml-2 text-sm text-gray-700">Yêu cầu xác thực số điện thoại</span>
                   </label>
@@ -443,8 +452,8 @@ function SettingsPanel() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.users.allowUserRegistration}
-                    onChange={(e) => handleChange("users", "allowUserRegistration", e.target.checked)}
+                    checked={settings.nguoidung.allowUserRegistration}
+                    onChange={(e) => handleChange("nguoidung", "allowUserRegistration", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Cho phép đăng ký tài khoản mới</span>
                 </label>
@@ -454,8 +463,8 @@ function SettingsPanel() {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Vai trò mặc định cho người dùng mới</label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={settings.users.defaultUserRole}
-                  onChange={(e) => handleChange("users", "defaultUserRole", e.target.value)}
+                  value={settings.nguoidung.defaultUserRole}
+                  onChange={(e) => handleChange("nguoidung", "defaultUserRole", e.target.value)}
                 >
                   <option value="user">Người dùng thường</option>
                   <option value="seller">Người bán</option>
@@ -468,50 +477,48 @@ function SettingsPanel() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.users.autoDeleteInactiveUsers}
-                    onChange={(e) => handleChange("users", "autoDeleteInactiveUsers", e.target.checked)}
+                    checked={settings.nguoidung.autoDeleteInactiveUsers}
+                    onChange={(e) => handleChange("nguoidung", "autoDeleteInactiveUsers", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Tự động xóa tài khoản không hoạt động</span>
                 </label>
               </div>
               
-              {settings.users.autoDeleteInactiveUsers && (
+              {settings.nguoidung.autoDeleteInactiveUsers && (
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">Thời gian không hoạt động (ngày)</label>
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.users.inactiveUserDays}
-                    onChange={(e) => handleChange("users", "inactiveUserDays", parseInt(e.target.value))}
+                    value={settings.nguoidung.inactiveUserDays}
+                    onChange={(e) => handleChange("nguoidung", "inactiveUserDays", parseInt(e.target.value))}
                   />
                 </div>
               )}
             </div>
-          )}
-
-          {/* Cài đặt bảo mật */}
-          {activeTab === "security" && (
+          )}          {/* Cài đặt bảo mật */}
+          {activeTab === "baomat" && (
             <div className="space-y-4">
               <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.security.recaptchaEnabled}
-                    onChange={(e) => handleChange("security", "recaptchaEnabled", e.target.checked)}
+                    checked={settings.baomat.recaptchaEnabled}
+                    onChange={(e) => handleChange("baomat", "recaptchaEnabled", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Bật Google reCAPTCHA</span>
                 </label>
               </div>
               
-              {settings.security.recaptchaEnabled && (
+              {settings.baomat.recaptchaEnabled && (
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">reCAPTCHA Site Key</label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.security.recaptchaKey}
-                    onChange={(e) => handleChange("security", "recaptchaKey", e.target.value)}
+                    value={settings.baomat.recaptchaKey}
+                    onChange={(e) => handleChange("baomat", "recaptchaKey", e.target.value)}
                   />
                 </div>
               )}
@@ -522,8 +529,8 @@ function SettingsPanel() {
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.security.maxLoginAttempts}
-                    onChange={(e) => handleChange("security", "maxLoginAttempts", parseInt(e.target.value))}
+                    value={settings.baomat.maxLoginAttempts}
+                    onChange={(e) => handleChange("baomat", "maxLoginAttempts", parseInt(e.target.value))}
                   />
                 </div>
                 
@@ -532,8 +539,8 @@ function SettingsPanel() {
                   <input
                     type="number"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={settings.security.lockoutTime}
-                    onChange={(e) => handleChange("security", "lockoutTime", parseInt(e.target.value))}
+                    value={settings.baomat.lockoutTime}
+                    onChange={(e) => handleChange("baomat", "lockoutTime", parseInt(e.target.value))}
                   />
                 </div>
               </div>
@@ -546,8 +553,8 @@ function SettingsPanel() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.security.passwordMinLength}
-                      onChange={(e) => handleChange("security", "passwordMinLength", parseInt(e.target.value))}
+                      value={settings.baomat.passwordMinLength}
+                      onChange={(e) => handleChange("baomat", "passwordMinLength", parseInt(e.target.value))}
                     />
                   </div>
                   
@@ -556,8 +563,8 @@ function SettingsPanel() {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        checked={settings.security.passwordRequireSpecialChar}
-                        onChange={(e) => handleChange("security", "passwordRequireSpecialChar", e.target.checked)}
+                        checked={settings.baomat.passwordRequireSpecialChar}
+                        onChange={(e) => handleChange("baomat", "passwordRequireSpecialChar", e.target.checked)}
                       />
                       <span className="ml-2 text-sm text-gray-700">Yêu cầu ký tự đặc biệt</span>
                     </label>
@@ -568,8 +575,8 @@ function SettingsPanel() {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        checked={settings.security.passwordRequireNumber}
-                        onChange={(e) => handleChange("security", "passwordRequireNumber", e.target.checked)}
+                        checked={settings.baomat.passwordRequireNumber}
+                        onChange={(e) => handleChange("baomat", "passwordRequireNumber", e.target.checked)}
                       />
                       <span className="ml-2 text-sm text-gray-700">Yêu cầu số</span>
                     </label>
@@ -580,8 +587,8 @@ function SettingsPanel() {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        checked={settings.security.passwordRequireUppercase}
-                        onChange={(e) => handleChange("security", "passwordRequireUppercase", e.target.checked)}
+                        checked={settings.baomat.passwordRequireUppercase}
+                        onChange={(e) => handleChange("baomat", "passwordRequireUppercase", e.target.checked)}
                       />
                       <span className="ml-2 text-sm text-gray-700">Yêu cầu chữ hoa</span>
                     </label>
@@ -589,17 +596,15 @@ function SettingsPanel() {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Cài đặt thanh toán */}
-          {activeTab === "payment" && (
+          )}          {/* Cài đặt thanh toán */}
+          {activeTab === "thanhtoan" && (
             <div className="space-y-4">
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Đơn vị tiền tệ</label>
                 <select
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={settings.payment.currency}
-                  onChange={(e) => handleChange("payment", "currency", e.target.value)}
+                  value={settings.thanhtoan.currency}
+                  onChange={(e) => handleChange("thanhtoan", "currency", e.target.value)}
                 >
                   <option value="VND">VND - Việt Nam Đồng</option>
                   <option value="USD">USD - US Dollar</option>
@@ -614,15 +619,15 @@ function SettingsPanel() {
                       <input
                         type="checkbox"
                         className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        checked={settings.payment.paymentGateways.includes(gateway)}
+                        checked={settings.thanhtoan.paymentGateways.includes(gateway)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            handleChange("payment", "paymentGateways", [...settings.payment.paymentGateways, gateway]);
+                            handleChange("thanhtoan", "paymentGateways", [...settings.thanhtoan.paymentGateways, gateway]);
                           } else {
                             handleChange(
-                              "payment",
+                              "thanhtoan",
                               "paymentGateways",
-                              settings.payment.paymentGateways.filter(g => g !== gateway)
+                              settings.thanhtoan.paymentGateways.filter(g => g !== gateway)
                             );
                           }
                         }}
@@ -641,8 +646,8 @@ function SettingsPanel() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.payment.featuredPostPrice}
-                      onChange={(e) => handleChange("payment", "featuredPostPrice", parseInt(e.target.value))}
+                      value={settings.thanhtoan.featuredPostPrice}
+                      onChange={(e) => handleChange("thanhtoan", "featuredPostPrice", parseInt(e.target.value))}
                     />
                   </div>
                   
@@ -651,8 +656,8 @@ function SettingsPanel() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.payment.highlightedPostPrice}
-                      onChange={(e) => handleChange("payment", "highlightedPostPrice", parseInt(e.target.value))}
+                      value={settings.thanhtoan.highlightedPostPrice}
+                      onChange={(e) => handleChange("thanhtoan", "highlightedPostPrice", parseInt(e.target.value))}
                     />
                   </div>
                   
@@ -661,25 +666,23 @@ function SettingsPanel() {
                     <input
                       type="number"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      value={settings.payment.urgentPostPrice}
-                      onChange={(e) => handleChange("payment", "urgentPostPrice", parseInt(e.target.value))}
+                      value={settings.thanhtoan.urgentPostPrice}
+                      onChange={(e) => handleChange("thanhtoan", "urgentPostPrice", parseInt(e.target.value))}
                     />
                   </div>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Cài đặt thông báo */}
-          {activeTab === "notifications" && (
+          )}          {/* Cài đặt thông báo */}
+          {activeTab === "thongbao" && (
             <div className="space-y-4">
               <div>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.notifications.emailNotifications}
-                    onChange={(e) => handleChange("notifications", "emailNotifications", e.target.checked)}
+                    checked={settings.thongbao.emailNotifications}
+                    onChange={(e) => handleChange("thongbao", "emailNotifications", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Gửi thông báo qua email</span>
                 </label>
@@ -690,8 +693,8 @@ function SettingsPanel() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.notifications.pushNotifications}
-                    onChange={(e) => handleChange("notifications", "pushNotifications", e.target.checked)}
+                    checked={settings.thongbao.pushNotifications}
+                    onChange={(e) => handleChange("thongbao", "pushNotifications", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Gửi thông báo đẩy</span>
                 </label>
@@ -702,8 +705,8 @@ function SettingsPanel() {
                   <input
                     type="checkbox"
                     className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    checked={settings.notifications.smsNotifications}
-                    onChange={(e) => handleChange("notifications", "smsNotifications", e.target.checked)}
+                    checked={settings.thongbao.smsNotifications}
+                    onChange={(e) => handleChange("thongbao", "smsNotifications", e.target.checked)}
                   />
                   <span className="ml-2 text-sm text-gray-700">Gửi thông báo qua SMS</span>
                 </label>
@@ -714,8 +717,8 @@ function SettingsPanel() {
                 <input
                   type="email"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={settings.notifications.adminEmailForReports}
-                  onChange={(e) => handleChange("notifications", "adminEmailForReports", e.target.value)}
+                  value={settings.thongbao.adminEmailForReports}
+                  onChange={(e) => handleChange("thongbao", "adminEmailForReports", e.target.value)}
                 />
               </div>
             </div>

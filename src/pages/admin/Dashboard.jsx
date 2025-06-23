@@ -2,7 +2,6 @@ import {
   BarChart3, 
   Users, 
   FileText, 
-  Bell, 
   Settings, 
   DollarSign, 
   Tag, 
@@ -11,7 +10,7 @@ import {
 import Overview from "./Overview";
 import PostsManagement from "./PostsManagement";
 import UsersManagement from "./UsersManagement";
-import NotificationsManagement from "./NotificationsManagement";
+
 import SettingsPanel from "./SettingsPanel";
 import FinancialAnalytics from "./FinancialAnalytics";
 import CategoriesManagement from "./CategoriesManagement";
@@ -23,7 +22,6 @@ function Dashboard({ activeTab }) {
     overview: <Overview />,
     posts: <PostsManagement />,
     users: <UsersManagement />,
-    notifications: <NotificationsManagement />,
     settings: <SettingsPanel />,
     financial: <FinancialAnalytics />,
     categories: <CategoriesManagement />,
@@ -37,7 +35,6 @@ function Dashboard({ activeTab }) {
           {activeTab === "overview" && "Tổng quan hệ thống"}
           {activeTab === "posts" && "Quản lý bài đăng"}
           {activeTab === "users" && "Quản lý người dùng"}
-          {activeTab === "notifications" && "Quản lý thông báo"}
           {activeTab === "settings" && "Cài đặt hệ thống"}
           {activeTab === "financial" && "Phân tích tài chính"}
           {activeTab === "categories" && "Quản lý danh mục"}
@@ -47,7 +44,6 @@ function Dashboard({ activeTab }) {
           {activeTab === "overview" && "Xem tổng quan về hoạt động của hệ thống"}
           {activeTab === "posts" && "Kiểm duyệt và quản lý các bài đăng rao vặt"}
           {activeTab === "users" && "Quản lý tài khoản người dùng và phân quyền"}
-          {activeTab === "notifications" && "Quản lý thông báo hệ thống"}
           {activeTab === "settings" && "Thiết lập cấu hình hệ thống"}
           {activeTab === "financial" && "Phân tích doanh thu và tài chính"}
           {activeTab === "categories" && "Quản lý danh mục sản phẩm và dịch vụ"}
@@ -66,7 +62,6 @@ Dashboard.tabs = [
   { id: "overview", label: "Tổng quan", icon: <BarChart3 size={18} className="mr-2" /> },
   { id: "posts", label: "Quản lý bài đăng", icon: <FileText size={18} className="mr-2" /> },
   { id: "users", label: "Quản lý người dùng", icon: <Users size={18} className="mr-2" /> },
-  { id: "notifications", label: "Quản lý thông báo", icon: <Bell size={18} className="mr-2" /> },
   { id: "financial", label: "Phân tích tài chính", icon: <DollarSign size={18} className="mr-2" /> },
   { id: "categories", label: "Quản lý danh mục", icon: <Tag size={18} className="mr-2" /> },
   { id: "reports", label: "Báo cáo vi phạm", icon: <AlertTriangle size={18} className="mr-2" /> },

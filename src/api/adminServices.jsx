@@ -387,6 +387,27 @@ const adminServices = {
   },
 
   /**
+   * Image Proxy APIs
+   */
+  imageProxy: {
+    /**
+     * Lấy ảnh thông qua proxy
+     */
+    getImage: async (imageUrl) => {
+      try {
+        const encodedUrl = encodeURIComponent(imageUrl);
+        const response = await commonApi.get(`/image-proxy/image?url=${encodedUrl}`, {
+          responseType: 'blob'
+        });
+        return response;
+      } catch (error) {
+        console.error('Get image via proxy error:', error);
+        throw error;
+      }
+    }
+  },
+
+  /**
    * Categories Management APIs
    */
   categories: {

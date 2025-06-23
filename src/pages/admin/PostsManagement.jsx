@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Search, Filter, Eye, Edit, Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { adminServices } from "~/api";
+import { getProxyImageUrl, handleImageError, preloadImages } from "~/utils/imageProxy";
+import ProductImageGallery from "~/components/admin/ProductImageGallery";
+import ProductThumbnail from "~/components/admin/ProductThumbnail";
 
 function PostsManagement() {
   // State cho danh sách bài đăng
@@ -27,27 +30,49 @@ function PostsManagement() {
       setLoading(true);
       const response = await adminServices.products.getAll(pagination.currentPage, pagination.size);
       
-      if (response && response.content) {        // Transform product data to post format
-        const transformedPosts = response.content.map(product => ({
-          id: product.id,
-          title: product.name || `Sản phẩm ${product.id}`,
-          category: product.productCategory?.name || product.category || "Chưa phân loại",
-          price: product.price || 0,
-          author: product.customer?.fullName || product.seller || `Người dùng ${product.sellerId || 'N/A'}`,
-          status: product.status || "pending",
-          createdAt: product.createdAt || new Date().toISOString(),
-          views: product.views || 0,
-          reported: product.reported || false,
-          description: product.description || "Không có mô tả",
-          images: product.images || [product.imageReview] || ["https://via.placeholder.com/150"],
-          location: product.location || "Không rõ",
-          contact: {
-            phone: product.customer?.phone || product.phone || "Chưa có thông tin",
-            email: product.customer?.email || product.email || "Chưa có thông tin"
-          },
-          sellerId: product.customer?.id || product.sellerId,
-          sellerName: product.customer?.fullName || "Người bán ẩn danh"
-        }));
+      if (response && response.content) {
+        console.log('Raw product data:', response.content[0]); // Debug log
+        
+        // Transform product data to post format
+        const transformedPosts = response.content.map(product => {
+          // Xử lý ảnh: ưu tiên images array, sau đó imageReview, cuối cùng là placeholder
+          let productImages = [];
+          
+          if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+            // Lọc bỏ các ảnh null hoặc empty
+            productImages = product.images.filter(img => img && img.trim() !== '');
+          } else if (product.imageReview && product.imageReview.trim() !== '') {
+            productImages = [product.imageReview];
+          }
+          
+          // Nếu không có ảnh nào, sử dụng placeholder
+          if (productImages.length === 0) {
+            productImages = ["https://via.placeholder.com/400x300?text=Không+có+ảnh"];
+          }
+
+          return {
+            id: product.id,
+            title: product.name || `Sản phẩm ${product.id}`,
+            category: product.productCategory?.name || product.category || "Chưa phân loại",
+            price: product.price || 0,
+            author: product.customer?.fullName || product.seller || `Người dùng ${product.sellerId || 'N/A'}`,
+            status: product.status?.toLowerCase() || "pending",
+            createdAt: product.createdAt || new Date().toISOString(),
+            views: product.views || 0,
+            reported: product.reported || false,
+            description: product.description || product.shortDes || "Không có mô tả",
+            images: productImages,
+            location: product.address || "Không rõ",
+            contact: {
+              phone: product.customer?.phone || product.phone || "Chưa có thông tin",
+              email: product.customer?.email || product.email || "Chưa có thông tin"
+            },
+            sellerId: product.customer?.id || product.sellerId,
+            sellerName: product.customer?.fullName || "Người bán ẩn danh",
+            // Thêm thông tin gốc để debug
+            originalProduct: product
+          };
+        });
         
         setPosts(transformedPosts);
         setPagination(prev => ({
@@ -55,6 +80,10 @@ function PostsManagement() {
           totalPages: response.totalPages,
           totalElements: response.totalElements
         }));
+
+        // Preload ảnh để cải thiện performance
+        const allImages = transformedPosts.flatMap(post => post.images || []);
+        preloadImages(allImages);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -253,9 +282,11 @@ function PostsManagement() {
                 <tr key={post.id} className={post.reported ? "bg-red-50" : ""}>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 w-10 h-10">
-                        <img className="object-cover w-10 h-10 rounded" src={post.images[0]} alt="" />
-                      </div>
+                      <ProductThumbnail 
+                        src={post.images[0]} 
+                        alt={post.title}
+                        size="md"
+                      />
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{post.title}</div>
                         <div className="text-sm text-gray-500">{post.views} lượt xem</div>
@@ -352,23 +383,10 @@ function PostsManagement() {
             
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
-                <div className="mb-4">
-                  <img 
-                    src={selectedPost.images[0]} 
-                    alt={selectedPost.title} 
-                    className="object-cover w-full h-64 rounded-lg"
-                  />
-                </div>
-                <div className="flex gap-2 mb-4 overflow-x-auto">
-                  {selectedPost.images.map((img, index) => (
-                    <img 
-                      key={index} 
-                      src={img} 
-                      alt={`${selectedPost.title} ${index}`} 
-                      className="object-cover w-16 h-16 rounded"
-                    />
-                  ))}
-                </div>
+                <ProductImageGallery 
+                  images={selectedPost.images}
+                  productTitle={selectedPost.title}
+                />
               </div>
               
               <div>
