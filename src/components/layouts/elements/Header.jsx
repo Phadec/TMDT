@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   HomeIcon,
   ShoppingBagIcon,
@@ -10,6 +10,7 @@ import {
   ShoppingCartIcon,
   ChartBarIcon
 } from "@heroicons/react/24/solid";
+import Swal from "sweetalert2";
 
 import { PUBLIC_URL, PRIVATE_URL } from "~/path";
 import { useAuth } from "~/hooks/useAuth";
@@ -65,11 +66,40 @@ const privateNavItems = [
 
 function Header() {
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, user } = useAuth();
   const { cartItemCount } = useCart();
+  const isSeller = user?.isSeller || user?.seller || false;
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleDashboardClick = (e) => {
+    e.preventDefault();
+    
+    if (!isSeller) {
+      Swal.fire({
+        title: "Chưa phải người bán",
+        text: "Bạn cần đăng ký làm người bán để truy cập dashboard bán hàng",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Đi đến trang cá nhân",
+        cancelButtonText: "Đóng",
+        customClass: {
+          confirmButton: "px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700",
+          cancelButton: "px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate(PRIVATE_URL.CUSTOMER);
+        }
+      });
+    } else {
+      navigate(PRIVATE_URL.DASHBOARD);
+    }
   };
 
   return (
@@ -119,30 +149,48 @@ function Header() {
           {isAuthenticated && privateNavItems.map((item, index) => {
             const isActive = location.pathname === item.url;
             const isCartIcon = item.url === PRIVATE_URL.CART;
+            const isDashboardIcon = item.url === PRIVATE_URL.DASHBOARD;
             
             return (
               <li key={`private-${index}`} className="relative group">
-                <Link
-                  to={item.url}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 relative
-                    ${
-                      isActive
-                        ? "bg-white text-primary shadow-md scale-110"
-                        : "bg-white/80 text-gray-700 hover:bg-white hover:text-blue-600"
-                    }`}
-                >
-                  <item.icon className="w-6 h-6" />
-                  {/* Badge số lượng cho icon giỏ hàng */}
-                  {isCartIcon && cartItemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold shadow-md">
-                      {cartItemCount > 99 ? '99+' : cartItemCount}
-                    </span>
-                  )}
-                </Link>
+                {isDashboardIcon ? (
+                  <button
+                    onClick={handleDashboardClick}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 relative
+                      ${
+                        isActive && isSeller
+                          ? "bg-white text-primary shadow-md scale-110"
+                          : !isSeller
+                          ? "bg-white/60 text-gray-500 hover:bg-white/80 hover:text-gray-600"
+                          : "bg-white/80 text-gray-700 hover:bg-white hover:text-blue-600"
+                      }`}
+                  >
+                    <item.icon className={`w-6 h-6 ${isSeller ? "text-secondary-light" : "text-gray-500"}`} />
+                  </button>
+                ) : (
+                  <Link
+                    to={item.url}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 relative
+                      ${
+                        isActive
+                          ? "bg-white text-primary shadow-md scale-110"
+                          : "bg-white/80 text-gray-700 hover:bg-white hover:text-blue-600"
+                      }`}
+                  >
+                    <item.icon className="w-6 h-6" />
+                    {/* Badge số lượng cho icon giỏ hàng */}
+                    {isCartIcon && cartItemCount > 0 && (
+                      <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full shadow-md -top-1 -right-1">
+                        {cartItemCount > 99 ? '99+' : cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 <span
                   className="absolute hidden sm:left-full sm:top-1/2 sm:-translate-y-1/2 sm:ml-2 sm:whitespace-nowrap sm:bg-gray-900 sm:text-white sm:text-xs sm:px-2 sm:py-1 sm:rounded sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200 sm:shadow-md sm:inline"
                 >
                   {item.label}
+                  {isDashboardIcon && !isSeller && " (Chưa đăng ký)"}
                   {isCartIcon && cartItemCount > 0 && ` (${cartItemCount})`}
                 </span>
               </li>
@@ -165,6 +213,7 @@ function Header() {
               </span>
             </li>
           )}
+      
         </ul>
       </nav>
     </header>

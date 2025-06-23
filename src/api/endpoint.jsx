@@ -16,6 +16,14 @@ const clientUrl = {
     profile: {
         view: `${PROFILE}/view`,
     },
+    seller: {
+        dashboard: {
+            overview: `/seller/dashboard/overview`,
+            activities: `/seller/activities`,
+        },
+        products: `/seller/products`,
+        orders: `/seller/orders`,
+    },
     order: {
         create: `${ORDER}`,
         getAll: `${ORDER}`,
@@ -78,6 +86,10 @@ const commonUrl = {
         detail: (id) => `${PRODUCT}/${id}`,
         similar: (id) => `${PRODUCT}/${id}/similar`,
         reviews: (id) => `${PRODUCT}/${id}/reviews`,
+        upload: `${PRODUCT}/upload`,
+    },
+    category: {
+        getAll: `${CATEGORY}/all`,
     },
     order: {
         create: `${ORDER}`,

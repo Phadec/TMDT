@@ -5,8 +5,8 @@
 
 class FPTEkycService {
   constructor() {
-    this.apiUrl = 'https://api.fpt.ai/dmp/checkface/v1';
-    this.apiKey = 'BBNqSMt3Qs9v33RGS7UAXVKN53qaxHUp';
+    this.apiUrl =  import.meta.env.VITE_FPT_FEATURE_FACE_URL ?? 'https://api.fpt.ai/dmp/checkface/v1';
+    this.apiKey =  import.meta.env.VITE_FPT_FEATURE_FACE_KEY ?? 'BBNqSMt3Qs9v33RGS7UAXVKN53qaxHUp';
   }
 
   /**

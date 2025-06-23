@@ -106,3 +106,47 @@
 .swal-container .swal2-html-container {
   text-align: center !important;
 }
+
+/* Tagify Custom Styles */
+.tagify {
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  padding: 0.5rem 0.75rem !important;
+  min-height: 2.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+.tagify:focus-within {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2) !important;
+}
+
+.tagify__tag:hover {
+  background: #4338ca !important;
+}
+
+.tagify__tag__removeBtn {
+  color: white !important;
+  margin-left: 0.25rem !important;
+}
+
+.tagify__tag__removeBtn:hover {
+  color: #fecaca !important;
+}
+
+.tagify__input {
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+}
+
+.tagify--invalid {
+  border-color: #ef4444 !important;
+}
+
+.tagify__tag--invalid {
+  background: #ef4444 !important;
+}
+
+.tagify__tag--invalid:hover {
+  background: #dc2626 !important;
+}

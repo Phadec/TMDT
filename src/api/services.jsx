@@ -359,6 +359,84 @@ const apiServices = {
         return `Có lỗi xảy ra trong quá trình ${operation}.`;
       }
     }
+  },
+
+  /**
+   * API liên quan đến seller dashboard
+   */
+  seller: {
+    /**
+     * Lấy thống kê tổng quan cho seller dashboard
+     * @param {string} sellerId - ID của seller
+     * @returns {Promise} - Promise chứa thống kê tổng quan
+     */
+    getDashboardOverview: async (sellerId) => {
+      try {
+        const response = await clientApi.get(clientUrl.seller.dashboard.overview, {
+          params: { sellerId }
+        });
+        return response;
+      } catch (error) {
+        console.error('Error fetching seller dashboard overview:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách sản phẩm của seller
+     * @param {string} sellerId - ID của seller
+     * @param {number} page - Số trang
+     * @param {number} size - Số lượng sản phẩm mỗi trang
+     * @returns {Promise} - Promise chứa danh sách sản phẩm
+     */
+    getProducts: async (sellerId, page = 0, size = 10) => {
+      try {
+        const response = await clientApi.get(clientUrl.seller.products, {
+          params: { sellerId, page, size }
+        });
+        return response;
+      } catch (error) {
+        console.error('Error fetching seller products:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách đơn hàng của seller
+     * @param {string} sellerId - ID của seller
+     * @param {number} page - Số trang
+     * @param {number} size - Số lượng đơn hàng mỗi trang
+     * @returns {Promise} - Promise chứa danh sách đơn hàng
+     */
+    getOrders: async (sellerId, page = 0, size = 10) => {
+      try {
+        const response = await clientApi.get(clientUrl.seller.orders, {
+          params: { sellerId, page, size }
+        });
+        return response;
+      } catch (error) {
+        console.error('Error fetching seller orders:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy hoạt động gần đây của seller
+     * @param {string} sellerId - ID của seller
+     * @param {number} limit - Số lượng hoạt động
+     * @returns {Promise} - Promise chứa danh sách hoạt động
+     */
+    getActivities: async (sellerId, limit = 10) => {
+      try {
+        const response = await clientApi.get(clientUrl.seller.dashboard.activities, {
+          params: { sellerId, limit }
+        });
+        return response;
+      } catch (error) {
+        console.error('Error fetching seller activities:', error);
+        throw error;
+      }
+    }
   }
 };
 
