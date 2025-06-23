@@ -9,7 +9,6 @@ import App from "~/App.jsx";
 import { CartProvider } from "~/contexts/CartContext";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
     <Provider store={store}>
       <Router>
         <CartProvider>
@@ -17,5 +16,4 @@ createRoot(document.getElementById("root")).render(
         </CartProvider>
       </Router>
     </Provider>
-  </StrictMode>
 );
