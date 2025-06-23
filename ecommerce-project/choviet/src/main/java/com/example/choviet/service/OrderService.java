@@ -163,4 +163,8 @@ public class OrderService {
         Optional<Order> optionalOrder = orderRepository.findById(request.getId());
         return optionalOrder.orElse(null);
     }
+
+    public Order getOrderById(String id) {
+        return orderRepository.findById(id).orElseThrow(null);
+    }
 }
