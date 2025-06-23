@@ -678,6 +678,40 @@ function Checkout() {
     return true;
   };
 
+  // Hàm lấy địa chỉ được chọn (đảm bảo là string)
+  const getSelectedAddress = () => {
+    let selectedAddress = checkoutData.address;
+    console.log('DEBUG - checkoutData.address:', checkoutData.address);
+    console.log('DEBUG - selectedAddressIndex:', selectedAddressIndex);
+    console.log('DEBUG - userAddresses:', userAddresses);
+    
+    if (Array.isArray(checkoutData.address)) {
+      // Nếu là array, lấy địa chỉ được chọn hoặc địa chỉ đầu tiên
+      selectedAddress = selectedAddressIndex >= 0 && selectedAddressIndex < checkoutData.address.length 
+        ? checkoutData.address[selectedAddressIndex] 
+        : checkoutData.address[0];
+    } else if (selectedAddressIndex >= 0 && userAddresses.length > 0) {
+      // Nếu có địa chỉ được chọn từ dropdown
+      selectedAddress = userAddresses[selectedAddressIndex];
+    }
+    
+    console.log('DEBUG - Final selectedAddress:', selectedAddress);
+    console.log('DEBUG - selectedAddress type:', typeof selectedAddress);
+    
+    // Đảm bảo selectedAddress là string
+    if (typeof selectedAddress !== 'string') {
+      console.error('ERROR - selectedAddress is not a string:', selectedAddress);
+      throw new Error('Địa chỉ giao hàng không hợp lệ');
+    }
+    
+    if (!selectedAddress || selectedAddress.trim() === '') {
+      console.error('ERROR - selectedAddress is empty');
+      throw new Error('Vui lòng chọn địa chỉ giao hàng');
+    }
+    
+    return selectedAddress;
+  };
+
   // Hàm xóa chỉ những sản phẩm đã đặt hàng khỏi giỏ hàng
   const removeOrderedItemsFromCart = async (orderedItems) => {
     return await removeOrderedItemsUtil(orderedItems, removeFromCartOnly, fetchCartItemCount, 'đặt hàng');
@@ -693,6 +727,9 @@ function Checkout() {
     try {
       setSubmitting(true);
       
+      // Lấy địa chỉ được chọn
+      const selectedAddress = getSelectedAddress();
+      
       // Tạo đơn hàng
       const orderData = {
         items: cartItems,
@@ -700,7 +737,7 @@ function Checkout() {
           fullName: checkoutData.fullName,
           email: checkoutData.email,
           phone: checkoutData.phone,
-          address: checkoutData.address,
+          address: selectedAddress, // Sử dụng địa chỉ được chọn
           provinceId: checkoutData.provinceId,
           provinceName: checkoutData.provinceName,
           districtId: checkoutData.districtId,
@@ -766,7 +803,7 @@ function Checkout() {
           },
           address: {
             from_address: sellerInfo.address || "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM", // Địa chỉ người bán (từ API)
-            to_address: checkoutData.address // Địa chỉ người mua (đã có đầy đủ thông tin)
+            to_address: selectedAddress // Địa chỉ người mua được chọn (đảm bảo là string)
           },
           payment: {
             transaction: "COD",
