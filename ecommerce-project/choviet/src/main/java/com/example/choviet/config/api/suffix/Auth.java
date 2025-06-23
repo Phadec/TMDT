@@ -8,4 +8,6 @@ public interface Auth {
     String LOGOUT = "/logout";
     String CHANGE_PASS = "/change";
     String FORGOT_PASS = "/forgot";
+
+    String CONTAIN_EMAIL = "/contain-email";
 }

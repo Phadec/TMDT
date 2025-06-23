@@ -50,4 +50,10 @@ public class AuthClientController {
         AuthResponse response =  authService.forgotPassword(changePasswordRequest);
         return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
     }
+
+    @GetMapping(CONTAIN_EMAIL)
+    public ResponseEntity<ApiResponse<AuthResponse>> containEmail(@RequestParam String email){
+        AuthResponse response = authService.isExistEmail(email);
+        return ResponseEntity.ok(new ApiResponse<>( OK, "success", response));
+    }
 }

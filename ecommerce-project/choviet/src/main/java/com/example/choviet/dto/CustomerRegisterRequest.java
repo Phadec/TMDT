@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -13,6 +14,6 @@ public class CustomerRegisterRequest {
     String password;
     String fullName;
     String phone;
-    String addresses;
+    List<String> addresses;
     boolean isSeller;
 }

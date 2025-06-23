@@ -27,6 +27,15 @@ public class CartService {
 
         if(redisService.isKeyExists(cartId)){
             List<Map<String, String>> products = (List<Map<String, String>>) redisService.get(cartId);
+
+            Iterator<Map<String, String>> iterator = products.iterator();
+            while (iterator.hasNext()) {
+                Map<String, String> p = iterator.next();
+                if (p.containsValue(cart.getProduct().get(0).get("productId"))) {
+                    return;
+                }
+            }
+
             products.addAll(cart.getProduct());
             redisService.set(cartId, products, 30L, TimeUnit.DAYS);
             return;

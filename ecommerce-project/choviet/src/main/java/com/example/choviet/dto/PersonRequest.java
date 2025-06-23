@@ -4,6 +4,9 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PersonRequest {
@@ -11,5 +14,6 @@ public class PersonRequest {
     String name;
     String email;
     String phone;
-    String address;
+    List<String> addresses;
+    String password;
 }
