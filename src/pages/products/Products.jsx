@@ -165,7 +165,7 @@ export default function Products() {
         cancelButtonText: 'Hủy'
       }).then((result) => {
         if (result.isConfirmed) {
-          navigate('/auth/login');
+          navigate('/login');
         }
       });
       return;
