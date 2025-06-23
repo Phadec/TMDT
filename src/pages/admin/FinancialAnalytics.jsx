@@ -1,6 +1,24 @@
 import { useState, useEffect } from "react";
 import { Calendar, DollarSign, TrendingUp, TrendingDown, CreditCard, Download, Filter } from "lucide-react";
 import { adminServices } from "~/api";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ComposedChart
+} from 'recharts';
 
 function FinancialAnalytics() {
   // State cho dữ liệu tài chính
@@ -178,8 +196,103 @@ function FinancialAnalytics() {
     revenueByMonth: {}
   });
 
+  // Xử lý dữ liệu cho biểu đồ doanh thu theo tháng
+  const getRevenueChartData = () => {
+    if (!financialData.revenueByMonth) return [];
+    
+    const monthNames = [
+      'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+      'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    ];
+    
+    return monthNames.map((month, index) => {
+      const monthKey = String(index + 1).padStart(2, '0');
+      return {
+        month: month,
+        revenue: financialData.revenueByMonth[monthKey] || 0,
+        formattedRevenue: formatCurrency(financialData.revenueByMonth[monthKey] || 0)
+      };
+    });
+  };
+
+  // Xử lý dữ liệu cho biểu đồ phân loại doanh thu
+  const getCategoryChartData = () => {
+    if (!financialData.revenueByCategory) return [];
+    
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00'];
+    
+    return Object.entries(financialData.revenueByCategory).map(([category, value], index) => ({
+      name: getCategoryDisplayName(category),
+      value: value,
+      formattedValue: formatCurrency(value),
+      color: colors[index % colors.length]
+    }));
+  };
+
+  // Hiển thị tên category
+  const getCategoryDisplayName = (category) => {
+    switch (category) {
+      case 'orders':
+        return 'Đơn hàng';
+      case 'featured_post':
+        return 'Tin nổi bật';
+      case 'highlighted_post':
+        return 'Tin được đánh dấu';
+      case 'urgent_post':
+        return 'Tin gấp';
+      case 'subscription':
+        return 'Gói đăng ký';
+      default:
+        return category;
+    }
+  };
+
+  // Xử lý dữ liệu cho biểu đồ giao dịch theo ngày (7 ngày gần nhất)
+  const getTransactionTrendData = () => {
+    if (!financialData.transactions || financialData.transactions.length === 0) return [];
+    
+    const last7Days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      last7Days.push({
+        date: date.toISOString().split('T')[0],
+        displayDate: date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }),
+        transactions: 0,
+        revenue: 0
+      });
+    }
+    
+    // Đếm giao dịch theo ngày
+    financialData.transactions.forEach(transaction => {
+      if (transaction.createdAt) {
+        const transactionDate = new Date(transaction.createdAt).toISOString().split('T')[0];
+        const dayData = last7Days.find(day => day.date === transactionDate);
+        if (dayData) {
+          dayData.transactions += 1;
+          dayData.revenue += transaction.amount || 0;
+        }
+      }
+    });
+    
+    return last7Days.map(day => ({
+      ...day,
+      formattedRevenue: formatCurrency(day.revenue)
+    }));
+  };
+
   // Format số tiền VND
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount, short = false) => {
+    if (short && amount >= 1000000) {
+      if (amount >= 1000000000) {
+        return `${(amount / 1000000000).toFixed(1)}B VND`;
+      } else if (amount >= 1000000) {
+        return `${(amount / 1000000).toFixed(1)}M VND`;
+      }
+    }
+    
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
@@ -409,25 +522,127 @@ function FinancialAnalytics() {
         </button>
       </div>
 
-      {/* Biểu đồ doanh thu */}
-      <div className="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-2">
+      {/* Biểu đồ phân tích */}
+      <div className="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
+        {/* Biểu đồ doanh thu theo tháng */}
         <div className="p-6 bg-white rounded-lg shadow-sm">
-          <h3 className="mb-4 text-lg font-medium">Doanh thu theo tháng</h3>
+          <h3 className="mb-4 text-lg font-semibold text-gray-800">Doanh thu theo tháng</h3>
           <div className="h-80">
-            <div className="flex items-center justify-center h-full text-gray-400">
-              <TrendingUp size={48} />
-              <p className="ml-4 text-lg">Biểu đồ doanh thu theo tháng sẽ được hiển thị ở đây</p>
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={getRevenueChartData()}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => formatCurrency(value, true)}
+                />
+                <Tooltip 
+                  formatter={(value) => [formatCurrency(value), 'Doanh thu']}
+                  labelStyle={{ color: '#374151' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#8884d8" 
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
-        
+
+        {/* Biểu đồ phân loại doanh thu */}
         <div className="p-6 bg-white rounded-lg shadow-sm">
-          <h3 className="mb-4 text-lg font-medium">Doanh thu theo loại dịch vụ</h3>
+          <h3 className="mb-4 text-lg font-semibold text-gray-800">Phân loại doanh thu</h3>
           <div className="h-80">
-            <div className="flex items-center justify-center h-full text-gray-400">
-              <DollarSign size={48} />
-              <p className="ml-4 text-lg">Biểu đồ doanh thu theo loại dịch vụ sẽ được hiển thị ở đây</p>
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={getCategoryChartData()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {getCategoryChartData().map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [formatCurrency(value), 'Doanh thu']} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Biểu đồ xu hướng giao dịch */}
+      <div className="mb-8">
+        <div className="p-6 bg-white rounded-lg shadow-sm">
+          <h3 className="mb-4 text-lg font-semibold text-gray-800">Xu hướng giao dịch (7 ngày gần nhất)</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={getTransactionTrendData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="displayDate" 
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis 
+                  yAxisId="left"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `${value} GD`}
+                />
+                <YAxis 
+                  yAxisId="right" 
+                  orientation="right"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => formatCurrency(value, true)}
+                />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    if (name === 'transactions') {
+                      return [`${value} giao dịch`, 'Số giao dịch'];
+                    }
+                    return [formatCurrency(value), 'Doanh thu'];
+                  }}
+                  labelStyle={{ color: '#374151' }}
+                />
+                <Legend />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="transactions" 
+                  fill="#82ca9d" 
+                  name="Số giao dịch"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#8884d8" 
+                  strokeWidth={3}
+                  name="Doanh thu"
+                  dot={{ fill: '#8884d8', strokeWidth: 2, r: 4 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
