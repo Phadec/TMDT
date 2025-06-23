@@ -16,7 +16,7 @@ import { apiServices } from "~/api";
 import { useCart } from "~/contexts/CartContext";
 import vnpayService from "~/services/vnpayService";
 import { ghnService } from "~/services/ghnService";
-import { getOrCreateCartId } from "~/utils/cartUtils";
+import { getOrCreateCartId, removeOrderedItemsFromCart as removeOrderedItemsUtil } from "~/utils/cartUtils";
 
 function Checkout() {
   const navigate = useNavigate();
@@ -78,7 +78,10 @@ function Checkout() {
     note: '',
     
     // Phương thức thanh toán
-    paymentMethod: 'cod', // cod, bank_transfer, credit_card
+    paymentMethod: 'cod', // cod, bank_transfer, credit_card, vnpay
+    
+    // Thông tin VNPay
+    bankCode: '', // Mã ngân hàng cho VNPay
     
     // Thông tin thẻ tín dụng (nếu chọn)
     cardNumber: '',
@@ -86,6 +89,10 @@ function Checkout() {
     expiryDate: '',
     cvv: ''
   });
+
+  // State cho danh sách địa chỉ
+  const [userAddresses, setUserAddresses] = useState([]);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(0); // Always select the first address by default
 
   // Lấy thông tin user từ localStorage và điền vào form
   useEffect(() => {
@@ -95,6 +102,24 @@ function Checkout() {
         const userDataString = localStorage.getItem('userData');
         if (userDataString) {
           const userData = JSON.parse(userDataString);
+          console.log('DEBUG userData.addresses:', userData.address);
+          
+          // Lưu danh sách địa chỉ
+          if (Array.isArray(userData?.address) && userData.address.length > 0) {
+            setUserAddresses(userData.address);
+            setSelectedAddressIndex(0);
+            setCheckoutData(prev => ({
+              ...prev,
+              address: userData.address[0]
+            }));
+          } else if (typeof userData?.address === 'string' && userData.address.trim()) {
+            setUserAddresses([userData.address]);
+            setSelectedAddressIndex(0);
+            setCheckoutData(prev => ({
+              ...prev,
+              address: userData.address
+            }));
+          }
           
           // Điền thông tin từ localStorage vào form checkout
           setCheckoutData(prev => ({
@@ -102,7 +127,6 @@ function Checkout() {
             fullName: userData?.fullname || userData?.name || userData?.fullName || '',
             email: userData?.email || '',
             phone: userData?.phone || '',
-            address: userData?.address || (Array.isArray(userData?.addresses) ? userData.addresses.join(', ') : userData?.addresses || ''),
             provinceId: userData?.provinceId || '',
             provinceName: userData?.provinceName || '',
             districtId: userData?.districtId || '',
@@ -176,12 +200,15 @@ function Checkout() {
                   console.log('Product data:', productDetail);
                   if (productDetail.customer) {
                     console.log('Customer info:', productDetail.customer);
-                    
-                    // Lấy địa chỉ từ customer.addresses
-                    const sellerAddress = productDetail.customer.addresses;
+                    // Lấy địa chỉ từ customer.addresses (luôn lấy vị trí 0 nếu là mảng)
+                    let sellerAddress = '';
+                    if (Array.isArray(productDetail.customer.addresses) && productDetail.customer.addresses.length > 0) {
+                      sellerAddress = productDetail.customer.addresses[0];
+                    } else if (typeof productDetail.customer.addresses === 'string') {
+                      sellerAddress = productDetail.customer.addresses;
+                    }
                     console.log('Raw seller address:', sellerAddress);
-                    
-                    if (sellerAddress && sellerAddress.trim()) {
+                    if (sellerAddress) {
                       // Kiểm tra xem địa chỉ có đúng format Việt Nam không (có dấu phẩy)
                       if (sellerAddress.includes(',') && sellerAddress.split(',').length >= 3) {
                         console.log('Address has Vietnamese format, parsing...');
@@ -287,27 +314,27 @@ function Checkout() {
   const finalAmount = totalAmount - discountAmount + shippingFee;
 
   // Function để parse địa chỉ
-  const parseAddress = (addressString) => {
-    if (!addressString) return null;
-    
-    // Tách địa chỉ theo dấu phẩy
+  const parseAddress = (addressInput) => {
+    if (!addressInput) return null;
+    let addressString = addressInput;
+    if (Array.isArray(addressInput)) {
+      if (selectedAddressIndex >= 0 && addressInput[selectedAddressIndex]) {
+        addressString = addressInput[selectedAddressIndex];
+      } else {
+        addressString = addressInput[0];
+      }
+    }
+    if (typeof addressString !== 'string') return null;
     const parts = addressString.split(',').map(part => part.trim());
-    
-    if (parts.length < 3) return null;
-    
-    // Lấy tỉnh (phần cuối cùng)
-    const provinceName = parts[parts.length - 1];
-    
-    // Lấy quận/huyện (phần thứ 2 từ cuối)
-    const districtName = parts[parts.length - 2];
-    
-    // Lấy phường/xã (phần thứ 3 từ cuối)
-    const wardName = parts[parts.length - 3];
-    
+    if (parts.length < 1) return null;
+    // Always use the last 3 parts if available, otherwise fill with empty string
+    const provinceName = parts[parts.length - 1] || '';
+    const districtName = parts[parts.length - 2] || '';
+    const wardName = parts[parts.length - 3] || '';
     return {
-      provinceName: provinceName,
-      districtName: districtName,
-      wardName: wardName
+      provinceName,
+      districtName,
+      wardName
     };
   };
 
@@ -443,13 +470,14 @@ function Checkout() {
 
   // Parse địa chỉ khi có dữ liệu address
   useEffect(() => {
-    if (checkoutData.address && provinces.length > 0) {
-      const parsed = parseAddress(checkoutData.address);
+    if (userAddresses.length > 0 && provinces.length > 0) {
+      const addressToParse = userAddresses[selectedAddressIndex] || '';
+      const parsed = parseAddress(addressToParse);
       if (parsed) {
         findLocationIds(parsed);
       }
     }
-  }, [checkoutData.address, provinces.length]);
+  }, [userAddresses, selectedAddressIndex, provinces.length]);
 
   // Không cần load districts và wards tự động nữa vì sẽ parse từ địa chỉ
 
@@ -594,6 +622,17 @@ function Checkout() {
     }
   };
 
+  // Xử lý thay đổi địa chỉ từ dropdown
+  const handleAddressChange = (index) => {
+    setSelectedAddressIndex(index);
+    // Chọn địa chỉ có sẵn
+    const selectedAddress = userAddresses[index];
+    setCheckoutData(prev => ({
+      ...prev,
+      address: selectedAddress
+    }));
+  };
+
   // Xử lý thay đổi input
   const handleInputChange = (field, value, additionalData = {}) => {
     setCheckoutData(prev => {
@@ -602,19 +641,18 @@ function Checkout() {
         [field]: value,
         ...additionalData
       };
-      
       // Tự động điền tên trên thẻ khi chọn phương thức thanh toán bằng thẻ tín dụng
       if (field === 'paymentMethod' && value === 'credit_card' && !prev.cardName && prev.fullName) {
         newData.cardName = prev.fullName.toUpperCase();
       }
-      
-      // Không cần xử lý thay đổi province/district nữa vì parse tự động từ address
-      
+      // Nếu thay đổi địa chỉ thủ công, đặt selectedAddressIndex = -1
+      if (field === 'address') {
+        setSelectedAddressIndex(-1);
+      }
       // Cập nhật thông tin quan trọng vào localStorage (tùy chọn)
-      if (['fullName', 'phone', 'address'].includes(field) && value.trim()) {
+      if (["fullName", "phone", "address"].includes(field) && value && typeof value === 'string' && value.trim()) {
         updateUserDataInStorage(field, value.trim());
       }
-      
       return newData;
     });
   };
@@ -642,25 +680,7 @@ function Checkout() {
 
   // Hàm xóa chỉ những sản phẩm đã đặt hàng khỏi giỏ hàng
   const removeOrderedItemsFromCart = async (orderedItems) => {
-    try {
-      const cartId = getOrCreateCartId();
-      
-      // Xóa từng sản phẩm đã đặt hàng khỏi giỏ hàng
-      for (const item of orderedItems) {
-        const productId = item.productId || item.id;
-        if (productId) {
-          await removeFromCartOnly(cartId, productId);
-        }
-      }
-      
-      // Refresh lại giỏ hàng sau khi xóa xong tất cả
-      await fetchCartItemCount();
-      
-      console.log('✅ Đã xóa các sản phẩm đã đặt hàng khỏi giỏ hàng');
-    } catch (error) {
-      console.error('❌ Lỗi khi xóa sản phẩm khỏi giỏ hàng:', error);
-      // Không throw error để không ảnh hưởng đến flow đặt hàng thành công
-    }
+    return await removeOrderedItemsUtil(orderedItems, removeFromCartOnly, fetchCartItemCount, 'đặt hàng');
   };
 
   // Xử lý đặt hàng
@@ -692,12 +712,27 @@ function Checkout() {
         paymentMethod: checkoutData.paymentMethod,
         totalAmount: finalAmount,
         shippingFee: shippingFee,
+        sellerAddress: sellerInfo.address, // Thêm địa chỉ người bán
         orderId: `TMDT${Date.now()}` // Tạo mã đơn hàng unique
       };
 
       // Xử lý theo phương thức thanh toán
-      if (checkoutData.paymentMethod === 'bank_transfer') {
+      if (checkoutData.paymentMethod === 'vnpay') {
         // Thanh toán qua VNPay
+        const paymentData = vnpayService.preparePaymentData(
+          orderData, 
+          checkoutData.bankCode || '', // Sử dụng bankCode đã chọn
+          'vn'
+        );
+        
+        // Lưu thông tin đơn hàng vào localStorage để xử lý sau khi thanh toán
+        localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+        
+        // Chuyển hướng đến VNPay
+        await vnpayService.redirectToPayment(paymentData);
+        
+      } else if (checkoutData.paymentMethod === 'bank_transfer') {
+        // Thanh toán qua VNPay (legacy)
         const paymentData = vnpayService.preparePaymentData(orderData, 'VNBANK', 'vn');
         
         // Lưu thông tin đơn hàng vào localStorage để xử lý sau khi thanh toán
@@ -755,7 +790,12 @@ function Checkout() {
         Swal.fire({
           icon: 'success',
           title: 'Đặt hàng thành công!',
-          text: 'Cảm ơn bạn đã mua hàng. Chúng tôi sẽ liên hệ với bạn sớm nhất.',
+          html: `
+            <div class="text-left">
+              <p class="mb-2">Cảm ơn bạn đã mua hàng. Chúng tôi sẽ liên hệ với bạn sớm nhất.</p>
+              <p class="text-sm text-gray-600">Sản phẩm đã đặt hàng đã được xóa khỏi giỏ hàng của bạn.</p>
+            </div>
+          `,
           confirmButtonText: 'Về trang chủ'
         }).then(() => {
           navigate('/');
@@ -899,18 +939,23 @@ function Checkout() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Địa chỉ *
                   </label>
-                  <input
-                    type="text"
-                    value={checkoutData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="VD: 123 Đường ABC, Xã Tân Lộc, Huyện Thới Bình, Cà Mau"
-                  />
-                  {parsedAddress.provinceName && (
-                    <div className="mt-2 text-sm text-green-600 bg-green-50 p-2 rounded">
-                      ✓ Đã nhận diện: {parsedAddress.wardName}, {parsedAddress.districtName}, {parsedAddress.provinceName}
+                  
+                  {userAddresses.length > 0 && (
+                    <div className="mb-3">
+                      <select
+                        value={selectedAddressIndex}
+                        onChange={(e) => handleAddressChange(parseInt(e.target.value))}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      >
+                        {userAddresses.map((address, index) => (
+                          <option key={index} value={index}>
+                            {address}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
+                  
                 </div>
                 
                 <div className="md:col-span-2">
@@ -1008,24 +1053,122 @@ function Checkout() {
                   </div>
                 </label>
                 
-                {/* Chuyển khoản */}
+                {/* VNPay */}
                 <label className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="bank_transfer"
-                    checked={checkoutData.paymentMethod === 'bank_transfer'}
+                    value="vnpay"
+                    checked={checkoutData.paymentMethod === 'vnpay'}
                     onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
                     className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
                   />
-                  <div className="ml-3">
-                    <div className="font-medium text-gray-900">Chuyển khoản ngân hàng</div>
-                    <div className="text-sm text-gray-500">Chuyển khoản trước khi giao hàng</div>
+                  <div className="ml-3 flex-1">
+                    <div className="font-medium text-gray-900 flex items-center">
+                      <span>Thanh toán qua VNPay</span>
+                      <img 
+                        src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png" 
+                        alt="VNPay" 
+                        className="h-6 ml-2"
+                      />
+                    </div>
+                    <div className="text-sm text-gray-500">Thanh toán an toàn qua cổng VNPay</div>
                   </div>
                 </label>
                 
+                
+                
               
               </div>
+              
+              {/* Chọn ngân hàng VNPay */}
+              {checkoutData.paymentMethod === 'vnpay' && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-4">Chọn ngân hàng thanh toán</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {/* Tất cả ngân hàng */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value=""
+                        checked={!checkoutData.bankCode}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">Tất cả ngân hàng</div>
+                    </label>
+                    
+                    {/* Vietcombank */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value="VCB"
+                        checked={checkoutData.bankCode === 'VCB'}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">Vietcombank</div>
+                    </label>
+                    
+                    {/* Techcombank */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value="TCB"
+                        checked={checkoutData.bankCode === 'TCB'}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">Techcombank</div>
+                    </label>
+                    
+                    {/* BIDV */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value="BIDV"
+                        checked={checkoutData.bankCode === 'BIDV'}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">BIDV</div>
+                    </label>
+                    
+                    {/* VietinBank */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value="CTG"
+                        checked={checkoutData.bankCode === 'CTG'}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">VietinBank</div>
+                    </label>
+                    
+                    {/* Agribank */}
+                    <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white bg-white">
+                      <input
+                        type="radio"
+                        name="bankCode"
+                        value="VBA"
+                        checked={checkoutData.bankCode === 'VBA'}
+                        onChange={(e) => handleInputChange('bankCode', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 text-sm font-medium text-gray-900">Agribank</div>
+                    </label>
+                  </div>
+                  <div className="mt-3 text-xs text-gray-500">
+                    * Bạn sẽ được chuyển hướng đến trang thanh toán của ngân hàng đã chọn
+                  </div>
+                </div>
+              )}
               
               {/* Form thẻ tín dụng */}
               {checkoutData.paymentMethod === 'credit_card' && (
@@ -1162,12 +1305,7 @@ function Checkout() {
                 {!calculatingShipping && shippingFee > 0 && parsedAddress.districtId && parsedAddress.wardCode && (
                   <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
                     📦 Phí vận chuyển được tính theo GHN từ <strong>{sellerInfo.address || "123 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM"}</strong> đến {parsedAddress.wardName}, {parsedAddress.districtName}, {parsedAddress.provinceName}
-                  </div>
-                )}
-                
-                {sellerInfo.address && (
-                  <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded mt-1">
-                    🏪 Địa chỉ người bán: {sellerInfo.address}
+          
                   </div>
                 )}
                 

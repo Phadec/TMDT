@@ -140,11 +140,28 @@ function Cart() {
     if (checked) {
       // Kiểm tra nếu đã có sản phẩm được chọn
       if (selectedItems.length > 0) {
+        const currentSelectedProduct = cartItems.find(item => item.productId === selectedItems[0]);
+        const newSelectedProduct = cartItems.find(item => item.productId === productId);
+        
         Swal.fire({
-          icon: 'info',
-          title: 'Thông báo',
-          text: 'Chỉ có thể chọn 1 sản phẩm để thanh toán cùng lúc. Vui lòng bỏ chọn sản phẩm khác trước.',
-          confirmButtonText: 'OK'
+          icon: 'question',
+          title: 'Thay đổi sản phẩm thanh toán?',
+          html: `
+            <div class="text-left">
+              <p class="mb-3">Bạn đã chọn: <strong>${currentSelectedProduct?.name || 'Sản phẩm'}</strong></p>
+              <p class="mb-3">Bạn muốn chọn: <strong>${newSelectedProduct?.name || 'Sản phẩm'}</strong></p>
+              <p class="text-sm text-gray-600">Chỉ có thể chọn 1 sản phẩm để thanh toán cùng lúc.</p>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Thay đổi',
+          cancelButtonText: 'Giữ nguyên',
+          confirmButtonColor: '#7c3aed',
+          cancelButtonColor: '#6b7280'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            setSelectedItems([productId]); // Thay đổi sản phẩm được chọn
+          }
         });
         return;
       }
@@ -198,9 +215,21 @@ function Cart() {
       Swal.fire({
         icon: 'warning',
         title: 'Chưa chọn sản phẩm',
-        text: 'Vui lòng chọn 1 sản phẩm để thanh toán.',
+        text: 'Vui lòng chọn 1 sản phẩm để thanh toán. Hệ thống chỉ cho phép thanh toán 1 sản phẩm mỗi lần.',
         confirmButtonText: 'OK'
       });
+      return;
+    }
+
+    // Kiểm tra thêm để đảm bảo chỉ có 1 sản phẩm được chọn
+    if (selectedItems.length > 1) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi hệ thống',
+        text: 'Có lỗi xảy ra: Đã chọn quá nhiều sản phẩm. Vui lòng thử lại.',
+        confirmButtonText: 'OK'
+      });
+      setSelectedItems([]); // Reset selection
       return;
     }
 
@@ -336,13 +365,20 @@ function Cart() {
               <div className="divide-y divide-gray-200">
                 {currentItems.map((item, index) => (
                   <div key={`${item.productId}-${index}`} className="p-6 flex items-center space-x-4">
-                    {/* Checkbox */}
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                      checked={selectedItems.includes(item.productId)}
-                      onChange={(e) => handleSelectItem(item.productId, e.target.checked)}
-                    />
+                    {/* Checkbox với tooltip */}
+                    <div className="relative group">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        checked={selectedItems.includes(item.productId)}
+                        onChange={(e) => handleSelectItem(item.productId, e.target.checked)}
+                        title="Chỉ có thể chọn 1 sản phẩm để thanh toán"
+                      />
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                        Chỉ chọn được 1 sản phẩm
+                      </div>
+                    </div>
                     
                     {/* Product image placeholder */}
                     <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -351,7 +387,14 @@ function Cart() {
                     
                     {/* Product info */}
                     <div className="flex-1">
-                      <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-lg font-medium text-gray-900">{item.name}</h3>
+                        {selectedItems.includes(item.productId) && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            Đã chọn
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-500">Mã sản phẩm: {item.productId}</p>
                       <div className="mt-2">
                         <span className="text-lg font-semibold text-purple-600">
@@ -433,7 +476,6 @@ function Cart() {
                 {/* Cart summary */}
                 <div className="p-6 bg-gradient-to-r from-gray-50 to-purple-50 border-t border-gray-200">
                   <div className="space-y-4">
-
                     {/* Nút thanh toán */}
                     <div className="flex space-x-3">
                       <button 
@@ -445,11 +487,18 @@ function Cart() {
                       
                       <button 
                         onClick={handleCheckout}
-                        className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center group shadow-lg"
+                        disabled={selectedItems.length === 0}
+                        className={`flex-1 px-4 py-3 font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center group shadow-lg ${
+                          selectedItems.length === 0 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        }`}
                       >
                         <CreditCardIcon className="w-4 h-4 mr-1" />
-                        Thanh toán
-                        <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                        {selectedItems.length === 0 ? 'Chọn sản phẩm để thanh toán' : `Thanh toán (${selectedItems.length} sản phẩm)`}
+                        {selectedItems.length > 0 && (
+                          <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                        )}
                       </button>
                     </div>
 

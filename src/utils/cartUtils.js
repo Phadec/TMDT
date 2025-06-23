@@ -97,3 +97,53 @@ export const getCartIdRemainingDays = () => {
     return -1;
   }
 };
+
+/**
+ * Xóa chỉ những sản phẩm đã đặt hàng khỏi giỏ hàng
+ * @param {Array} orderedItems - Danh sách sản phẩm đã đặt hàng
+ * @param {Function} removeFromCartOnly - Hàm xóa sản phẩm khỏi giỏ hàng
+ * @param {Function} fetchCartItemCount - Hàm refresh số lượng giỏ hàng
+ * @param {string} context - Ngữ cảnh (ví dụ: 'đặt hàng', 'thanh toán')
+ * @returns {Promise<number>} Số lượng sản phẩm đã xóa thành công
+ */
+export const removeOrderedItemsFromCart = async (orderedItems, removeFromCartOnly, fetchCartItemCount, context = 'đặt hàng') => {
+  try {
+    const cartId = getOrCreateCartId();
+    
+    if (!orderedItems || !Array.isArray(orderedItems) || orderedItems.length === 0) {
+      console.log('⚠️ Không có sản phẩm nào để xóa khỏi giỏ hàng');
+      return 0;
+    }
+    
+    console.log(`🗑️ Bắt đầu xóa ${orderedItems.length} sản phẩm đã ${context} khỏi giỏ hàng...`);
+    
+    // Xóa từng sản phẩm đã đặt hàng khỏi giỏ hàng
+    let removedCount = 0;
+    for (const item of orderedItems) {
+      const productId = item.productId || item.id;
+      if (productId) {
+        try {
+          await removeFromCartOnly(cartId, productId);
+          removedCount++;
+          console.log(`✅ Đã xóa sản phẩm ${productId} khỏi giỏ hàng`);
+        } catch (itemError) {
+          console.error(`❌ Lỗi khi xóa sản phẩm ${productId}:`, itemError);
+        }
+      } else {
+        console.warn('⚠️ Sản phẩm không có ID:', item);
+      }
+    }
+    
+    // Refresh lại giỏ hàng sau khi xóa xong tất cả
+    if (fetchCartItemCount) {
+      await fetchCartItemCount();
+    }
+    
+    console.log(`✅ Hoàn thành xóa ${removedCount}/${orderedItems.length} sản phẩm đã ${context} khỏi giỏ hàng`);
+    return removedCount;
+  } catch (error) {
+    console.error(`❌ Lỗi khi xóa sản phẩm đã ${context} khỏi giỏ hàng:`, error);
+    // Không throw error để không ảnh hưởng đến flow đặt hàng/thanh toán thành công
+    return 0;
+  }
+};

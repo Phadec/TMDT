@@ -127,8 +127,7 @@ export const ghnService = {
       
       // Lấy phường/xã (phần thứ 3 từ cuối)
       const wardName = parts[parts.length - 3];
-      
-      console.log('Parsing address:', { provinceName, districtName, wardName });
+    
       
       // Lấy danh sách tỉnh
       const provinces = await ghnService.getProvinces();
@@ -190,7 +189,6 @@ export const ghnService = {
   // Tính phí vận chuyển
   calculateShippingFee: async (shippingData) => {
     try {
-      console.log('Calculating shipping fee with data:', shippingData);
       
       // Bước 1: Lấy service_id từ available-services
       const availableServicesResponse = await ghnShippingApi.get('/available-services', {
@@ -202,7 +200,6 @@ export const ghnService = {
       });
       
       const availableServices = availableServicesResponse;
-      console.log('Available services:', availableServices);
       
       // Tìm service "Hàng nhẹ" (có thể có encoding khác nhau)
       const lightService = availableServices.find(service => 
