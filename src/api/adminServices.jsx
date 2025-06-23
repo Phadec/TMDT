@@ -282,6 +282,19 @@ const adminServices = {
     },
 
     /**
+     * Lấy thông tin chi tiết đơn hàng
+     */
+    getById: async (orderId) => {
+      try {
+        const response = await adminApi.get(adminUrl.order.detail(orderId));
+        return response;
+      } catch (error) {
+        console.error('Get order by ID error:', error);
+        throw error;
+      }
+    },
+
+    /**
      * Cập nhật trạng thái đơn hàng
      */
     updateStatus: async (orderId, status) => {
