@@ -38,6 +38,7 @@ public class OrderService {
     @Async
     public void createOrder(Order order) {
         Event<Order> event = new Event<Order>();
+        order.setCreatedAt(LocalDateTime.now());
         event.setData(order);
         event.setAction(ORDER_CREATE);
         event.setCreatedAt(LocalDateTime.now());
@@ -162,5 +163,9 @@ public class OrderService {
     public Order details(OrderRequest request) {
         Optional<Order> optionalOrder = orderRepository.findById(request.getId());
         return optionalOrder.orElse(null);
+    }
+
+    public Order getOrderById(String id) {
+        return orderRepository.findById(id).orElseThrow(null);
     }
 }
