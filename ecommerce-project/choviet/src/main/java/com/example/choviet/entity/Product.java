@@ -39,6 +39,7 @@ public class Product {
     LocalDateTime updatedAt;
     Map<String, String> variant; // size, price, sku, createdAt
 
+
     public enum Type {
         ACTIVE, INACTIVE
     }
