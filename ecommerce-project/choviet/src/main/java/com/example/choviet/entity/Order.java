@@ -19,7 +19,7 @@ public class Order {
     Discount discount;
 
     Map<String, String> product; // productVariant, quantity, price
-    Map<String, String> fee; // service_id, insurance_value, from_district_id, from_ward_code, service_type_id, to_district_id, to_ward_code, height, length, weight, width, coupon
+    int fee;
     Map<String, String> address; // to_address, from_address (gồm province, district, ward)
     Map<String, String> payment; // transaction, method, status, createdAt
     // nếu transaction là COD thì method trống, transaction là online thì method là đơn vị cung cấp
