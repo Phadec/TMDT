@@ -81,7 +81,7 @@ function OrdersManagement() {
           customerEmail: order.customer?.email || "Chưa có email",
           customerPhone: order.phone || order.customer?.phone || "Chưa có SĐT",
           totalAmount: order.fee || 0,
-          status: order.status?.toLowerCase() || "pending",
+          status: order.status || "pending",
           paymentMethod: order.payment?.method || order.payment?.transaction || "COD",
           paymentStatus: order.payment?.status?.toLowerCase() || "pending",
           shippingFromAddress: order.address?.from_address || "Chưa có địa chỉ gửi",
@@ -140,7 +140,8 @@ function OrdersManagement() {
   // Lọc đơn hàng theo trạng thái
   const filteredOrders = orders.filter(order => {
     if (currentFilter === "all") return true;
-    return order.status === currentFilter;
+    // So sánh trạng thái một cách linh hoạt (case-insensitive)
+    return order.status?.toUpperCase() === currentFilter.toUpperCase();
   }).filter(order => {
     if (!searchTerm) return true;
     return order.orderCode.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -246,19 +247,38 @@ function OrdersManagement() {
 
   // Hiển thị trạng thái đơn hàng
   const renderOrderStatus = (status) => {
+    // Normalize status để xử lý các định dạng khác nhau từ API
+    const normalizedStatus = status?.toLowerCase();
+    
     const statusConfig = {
+      // Trạng thái cơ bản
       pending: { color: "bg-yellow-500", text: "Chờ xác nhận", icon: Clock },
       confirmed: { color: "bg-blue-500", text: "Đã xác nhận", icon: CheckCircle },
       processing: { color: "bg-indigo-500", text: "Đang xử lý", icon: Package },
       shipping: { color: "bg-purple-500", text: "Đang giao", icon: Truck },
       delivered: { color: "bg-green-500", text: "Đã giao", icon: CheckCircle },
       cancelled: { color: "bg-red-500", text: "Đã hủy", icon: XCircle },
-      ready_to_pick: { color: "bg-orange-500", text: "Sẵn sàng lấy hàng", icon: Package },
       picked_up: { color: "bg-blue-600", text: "Đã lấy hàng", icon: Truck },
-      in_transit: { color: "bg-purple-600", text: "Đang vận chuyển", icon: Truck }
+      in_transit: { color: "bg-purple-600", text: "Đang vận chuyển", icon: Truck },
+      
+      // Trạng thái GHN
+      ready_to_pick: { color: "bg-yellow-500", text: "Sẵn sàng lấy hàng", icon: Package },
+      picking: { color: "bg-blue-500", text: "Đang lấy hàng", icon: Package },
+      picked: { color: "bg-green-500", text: "Đã lấy hàng", icon: CheckCircle },
+      storing: { color: "bg-purple-500", text: "Đang lưu kho", icon: Package },
+      transporting: { color: "bg-indigo-500", text: "Đang vận chuyển", icon: Truck },
+      delivering: { color: "bg-orange-500", text: "Đang giao hàng", icon: Truck },
+      delivery_fail: { color: "bg-red-500", text: "Giao hàng thất bại", icon: XCircle },
+      waiting_to_return: { color: "bg-yellow-600", text: "Chờ trả hàng", icon: Clock },
+      return: { color: "bg-gray-500", text: "Trả hàng", icon: Package },
+      return_transporting: { color: "bg-gray-600", text: "Đang vận chuyển trả hàng", icon: Truck },
+      returning: { color: "bg-gray-700", text: "Đang trả hàng", icon: Package },
+      returned: { color: "bg-gray-800", text: "Đã trả hàng", icon: CheckCircle },
+      return_fail: { color: "bg-red-600", text: "Trả hàng thất bại", icon: XCircle },
+      cancel: { color: "bg-red-700", text: "Đã hủy", icon: XCircle }
     };
     
-    const config = statusConfig[status] || statusConfig.pending;
+    const config = statusConfig[normalizedStatus] || statusConfig.pending;
     const IconComponent = config.icon;
     
     return (
@@ -322,11 +342,21 @@ function OrdersManagement() {
             <option value="all">Tất cả trạng thái</option>
             <option value="pending">Chờ xác nhận</option>
             <option value="confirmed">Đã xác nhận</option>
-            <option value="ready_to_pick">Sẵn sàng lấy hàng</option>
-            <option value="picked_up">Đã lấy hàng</option>
-            <option value="in_transit">Đang vận chuyển</option>
-            <option value="delivered">Đã giao</option>
-            <option value="cancelled">Đã hủy</option>
+            <option value="READY_TO_PICK">Sẵn sàng lấy hàng</option>
+            <option value="PICKING">Đang lấy hàng</option>
+            <option value="PICKED">Đã lấy hàng</option>
+            <option value="STORING">Đang lưu kho</option>
+            <option value="TRANSPORTING">Đang vận chuyển</option>
+            <option value="DELIVERING">Đang giao hàng</option>
+            <option value="DELIVERED">Đã giao</option>
+            <option value="DELIVERY_FAIL">Giao hàng thất bại</option>
+            <option value="WAITING_TO_RETURN">Chờ trả hàng</option>
+            <option value="RETURN">Trả hàng</option>
+            <option value="RETURN_TRANSPORTING">Đang vận chuyển trả hàng</option>
+            <option value="RETURNING">Đang trả hàng</option>
+            <option value="RETURNED">Đã trả hàng</option>
+            <option value="RETURN_FAIL">Trả hàng thất bại</option>
+            <option value="CANCEL">Đã hủy</option>
           </select>
         </div>
 
