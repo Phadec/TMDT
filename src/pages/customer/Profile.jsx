@@ -18,6 +18,7 @@ function Profile({ onProfileDataChange }) {
     phone: "",
     userType: "",
     createdAt: "",
+    password:"",
     addresses: [], // Thay đổi từ string thành array
     status: "",
     // Thêm các trường địa chỉ mới
@@ -325,6 +326,7 @@ function Profile({ onProfileDataChange }) {
         email: (profileData.email || '').trim(),
         password: "",
         phone: (profileData.phone || '').trim(),
+        password: (profileData.password || '').trim(),
         addresses: Array.isArray(profileData.addresses) ? profileData.addresses : (profileData.addresses ? [profileData.addresses] : []),
         streetAddress: (profileData.streetAddress || '').trim(),
         province: profileData.province,

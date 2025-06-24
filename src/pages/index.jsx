@@ -10,3 +10,4 @@ export { Checkout } from './checkout';
 export { NotFound } from './notFound';
 export { Dashboard } from './dashboard';
 export { Dashboard as DashboardAdmin, Login as LoginAdmin } from './admin';
+export { GHNOrderManagement, GHNOrderDetail, GHNOrderDetailPublic } from './ghn';

@@ -8,6 +8,7 @@ const PUBLIC_URL = {
   REGISTER: "/register",
   FORGET: "/forget",
   NOT_FOUND: "/not-found",
+  GHN_ORDER: "/ghn/order",
 };
 
 const PRIVATE_URL = {

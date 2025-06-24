@@ -64,6 +64,18 @@ const adminUrl = {
         updateStatus: `${ORDER}/update-status`,
         detail: (id) => `${ORDER}/${id}`,
     },
+    analytics: {
+        overview: `/analytics/overview`,
+        financial: `/analytics/financial`,
+        revenue: `/analytics/revenue`,
+        transactions: `/analytics/transactions`,
+    },
+    dashboard: {
+        stats: `/dashboard/stats`,
+        activities: `/dashboard/activities`,
+        newUsers: `/dashboard/new-users`,
+        recentPosts: `/dashboard/recent-posts`,
+    },
     category: {
         getAll: `${CATEGORY}`,
         getParents: `${CATEGORY}/parents`,
@@ -97,7 +109,7 @@ const commonUrl = {
         detail: (id) => `${ORDER}/${id}`,
         updateStatus: (id) => `${ORDER}/${id}/status`,
     },
-    home: {
+     home: {
         banner: `/home/banner`,
         todayRecommendations: `/home/today-recommendations`,
     },

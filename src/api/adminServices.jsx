@@ -282,6 +282,19 @@ const adminServices = {
     },
 
     /**
+     * Lấy thông tin chi tiết đơn hàng
+     */
+    getById: async (orderId) => {
+      try {
+        const response = await adminApi.get(adminUrl.order.detail(orderId));
+        return response;
+      } catch (error) {
+        console.error('Get order by ID error:', error);
+        throw error;
+      }
+    },
+
+    /**
      * Cập nhật trạng thái đơn hàng
      */
     updateStatus: async (orderId, status) => {
@@ -381,6 +394,145 @@ const adminServices = {
         return response;
       } catch (error) {
         console.error('Flush Redis error:', error);
+        throw error;
+      }
+    }
+  },
+
+  /**
+   * Image Proxy APIs
+   */
+  imageProxy: {
+    /**
+     * Lấy ảnh thông qua proxy
+     */
+    getImage: async (imageUrl) => {
+      try {
+        const encodedUrl = encodeURIComponent(imageUrl);
+        const response = await commonApi.get(`/image-proxy/image?url=${encodedUrl}`, {
+          responseType: 'blob'
+        });
+        return response;
+      } catch (error) {
+        console.error('Get image via proxy error:', error);
+        throw error;
+      }
+    }
+  },
+
+  /**
+   * Analytics APIs
+   */
+  analytics: {
+    /**
+     * Lấy thống kê tổng quan
+     */
+    getOverview: async () => {
+      try {
+        const response = await adminApi.get('/analytics/overview');
+        return response;
+      } catch (error) {
+        console.error('Get analytics overview error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy thống kê doanh thu
+     */
+    getRevenue: async (period = 'monthly') => {
+      try {
+        const response = await adminApi.get(`${adminUrl.analytics.revenue}?period=${period}`);
+        return response;
+      } catch (error) {
+        console.error('Get revenue analytics error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy thống kê tài chính
+     */
+    getFinancial: async (startDate, endDate) => {
+      try {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        
+        const response = await adminApi.get(`${adminUrl.analytics.financial}?${params.toString()}`);
+        return response;
+      } catch (error) {
+        console.error('Get financial analytics error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy thống kê giao dịch
+     */
+    getTransactions: async (page = 0, size = 10) => {
+      try {
+        const response = await adminApi.get(`${adminUrl.analytics.transactions}?page=${page}&size=${size}`);
+        return response;
+      } catch (error) {
+        console.error('Get transactions analytics error:', error);
+        throw error;
+      }
+    }
+  },
+
+  /**
+   * Dashboard APIs
+   */
+  dashboard: {
+    /**
+     * Lấy thống kê dashboard
+     */
+    getStats: async () => {
+      try {
+        const response = await adminApi.get('/dashboard/stats');
+        return response;
+      } catch (error) {
+        console.error('Get dashboard stats error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy hoạt động gần đây
+     */
+    getRecentActivities: async (limit = 10) => {
+      try {
+        const response = await adminApi.get(`/dashboard/activities?limit=${limit}`);
+        return response;
+      } catch (error) {
+        console.error('Get recent activities error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy người dùng mới đăng ký
+     */
+    getNewUsers: async (limit = 5) => {
+      try {
+        const response = await adminApi.get(`/dashboard/new-users?limit=${limit}`);
+        return response;
+      } catch (error) {
+        console.error('Get new users error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy bài đăng mới nhất
+     */
+    getRecentPosts: async (limit = 5) => {
+      try {
+        const response = await adminApi.get(`/dashboard/recent-posts?limit=${limit}`);
+        return response;
+      } catch (error) {
+        console.error('Get recent posts error:', error);
         throw error;
       }
     }
@@ -506,7 +658,159 @@ const adminServices = {
         throw error;
       }
     }
+  },
+
+  /**
+   * Analytics APIs
+   */
+  analytics: {
+    /**
+     * Lấy dữ liệu phân tích tài chính
+     */
+    getFinancialData: async (dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/financial';
+        const params = new URLSearchParams();
+        
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get financial data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu doanh thu theo thời gian
+     */
+    getRevenueData: async (dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/revenue';
+        const params = new URLSearchParams();
+        
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get revenue data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy danh sách giao dịch với phân trang
+     */
+    getTransactions: async (page = 0, size = 20, status = null, dateRange = 'month', startDate = null, endDate = null) => {
+      try {
+        let url = '/analytics/transactions';
+        const params = new URLSearchParams();
+        
+        params.append('page', page);
+        params.append('size', size);
+        
+        if (status) {
+          params.append('status', status);
+        }
+        if (dateRange) {
+          params.append('dateRange', dateRange);
+        }
+        if (startDate) {
+          params.append('startDate', startDate);
+        }
+        if (endDate) {
+          params.append('endDate', endDate);
+        }
+        
+        url += `?${params.toString()}`;
+        
+        const response = await adminApi.get(url);
+        return response;
+      } catch (error) {
+        console.error('Get transactions error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu biểu đồ người dùng theo tháng
+     */
+    getUsersChartData: async (year = new Date().getFullYear()) => {
+      try {
+        const response = await adminApi.get(`/analytics/users/monthly?year=${year}`);
+        return response;
+      } catch (error) {
+        console.error('Get users chart data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu biểu đồ sản phẩm theo tháng
+     */
+    getProductsChartData: async (year = new Date().getFullYear()) => {
+      try {
+        const response = await adminApi.get(`/analytics/products/monthly?year=${year}`);
+        return response;
+      } catch (error) {
+        console.error('Get products chart data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu biểu đồ doanh thu theo tháng
+     */
+    getRevenueChartData: async (year = new Date().getFullYear()) => {
+      try {
+        const response = await adminApi.get(`/analytics/revenue/monthly?year=${year}`);
+        return response;
+      } catch (error) {
+        console.error('Get revenue chart data error:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Lấy dữ liệu tổng quan dashboard
+     */
+    getDashboardOverview: async () => {
+      try {
+        const response = await adminApi.get('/analytics/dashboard/overview');
+        return response;
+      } catch (error) {
+        console.error('Get dashboard overview error:', error);
+        throw error;
+      }
+    }
   }
 };
 
+export { adminServices };
 export default adminServices;

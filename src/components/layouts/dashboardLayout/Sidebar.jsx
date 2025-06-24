@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, X, Menu, LogOut } from "lucide-react";
 import { tabVariants } from "~/pages/dashboard/StyleVariants";
-import { useAuth } from "~/hooks";
+import { useAuth, useAdminAuth } from "~/hooks";
+import { ADMIN_URL } from "~/path";
 
 // Mobile Menu Button Component
 export const MobileMenuButton = ({ sidebarOpen, setSidebarOpen }) => {
@@ -64,7 +65,15 @@ export const SidebarTabs = ({ tabs, activeTab, setActiveTab, isMobile, setSideba
 
 // User Profile Component
 export const UserProfile = () => {
-  const { logout, user } = useAuth();
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+  
+  // Sử dụng hook phù hợp dựa trên trang hiện tại
+  const { logout: customerLogout, user: customerUser } = useAuth();
+  const { logout: adminLogout, user: adminUser } = useAdminAuth();
+  
+  const logout = isAdminPage ? adminLogout : customerLogout;
+  const user = isAdminPage ? adminUser : customerUser;
 
   const handleLogout = async () => {
     await logout();
@@ -73,10 +82,14 @@ export const UserProfile = () => {
   return (
     <div className="p-4 mt-auto border-t border-gray-200">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+          {isAdminPage ? 'A' : 'U'}
+        </div>
         <div>
-          <div className="font-medium">{user?.email}</div>
-          <div className="text-sm text-gray-500">{user?.phone ?? "Người bán"}</div>
+          <div className="font-medium">{user?.email || user?.username}</div>
+          <div className="text-sm text-gray-500">
+            {isAdminPage ? "Quản trị viên" : (user?.phone ?? "Người bán")}
+          </div>
         </div>
       </div>
       

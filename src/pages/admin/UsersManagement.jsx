@@ -1,8 +1,26 @@
 import { useState, useEffect } from "react";
-import { Search, Filter, Eye, Edit, Trash2, CheckCircle, XCircle, Shield, ShieldOff, Lock, Unlock } from "lucide-react";
+import { Search, Filter, Eye, Trash2, XCircle, Plus, User } from "lucide-react";
 import { adminServices } from "~/api";
 
 function UsersManagement() {
+  // CSS cho animation
+  const animationStyle = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+  `;
+
+  // Thêm style vào head
+  if (typeof document !== 'undefined' && !document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = animationStyle;
+    document.head.appendChild(style);
+  }
   // State cho danh sách người dùng
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,13 +28,31 @@ function UsersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserDetail, setShowUserDetail] = useState(false);
+  const [loadingUserDetail, setLoadingUserDetail] = useState(false);
   const [userType, setUserType] = useState("users"); // "users" or "customers"
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'STAFF'
+  });
+  const [notification, setNotification] = useState(null);
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
     totalElements: 0,
     size: 10
   });
+
+  // Function để hiển thị notification
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
 
   // Lấy dữ liệu từ API
   useEffect(() => {
@@ -34,35 +70,31 @@ function UsersManagement() {
         response = await adminServices.customers.getAll(pagination.currentPage, pagination.size);
       }
       
-      if (response && response.content) {
-        // Map backend data to frontend format
-        const mappedUsers = response.content.map(user => ({
+      if (response && (response.content || response.data)) {
+        // Lấy dữ liệu từ response
+        const usersData = response.content || response.data || [];
+        console.log('Users Response:', response);
+        console.log('Users Data:', usersData);
+        
+        // Map backend data to frontend format - chỉ map những trường thực tế có từ API
+        const mappedUsers = usersData.map(user => ({
           id: user.id,
-          name: user.fullName || user.name || `User ${user.id}`,
+          name: user.email, // Sử dụng email làm tên hiển thị
           email: user.email,
-          phone: user.phone || "Chưa có",
           role: userType === "users" 
-            ? (user.role?.roleName?.toLowerCase() || "user") 
+            ? (user.role?.roleName?.toLowerCase().replace('_', '_') || "user") 
             : "customer",
           status: user.status ? user.status.toLowerCase() : "active",
           createdAt: user.createdAt,
-          lastLogin: user.lastLogin || user.updatedAt || user.updateAt || user.createdAt,
-          postsCount: user.postsCount || 0,
-          avatar: user.avatar || "https://via.placeholder.com/150",
-          address: user.addresses && user.addresses.length > 0 
-            ? (Array.isArray(user.addresses) ? user.addresses.join(", ") : user.addresses)
-            : "Chưa có địa chỉ",
-          bio: user.bio || "Chưa có thông tin giới thiệu",
-          verified: user.verified || false,
-          isSeller: user.isSeller || false,
+          updatedAt: user.updatedAt,
           roleObject: user.role // Keep original role object for detailed view
         }));
         
         setUsers(mappedUsers);
         setPagination(prev => ({
           ...prev,
-          totalPages: response.totalPages,
-          totalElements: response.totalElements
+          totalPages: response.totalPages || response.data?.totalPages || 1,
+          totalElements: response.totalElements || response.data?.totalElements || usersData.length
         }));
       }
     } catch (error) {
@@ -78,100 +110,164 @@ function UsersManagement() {
     if (currentFilter === "all") return true;
     if (currentFilter === "super_admin") return user.role === "super_admin";
     if (currentFilter === "admin") return user.role === "admin";
-    if (currentFilter === "moderator") return user.role === "moderator";
+    if (currentFilter === "staff") return user.role === "staff";
+    if (currentFilter === "staff_management") return user.role === "staff_management";
+    if (currentFilter === "staff_chat") return user.role === "staff_chat";
+    if (currentFilter === "staff_news") return user.role === "staff_news";
     if (currentFilter === "customer") return user.role === "customer";
-    if (currentFilter === "seller") return user.isSeller;
-    if (currentFilter === "verified") return user.verified;
-    if (currentFilter === "unverified") return !user.verified;
     return user.status === currentFilter;
   }).filter(user => {
     if (!searchTerm) return true;
     return user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-           user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (user.phone && user.phone.includes(searchTerm));
+           user.email.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   // Xử lý xem chi tiết người dùng
   const handleViewUser = async (user) => {
     try {
+      setLoadingUserDetail(true);
+      setShowUserDetail(true);
       let detailResponse;
+      
       if (userType === "users") {
         detailResponse = await adminServices.users.getById(user.id);
       } else {
         detailResponse = await adminServices.customers.getById(user.id);
       }
       
-      // Map detailed data
+      // Lấy dữ liệu từ response.data
+      const userData = detailResponse.data || detailResponse;
+      console.log('Detail Response:', detailResponse);
+      console.log('User Data:', userData);
+      
+      // Map detailed data - chỉ những trường thực tế có từ API
       const detailedUser = {
-        ...user,
-        ...detailResponse,
-        name: detailResponse.fullName || detailResponse.name || user.name,
-        address: detailResponse.addresses && detailResponse.addresses.length > 0 
-          ? detailResponse.addresses.join(", ") 
-          : user.address
+        id: userData.id || user.id,
+        name: userData.email || user.email, // Sử dụng email làm tên hiển thị
+        email: userData.email || user.email,
+        role: user.role, // Giữ nguyên role đã được xử lý từ mapping ban đầu
+        status: userData.status ? userData.status.toLowerCase() : user.status,
+        createdAt: userData.createdAt || user.createdAt,
+        updatedAt: userData.updatedAt || user.updatedAt,
+        // Lưu object role gốc để hiển thị thông tin chi tiết
+        roleObject: (typeof userData.role === 'object' && userData.role !== null) 
+          ? userData.role 
+          : user.roleObject,
+        // Password hash để hiển thị
+        passwordHash: userData.password || "Chưa có"
       };
       
       setSelectedUser(detailedUser);
-      setShowUserDetail(true);
     } catch (error) {
       console.error('Error fetching user details:', error);
-      setSelectedUser(user);
-      setShowUserDetail(true);
+      // Vẫn hiển thị modal với thông tin cơ bản nếu không lấy được chi tiết
+      const basicUser = {
+        id: user.id,
+        name: user.email,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        roleObject: user.roleObject || null,
+        passwordHash: "Không thể tải thông tin"
+      };
+      setSelectedUser(basicUser);
+      showNotification('Không thể tải đầy đủ thông tin chi tiết. Hiển thị thông tin cơ bản.', 'error');
+    } finally {
+      setLoadingUserDetail(false);
     }
   };
 
-  // Xử lý khóa tài khoản
-  const handleBanUser = async (id) => {
+
+
+
+
+  // Xử lý đăng ký người dùng mới
+  const handleRegisterUser = async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    if (!registerForm.email || !registerForm.password || !registerForm.confirmPassword) {
+      showNotification('Vui lòng điền đầy đủ thông tin', 'error');
+      return;
+    }
+    
+    if (registerForm.password !== registerForm.confirmPassword) {
+      showNotification('Mật khẩu xác nhận không khớp', 'error');
+      return;
+    }
+    
+    if (registerForm.password.length < 6) {
+      showNotification('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+      return;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerForm.email)) {
+      showNotification('Email không hợp lệ', 'error');
+      return;
+    }
+    
     try {
-      if (userType === "users") {
-        await adminServices.users.updateStatus(id, "BANNED");
-      } else {
-        await adminServices.customers.updateStatus(id, "BANNED");
-      }
+      setRegisterLoading(true);
       
-      setUsers(users.map(user => 
-        user.id === id ? { ...user, status: "banned" } : user
-      ));
+      const userData = {
+        email: registerForm.email,
+        password: registerForm.password,
+        role: registerForm.role
+      };      
+      const response = await adminServices.auth.register(userData);
       
-      alert('Đã khóa tài khoản thành công');
-    } catch (error) {
-      console.error('Error banning user:', error);
-      alert('Có lỗi xảy ra khi khóa tài khoản');
+      console.log('Register Response:', response); // Debug response structure
+      
+      // Nếu đến được đây mà không có lỗi, coi như thành công
+      showNotification('Đăng ký người dùng thành công!', 'success');
+      
+      // Reset form
+      setRegisterForm({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        role: 'STAFF'
+      });
+      
+      // Close modal
+      setShowRegisterModal(false);
+      
+      // Refresh user list
+      console.log('Refreshing user list after registration...');
+      await fetchUsers();
+      console.log('User list refreshed successfully');    } catch (error) {
+      console.error('Error registering user:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra khi đăng ký người dùng';
+      showNotification('Lỗi: ' + errorMessage, 'error');
+    } finally {
+      setRegisterLoading(false);
+      
+      // Fallback: Đảm bảo modal đóng sau 3 giây nếu có bất kỳ vấn đề gì
+      setTimeout(() => {
+        if (showRegisterModal) {
+          console.log('Fallback: Forcing modal close after timeout');
+          setShowRegisterModal(false);
+          setRegisterForm({
+            email: '',
+            password: '',
+            confirmPassword: '',
+            role: 'STAFF'
+          });
+        }
+      }, 3000);
     }
   };
 
-  // Xử lý mở khóa tài khoản
-  const handleUnbanUser = async (id) => {
-    try {
-      if (userType === "users") {
-        await adminServices.users.updateStatus(id, "ACTIVE");
-      } else {
-        await adminServices.customers.updateStatus(id, "ACTIVE");
-      }
-      
-      setUsers(users.map(user => 
-        user.id === id ? { ...user, status: "active" } : user
-      ));
-      
-      alert('Đã mở khóa tài khoản thành công');
-    } catch (error) {
-      console.error('Error unbanning user:', error);
-      alert('Có lỗi xảy ra khi mở khóa tài khoản');
-    }
-  };
-
-  // Xử lý đăng ký thành người bán (chỉ cho customers)
-  const handleRegisterAsSeller = async (id) => {
-    try {
-      await adminServices.customers.registerAsSeller(id);
-      setUsers(users.map(user => 
-        user.id === id ? { ...user, isSeller: true } : user
-      ));
-      alert('Đã đăng ký thành người bán thành công');
-    } catch (error) {
-      console.error('Error registering as seller:', error);
-      alert('Có lỗi xảy ra khi đăng ký thành người bán');
-    }
+  // Xử lý thay đổi form đăng ký
+  const handleRegisterFormChange = (field, value) => {
+    setRegisterForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Xử lý xóa người dùng
@@ -185,10 +281,10 @@ function UsersManagement() {
         }
         
         setUsers(users.filter(user => user.id !== id));
-        alert('Đã xóa người dùng thành công');
+        showNotification('Đã xóa người dùng thành công', 'success');
       } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Có lỗi xảy ra khi xóa người dùng');
+        showNotification('Có lỗi xảy ra khi xóa người dùng', 'error');
       }
     }
   };
@@ -230,19 +326,28 @@ function UsersManagement() {
 
   // Hiển thị vai trò người dùng
   const renderRole = (role) => {
-    switch (role) {
+    // Xử lý trường hợp role là object
+    const roleString = typeof role === 'object' && role !== null 
+      ? (role.roleName?.toLowerCase() || 'staff')
+      : (typeof role === 'string' ? role : 'staff');
+    
+    switch (roleString) {
       case "super_admin":
         return <span className="px-2 py-1 text-xs text-white bg-purple-700 rounded-full">Super Admin</span>;
       case "admin":
         return <span className="px-2 py-1 text-xs text-white bg-purple-500 rounded-full">Admin</span>;
-      case "moderator":
-        return <span className="px-2 py-1 text-xs text-white bg-blue-500 rounded-full">Mod</span>;
-      case "user":
-        return <span className="px-2 py-1 text-xs text-white bg-gray-500 rounded-full">User</span>;
+      case "staff":
+        return <span className="px-2 py-1 text-xs text-white bg-blue-500 rounded-full">Staff</span>;
+      case "staff_management":
+        return <span className="px-2 py-1 text-xs text-white bg-blue-600 rounded-full">Staff Mgmt</span>;
+      case "staff_chat":
+        return <span className="px-2 py-1 text-xs text-white bg-green-600 rounded-full">Staff Chat</span>;
+      case "staff_news":
+        return <span className="px-2 py-1 text-xs text-white bg-orange-600 rounded-full">Staff News</span>;
       case "customer":
         return <span className="px-2 py-1 text-xs text-white bg-green-500 rounded-full">Customer</span>;
       default:
-        return <span className="px-2 py-1 text-xs text-white bg-gray-400 rounded-full">{role}</span>;
+        return <span className="px-2 py-1 text-xs text-white bg-gray-400 rounded-full">{roleString}</span>;
     }
   };
 
@@ -289,19 +394,28 @@ function UsersManagement() {
               <>
                 <option value="super_admin">Super Admin</option>
                 <option value="admin">Admin</option>
-                <option value="moderator">Moderator</option>
-                <option value="user">User</option>
+                <option value="staff">Staff</option>
+                <option value="staff_management">Staff Management</option>
+                <option value="staff_chat">Staff Chat</option>
+                <option value="staff_news">Staff News</option>
               </>
             )}
             {userType === "customers" && (
               <>
                 <option value="customer">Khách hàng</option>
-                <option value="seller">Người bán</option>
               </>
             )}
-            <option value="verified">Đã xác thực</option>
-            <option value="unverified">Chưa xác thực</option>
           </select>
+          
+          {userType === "users" && (
+            <button
+              onClick={() => setShowRegisterModal(true)}
+              className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Plus size={18} />
+              <span>Thêm người dùng</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -317,20 +431,19 @@ function UsersManagement() {
               <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Vai trò</th>
               <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Trạng thái</th>
               <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Ngày đăng ký</th>
-              <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Bài đăng</th>
               <th className="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">Thao tác</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={userType === 'users' ? 6 : 7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={userType === 'users' ? 5 : 6} className="px-6 py-4 text-center text-gray-500">
                   Đang tải dữ liệu...
                 </td>
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={userType === 'users' ? 6 : 7} className="px-6 py-4 text-center text-gray-500">
+                <td colSpan={userType === 'users' ? 5 : 6} className="px-6 py-4 text-center text-gray-500">
                   Không tìm thấy người dùng nào
                 </td>
               </tr>
@@ -339,22 +452,14 @@ function UsersManagement() {
                 <tr key={user.id}>
                   <td className="px-6 py-4">
                     {userType === 'users' ? (
-                      <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
                     ) : (
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 w-10 h-10">
-                          <img className="object-cover w-10 h-10 rounded-full" src={user.avatar} alt="" />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.phone}</div>
-                        </div>
-                        {user.verified && (
-                          <CheckCircle size={16} className="ml-2 text-blue-500" />
-                        )}
-                        {user.isSeller && (
-                          <Shield size={16} className="ml-2 text-green-500" title="Người bán" />
-                        )}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500">ID: {user.id}</div>
                       </div>
                     )}
                   </td>
@@ -368,7 +473,6 @@ function UsersManagement() {
                     {renderStatus(user.status)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{formatDate(user.createdAt)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{user.postsCount}</td>
                   <td className="px-6 py-4 text-sm text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <button
@@ -378,34 +482,7 @@ function UsersManagement() {
                       >
                         <Eye size={18} />
                       </button>
-                      
-                      {user.status === "active" ? (
-                        <button
-                          onClick={() => handleBanUser(user.id)}
-                          className="p-1 text-red-600 hover:text-red-900"
-                          title="Khóa tài khoản"
-                        >
-                          <Lock size={18} />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleUnbanUser(user.id)}
-                          className="p-1 text-green-600 hover:text-green-900"
-                          title="Mở khóa tài khoản"
-                        >
-                          <Unlock size={18} />
-                        </button>
-                      )}
-                      
-                      {userType === "customers" && !user.isSeller && (
-                        <button
-                          onClick={() => handleRegisterAsSeller(user.id)}
-                          className="p-1 text-green-600 hover:text-green-900"
-                          title="Đăng ký thành người bán"
-                        >
-                          <Shield size={18} />
-                        </button>
-                      )}
+
                       
                       <button
                         onClick={() => handleDeleteUser(user.id)}
@@ -496,161 +573,416 @@ function UsersManagement() {
         </div>
       )}
 
-      {/* Modal xem chi tiết người dùng - existing modal code with updated actions */}
-      {showUserDetail && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-4xl p-6 mx-4 bg-white rounded-lg shadow-xl">
+      {/* Modal đăng ký người dùng mới */}
+      {showRegisterModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowRegisterModal(false);
+              setRegisterForm({
+                email: '',
+                password: '',
+                confirmPassword: '',
+                role: 'STAFF'
+              });
+            }
+          }}
+        >
+          <div className="w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-xl"
+               onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Chi tiết {userType === "users" ? "người dùng" : "khách hàng"}</h2>
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <User size={24} className="text-blue-600" />
+                Đăng ký người dùng mới
+              </h2>
               <button
-                onClick={() => setShowUserDetail(false)}
+                onClick={() => {
+                  setShowRegisterModal(false);
+                  setRegisterForm({
+                    email: '',
+                    password: '',
+                    confirmPassword: '',
+                    role: 'USER'
+                  });
+                }}
                 className="p-1 text-gray-500 hover:text-gray-700"
               >
                 <XCircle size={24} />
               </button>
             </div>
             
+            <form onSubmit={handleRegisterUser} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={registerForm.email}
+                  onChange={(e) => handleRegisterFormChange('email', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                    registerForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.email)
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  placeholder="Nhập email người dùng"
+                  required
+                />
+                {registerForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.email) && (
+                  <p className="text-red-500 text-sm mt-1">Email không hợp lệ</p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vai trò <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={registerForm.role}
+                  onChange={(e) => handleRegisterFormChange('role', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="STAFF">Staff</option>
+                  <option value="STAFF_MANAGEMENT">Staff Management</option>
+                  <option value="STAFF_CHAT">Staff Chat</option>
+                  <option value="STAFF_NEWS">Staff News</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="SUPER_ADMIN">Super Admin</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={registerForm.password}
+                  onChange={(e) => handleRegisterFormChange('password', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                    registerForm.password && registerForm.password.length < 6
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+                  minLength={6}
+                  required
+                />
+                {registerForm.password && registerForm.password.length < 6 && (
+                  <p className="text-red-500 text-sm mt-1">Mật khẩu phải có ít nhất 6 ký tự</p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Xác nhận mật khẩu <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={registerForm.confirmPassword}
+                  onChange={(e) => handleRegisterFormChange('confirmPassword', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Nhập lại mật khẩu"
+                  required
+                />
+                {registerForm.password && registerForm.confirmPassword && 
+                 registerForm.password !== registerForm.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">Mật khẩu xác nhận không khớp</p>
+                )}
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRegisterModal(false);
+                    setRegisterForm({
+                      email: '',
+                      password: '',
+                      confirmPassword: '',
+                      role: 'STAFF'
+                    });
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  disabled={registerLoading}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={registerLoading || 
+                           registerForm.password !== registerForm.confirmPassword ||
+                           !registerForm.email || 
+                           !registerForm.password || 
+                           !registerForm.confirmPassword ||
+                           registerForm.password.length < 6}
+                >
+                  {registerLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Đang xử lý...
+                    </div>
+                  ) : (
+                    'Đăng ký'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal xem chi tiết người dùng */}
+      {showUserDetail && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowUserDetail(false);
+              setSelectedUser(null);
+              setLoadingUserDetail(false);
+            }
+          }}
+        >
+          <div className="w-full max-w-4xl p-6 mx-4 bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Chi tiết {userType === "users" ? "người dùng" : "khách hàng"}</h2>
+              <button
+                onClick={() => {
+                  setShowUserDetail(false);
+                  setSelectedUser(null);
+                  setLoadingUserDetail(false);
+                }}
+                className="p-1 text-gray-500 hover:text-gray-700"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            {loadingUserDetail ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="mt-2 text-gray-600">Đang tải thông tin chi tiết...</p>
+                </div>
+              </div>
+            ) : selectedUser && (
+            
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div className="md:col-span-1">
                 <div className="flex flex-col items-center p-6 text-center rounded-lg bg-gray-50">
-                  <img 
-                    src={selectedUser.avatar} 
-                    alt={selectedUser.name} 
-                    className="object-cover w-32 h-32 mb-4 rounded-full"
-                  />
+                  <div className="flex items-center justify-center w-32 h-32 mb-4 text-4xl font-bold text-white bg-gray-400 rounded-full">
+                    {selectedUser.name.charAt(0).toUpperCase()}
+                  </div>
                   <h3 className="mb-1 text-xl font-bold">{selectedUser.name}</h3>
                   <div className="mb-2">
                     {renderRole(selectedUser.role)}
-                    {selectedUser.verified && (
-                      <span className="inline-flex items-center px-2 py-1 ml-2 text-xs text-white bg-blue-500 rounded-full">
-                        <CheckCircle size={12} className="mr-1" />
-                        Đã xác thực
-                      </span>
-                    )}
                   </div>
-                  <p className="text-gray-500">{selectedUser.bio}</p>
+                  <p className="text-gray-500">ID: {selectedUser.id}</p>
                 </div>
                 
-                <div className="flex justify-between gap-2 mt-4">
-                  {selectedUser.status === "active" ? (
-                    <button
-                      onClick={() => {
-                        handleBanUser(selectedUser.id);
-                        setShowUserDetail(false);
-                      }}
-                      className="flex items-center justify-center flex-1 gap-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
-                    >
-                      <Lock size={16} />
-                      <span>Khóa tài khoản</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        handleUnbanUser(selectedUser.id);
-                        setShowUserDetail(false);
-                      }}
-                      className="flex items-center justify-center flex-1 gap-1 px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-                    >
-                      <Unlock size={16} />
-                      <span>Mở khóa</span>
-                    </button>
-                  )}
-                  
-                  {userType === "customers" && !selectedUser.isSeller && (
-                    <button
-                      onClick={() => {
-                        handleRegisterAsSeller(selectedUser.id);
-                        setSelectedUser({...selectedUser, isSeller: true});
-                      }}
-                      className="flex items-center justify-center flex-1 gap-1 px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600"
-                    >
-                      <Shield size={16} />
-                      <span>Đăng ký bán hàng</span>
-                    </button>
-                  )}
-                  
+                <div className="flex justify-center gap-2 mt-4">
                   <button
                     onClick={() => {
                       handleDeleteUser(selectedUser.id);
                       setShowUserDetail(false);
+                      setSelectedUser(null);
                     }}
-                    className="flex items-center justify-center flex-1 gap-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
+                    className="flex items-center justify-center gap-1 px-4 py-2 text-white bg-red-500 rounded-lg hover:bg-red-600"
                   >
                     <Trash2 size={16} />
-                    <span>Xóa</span>
+                    <span>Xóa người dùng</span>
                   </button>
                 </div>
               </div>
               
               <div className="md:col-span-2">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Email</p>
-                    <p className="text-gray-900">{selectedUser.email}</p>
+                {/* Thông tin cơ bản */}
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold text-gray-800">Thông tin cơ bản</h3>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="p-4 rounded-lg bg-gray-50 md:col-span-2">
+                      <p className="mb-1 text-sm font-medium text-gray-500">ID Người dùng</p>
+                      <p className="text-gray-900 font-mono text-sm break-all">{selectedUser.id}</p>
+                    </div>
+                    
+                    <div className="p-4 rounded-lg bg-gray-50 md:col-span-2">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Email</p>
+                      <p className="text-gray-900 break-words">{selectedUser.email}</p>
+                    </div>
                   </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Số điện thoại</p>
-                    <p className="text-gray-900">{selectedUser.phone}</p>
+                </div>
+
+                {/* Thông tin hệ thống */}
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold text-gray-800">Thông tin hệ thống</h3>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Vai trò</p>
+                      <div className="flex items-center gap-2">
+                        {renderRole(selectedUser.role)}
+                        {selectedUser.roleObject && selectedUser.roleObject.description && (
+                          <div className="text-xs text-gray-500">
+                            ({selectedUser.roleObject.description})
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Trạng thái</p>
+                      <div>{renderStatus(selectedUser.status)}</div>
+                    </div>
+                    
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Ngày đăng ký</p>
+                      <p className="text-gray-900">{formatDate(selectedUser.createdAt)}</p>
+                    </div>
+                    
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Cập nhật lần cuối</p>
+                      <p className="text-gray-900">{formatDate(selectedUser.updatedAt)}</p>
+                    </div>
                   </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Địa chỉ</p>
-                    <p className="text-gray-900">{selectedUser.address}</p>
+                </div>
+
+                {/* Thông tin bảo mật */}
+                <div className="mb-6">
+                  <h3 className="mb-3 text-lg font-semibold text-gray-800">Thông tin bảo mật</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <p className="mb-1 text-sm font-medium text-gray-500">Mật khẩu (Hash)</p>
+                      <p className="text-gray-900 font-mono text-sm break-all">{selectedUser.passwordHash}</p>
+                    </div>
                   </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Ngày đăng ký</p>
-                    <p className="text-gray-900">{formatDate(selectedUser.createdAt)}</p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Đăng nhập gần nhất</p>
-                    <p className="text-gray-900">{formatDate(selectedUser.lastLogin)}</p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Số bài đăng</p>
-                    <p className="text-gray-900">{selectedUser.postsCount}</p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Trạng thái</p>
-                    <div>{renderStatus(selectedUser.status)}</div>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-gray-50">
-                    <p className="mb-1 text-sm font-medium text-gray-500">Vai trò</p>
-                    <div className="flex items-center gap-2">
-                      {renderRole(selectedUser.role)}
-                      {selectedUser.roleObject && (
-                        <div className="text-xs text-gray-500">
-                          ({selectedUser.roleObject.description})
+                </div>
+
+                {/* Thông tin quyền hạn */}
+                {selectedUser.roleObject && (
+                  <div className="mb-6">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">Thông tin quyền hạn</h3>
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div>
+                          <p className="mb-1 text-sm font-medium text-gray-500">ID Vai trò</p>
+                          <p className="text-gray-900 font-mono text-sm">{selectedUser.roleObject.id}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-sm font-medium text-gray-500">Tên vai trò</p>
+                          <p className="text-gray-900 font-semibold">{selectedUser.roleObject.roleName}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-sm font-medium text-gray-500">Phạm vi quyền</p>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            selectedUser.roleObject.permissionScope === 'ALL' 
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {selectedUser.roleObject.permissionScope}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-sm font-medium text-gray-500">Số quyền</p>
+                          <p className="text-gray-900 font-semibold">
+                            {selectedUser.roleObject.permissions ? selectedUser.roleObject.permissions.length : 0}
+                          </p>
+                        </div>
+                      </div>
+                      {selectedUser.roleObject.description && (
+                        <div className="mt-4">
+                          <p className="mb-1 text-sm font-medium text-gray-500">Mô tả</p>
+                          <p className="text-gray-900">{selectedUser.roleObject.description}</p>
+                        </div>
+                      )}
+                      {selectedUser.roleObject.permissions && selectedUser.roleObject.permissions.length > 0 && (
+                        <div className="mt-4">
+                          <p className="mb-2 text-sm font-medium text-gray-500">Danh sách quyền</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedUser.roleObject.permissions.map((permission, index) => (
+                              <span 
+                                key={index}
+                                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
+                              >
+                                {permission}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-                
-                <div className="p-4 mt-4 rounded-lg bg-gray-50">
-                  <h3 className="mb-2 text-lg font-medium">Hoạt động gần đây</h3>
+                )}                {/* Debug Info - có thể bỏ sau */}
+                {import.meta.env.DEV && (
+                  <div className="mb-6">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800">Debug Info</h3>
+                    <div className="p-4 rounded-lg bg-gray-50">
+                      <details>
+                        <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+                          Raw User Data (Click to expand)
+                        </summary>
+                        <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
+                          {JSON.stringify(selectedUser, null, 2)}
+                        </pre>
+                      </details>
+                    </div>
+                  </div>
+                )}
+
+                {/* Hoạt động gần đây */}
+                <div className="p-4 rounded-lg bg-gray-50">
+                  <h3 className="mb-3 text-lg font-semibold text-gray-800">Hoạt động gần đây</h3>
                   <div className="space-y-2">
-                    <div className="p-2 bg-white rounded">
-                      <p className="text-sm">Đăng nhập vào hệ thống</p>
-                      <p className="text-xs text-gray-500">{formatDate(selectedUser.lastLogin)}</p>
-                    </div>
-                    <div className="p-2 bg-white rounded">
-                      <p className="text-sm">Đăng bài mới: "Bán điện thoại iPhone 13 Pro Max"</p>
-                      <p className="text-xs text-gray-500">15/06/2023, 10:25</p>
-                    </div>
-                    <div className="p-2 bg-white rounded">
-                      <p className="text-sm">Cập nhật thông tin cá nhân</p>
-                      <p className="text-xs text-gray-500">10/06/2023, 15:40</p>
-                    </div>
+                    {selectedUser.createdAt && (
+                      <div className="p-3 bg-white rounded-lg border-l-4 border-green-500">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Tạo tài khoản</p>
+                            <p className="text-xs text-gray-500">{formatDate(selectedUser.createdAt)}</p>
+                          </div>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {selectedUser.updatedAt && selectedUser.updatedAt !== selectedUser.createdAt && (
+                      <div className="p-3 bg-white rounded-lg border-l-4 border-blue-500">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Cập nhật gần nhất</p>
+                            <p className="text-xs text-gray-500">{formatDate(selectedUser.updatedAt)}</p>
+                          </div>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white ${
+          notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } animate-fade-in`}>
+          <div className="flex items-center gap-2">
+            {notification.type === 'success' ? (
+              <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                ✓
+              </div>
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                ✕
+              </div>
+            )}
+            <span>{notification.message}</span>
           </div>
         </div>
       )}

@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
 import { 
-  BarChart3, 
   Users, 
   FileText, 
   DollarSign, 
   TrendingUp, 
-  AlertTriangle 
+  AlertTriangle,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
+import { useSimpleOverviewData } from "../../hooks/useSimpleOverviewData";
 
 function StatCard({ icon, title, value, trend, trendValue, bgColor }) {
   return (
@@ -29,29 +30,18 @@ function StatCard({ icon, title, value, trend, trendValue, bgColor }) {
 }
 
 function Overview() {
-  // Dữ liệu mẫu - trong thực tế sẽ được lấy từ API
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalPosts: 0,
-    totalRevenue: 0,
-    pendingReports: 0
-  });
+  // Sử dụng custom hook để quản lý dữ liệu
+  const {
+    stats,
+    newUsers,
+    recentPosts,
+    loading,
+    error,
+    refreshData
+  } = useSimpleOverviewData();
 
-  // Giả lập việc lấy dữ liệu từ API
-  useEffect(() => {
-    // Trong thực tế, đây sẽ là một API call
-    setTimeout(() => {
-      setStats({
-        totalUsers: 1250,
-        totalPosts: 3456,
-        totalRevenue: 45600000,
-        pendingReports: 12
-      });
-    }, 1000);
-  }, []);
-
-  // Dữ liệu biểu đồ mẫu
-  const chartData = {
+  // Dữ liệu biểu đồ mặc định nếu không có dữ liệu từ API
+  const defaultChartData = {
     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
     datasets: [
       {
@@ -70,8 +60,48 @@ function Overview() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
+
+
+  // Hiển thị loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin" />
+        <span className="ml-2">Đang tải dữ liệu...</span>
+      </div>
+    );
+  }
+
+  // Hiển thị error state
+  if (error) {
+    return (
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-center">
+          <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
+          <span className="text-red-700">Lỗi: {error}</span>
+        </div>
+        <p className="mt-2 text-sm text-red-600">
+          Đang hiển thị dữ liệu mẫu. Vui lòng kiểm tra kết nối API.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
+      {/* Header với nút refresh */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Tổng quan</h1>
+        <button
+          onClick={refreshData}
+          disabled={loading}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Làm mới
+        </button>
+      </div>
+
       {/* Thống kê tổng quan */}
       <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
@@ -110,47 +140,95 @@ function Overview() {
         />
       </div>
 
-      {/* Biểu đồ thống kê */}
-      <div className="p-6 bg-white rounded-lg shadow-sm">
-        <h2 className="mb-4 text-xl font-bold">Thống kê theo tháng</h2>
-        <div className="h-80">
-          <div className="flex items-center justify-center h-full text-gray-400">
-            <BarChart3 size={48} />
-            <p className="ml-4 text-lg">Biểu đồ thống kê sẽ được hiển thị ở đây</p>
-          </div>
-        </div>
-      </div>
+
 
       {/* Hoạt động gần đây */}
       <div className="grid grid-cols-1 gap-6 mt-8 lg:grid-cols-2">
         <div className="p-6 bg-white rounded-lg shadow-sm">
           <h2 className="mb-4 text-xl font-bold">Người dùng mới đăng ký</h2>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div key={item} className="flex items-center p-3 border-b border-gray-100">
-                <div className="w-10 h-10 mr-4 bg-gray-200 rounded-full"></div>
-                <div>
-                  <p className="font-medium">Người dùng {item}</p>
-                  <p className="text-sm text-gray-500">Đăng ký {item} giờ trước</p>
+            {newUsers.length > 0 ? (
+              newUsers.map((user, index) => (
+                <div key={user.id || index} className="flex items-center p-3 border-b border-gray-100">
+                  <div className="w-10 h-10 mr-4 bg-gray-200 rounded-full flex items-center justify-center">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <Users size={20} className="text-gray-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium">{user.name || user.username || `Người dùng ${index + 1}`}</p>
+                    <p className="text-sm text-gray-500">
+                      {user.createdAt ? 
+                        `Đăng ký ${new Date(user.createdAt).toLocaleDateString('vi-VN')}` : 
+                        `Đăng ký ${index + 1} giờ trước`
+                      }
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              // Fallback data nếu không có dữ liệu từ API
+              [1, 2, 3, 4, 5].map((item) => (
+                <div key={item} className="flex items-center p-3 border-b border-gray-100">
+                  <div className="w-10 h-10 mr-4 bg-gray-200 rounded-full"></div>
+                  <div>
+                    <p className="font-medium">Người dùng {item}</p>
+                    <p className="text-sm text-gray-500">Đăng ký {item} giờ trước</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         <div className="p-6 bg-white rounded-lg shadow-sm">
           <h2 className="mb-4 text-xl font-bold">Bài đăng mới nhất</h2>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div key={item} className="flex items-center p-3 border-b border-gray-100">
-                <div className="w-10 h-10 mr-4 bg-gray-200 rounded"></div>
-                <div className="flex-1">
-                  <p className="font-medium">Tiêu đề bài đăng {item}</p>
-                  <p className="text-sm text-gray-500">Đăng {item * 10} phút trước</p>
+            {recentPosts.length > 0 ? (
+              recentPosts.map((post, index) => (
+                <div key={post.id || index} className="flex items-center p-3 border-b border-gray-100">
+                  <div className="w-10 h-10 mr-4 bg-gray-200 rounded flex items-center justify-center">
+                    {post.image ? (
+                      <img src={post.image} alt={post.title} className="w-full h-full rounded object-cover" />
+                    ) : (
+                      <FileText size={20} className="text-gray-500" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{post.title || `Tiêu đề bài đăng ${index + 1}`}</p>
+                    <p className="text-sm text-gray-500">
+                      {post.createdAt ? 
+                        `Đăng ${new Date(post.createdAt).toLocaleDateString('vi-VN')}` : 
+                        `Đăng ${(index + 1) * 10} phút trước`
+                      }
+                    </p>
+                  </div>
+                  <div className={`px-2 py-1 text-xs text-white rounded ${
+                    post.status === 'APPROVED' ? 'bg-green-500' : 
+                    post.status === 'PENDING' ? 'bg-yellow-500' : 
+                    post.status === 'REJECTED' ? 'bg-red-500' : 'bg-green-500'
+                  }`}>
+                    {post.status === 'APPROVED' ? 'Đã duyệt' : 
+                     post.status === 'PENDING' ? 'Chờ duyệt' : 
+                     post.status === 'REJECTED' ? 'Từ chối' : 'Đã duyệt'}
+                  </div>
                 </div>
-                <div className="px-2 py-1 text-xs text-white bg-green-500 rounded">Đã duyệt</div>
-              </div>
-            ))}
+              ))
+            ) : (
+              // Fallback data nếu không có dữ liệu từ API
+              [1, 2, 3, 4, 5].map((item) => (
+                <div key={item} className="flex items-center p-3 border-b border-gray-100">
+                  <div className="w-10 h-10 mr-4 bg-gray-200 rounded"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Tiêu đề bài đăng {item}</p>
+                    <p className="text-sm text-gray-500">Đăng {item * 10} phút trước</p>
+                  </div>
+                  <div className="px-2 py-1 text-xs text-white bg-green-500 rounded">Đã duyệt</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
