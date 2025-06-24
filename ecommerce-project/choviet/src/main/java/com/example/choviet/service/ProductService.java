@@ -297,10 +297,47 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> result = productRepository.findAll(pageable);
 
-        // Lấy danh sách ID sản phẩm để tìm thông tin customer
+        // Lấy danh sách ID sản phẩm
         List<String> productIds = result.getContent().stream()
                 .map(Product::getId)
                 .collect(Collectors.toList());
+
+        // Lấy thông tin category
+        Set<String> categoryIds = result.getContent().stream()
+                .map(Product::getCategoryId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<String, ProductCategory> categoryMap = categoryRepository.findAllById(categoryIds).stream()
+                .collect(Collectors.toMap(ProductCategory::getId, Function.identity()));
+
+        // Tạo map lưu trữ ảnh đầu tiên của mỗi sản phẩm
+        Map<String, String> productImageMap = new HashMap<>();
+        Map<String, List<String>> productAllImagesMap = new HashMap<>();
+
+        // Tìm ảnh cho mỗi sản phẩm
+        for (String productId : productIds) {
+            List<ProductImage> productImages = productImageRepository.findByProductId(productId);
+            List<String> imageUrls = new ArrayList<>();
+            
+            for (ProductImage productImage : productImages) {
+                String imageId = productImage.getImageId();
+                if (imageId != null) {
+                    imageRepository.findById(imageId)
+                            .ifPresent(image -> {
+                                imageUrls.add(image.getImage());
+                                // Lưu ảnh đầu tiên làm ảnh review
+                                if (productImageMap.get(productId) == null) {
+                                    productImageMap.put(productId, image.getImage());
+                                }
+                            });
+                }
+            }
+            
+            if (!imageUrls.isEmpty()) {
+                productAllImagesMap.put(productId, imageUrls);
+            }
+        }
 
         // Lấy thông tin customer cho từng sản phẩm
         Map<String, Customer> productCustomerMap = new HashMap<>();
@@ -317,9 +354,32 @@ public class ProductService {
                     });
         }
 
-        // Enrich mỗi product với thông tin customer
+        // Enrich mỗi product với thông tin đầy đủ
         List<Product> enriched = result.getContent().stream()
                 .peek(product -> {
+                    // Thêm thông tin category
+                    ProductCategory category = categoryMap.get(product.getCategoryId());
+                    if (category != null) {
+                        product.setProductCategory(
+                                ProductCategory.builder()
+                                        .id(category.getId())
+                                        .name(category.getName())
+                                        .build()
+                        );
+                    }
+
+                    // Thêm ảnh review (ảnh đầu tiên)
+                    String imagePath = productImageMap.get(product.getId());
+                    if (imagePath != null) {
+                        product.setImageReview(imagePath);
+                    }
+
+                    // Thêm tất cả ảnh
+                    List<String> allImages = productAllImagesMap.get(product.getId());
+                    if (allImages != null && !allImages.isEmpty()) {
+                        product.setImages(allImages);
+                    }
+                    
                     // Thêm thông tin customer (seller)
                     Customer customer = productCustomerMap.get(product.getId());
                     if (customer != null) {

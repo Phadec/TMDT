@@ -3,6 +3,7 @@ package com.example.choviet.dto;
 import com.example.choviet.entity.Order;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
